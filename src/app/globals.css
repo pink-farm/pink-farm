@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+@theme {
+  /* Original Signature Palette */
+  --color-brand-pink: #FDF2F4;
+  --color-brand-pink-accent: #E6B8C0;
+  --color-brand-green: #1A3C34;
+  --color-brand-green-light: #2A594E;
+  --color-brand-sage: #A5B4A3;
+  --color-brand-ivory: #FDFBF7;
+  --color-brand-cream: #F7F3EB;
+  --color-brand-charcoal: #2D2D2D;
+  --color-brand-champagne: #E8D8C8;
+
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-sans: Arial, Helvetica, sans-serif;
+
+  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  --animate-fade-in-up: fade-in-up 0.8s ease-out forwards;
+  --animate-fade-in: fade-in 1s ease-out forwards;
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-text-reveal: text-reveal 1.2s cubic-bezier(0.77, 0, 0.175, 1) both;
+  --animate-draw-line: draw-line 2s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-slow: float 8s ease-in-out infinite 1s;
+  --animate-float-fast: float 5s ease-in-out infinite 2s;
+  --animate-mesh: gradient-mesh 15s ease infinite alternate;
+  --animate-text-gradient: text-gradient-shimmer 3s linear infinite;
+  --animate-breathe: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 6px rgba(26, 64, 49, 0.1)); }
+  50% { transform: scale(1.03); filter: drop-shadow(0 10px 15px rgba(26, 64, 49, 0.3)); }
+}
+
+@keyframes text-gradient-shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes draw-line {
+  0% { stroke-dasharray: 0, 300; opacity: 0; fill: transparent; }
+  10% { opacity: 1; }
+  80% { stroke-dasharray: 300, 0; fill: transparent; }
+  100% { stroke-dasharray: 300, 0; opacity: 1; fill: currentColor; }
+}
+
+@keyframes gradient-mesh {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes text-reveal {
+  0% { 
+    opacity: 0; 
+    clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%); 
+    transform: translateY(40px); 
+  }
+  100% { 
+    opacity: 1; 
+    clip-path: polygon(0 -20%, 100% -20%, 100% 120%, 0 120%); 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes orb-move-1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(10vw, 15vh) scale(1.2); }
+  100% { transform: translate(-5vw, 10vh) scale(0.9); }
+}
+
+@keyframes orb-move-2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-15vw, 5vh) scale(1.1); }
+  100% { transform: translate(10vw, -15vh) scale(1); }
+}
+
+@keyframes orb-move-3 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(5vw, -10vh) scale(0.85); }
+  100% { transform: translate(-10vw, -5vh) scale(1.15); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(1.5deg); }
+}
+
+@keyframes shimmer {
+  100% { left: 200%; }
+}
+
+:root {
+  --background: #FDFBF7;
+  --foreground: #2D2D2D;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #FDFBF7;
+    --foreground: #2D2D2D;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-inter), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-playfair), serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: var(--color-brand-pink-accent);
+  color: var(--color-brand-green);
+}
+
+@media print {
+  /* Strictly hide everything non-printable */
+  header,
+  nav,
+  footer,
+  aside,
+  .print\:hidden,
+  [aria-label="Chat on WhatsApp"],
+  [aria-label="Follow on Instagram"],
+  [class*="shadow-[0_8px_25px"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Reset body and background for printing */
+  html, body {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+}
+
