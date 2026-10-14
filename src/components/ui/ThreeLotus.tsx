@@ -175,7 +175,7 @@ export function ThreeLotus({
         const y = pos.getY(i);
         uvs.setXY(i, (x / width) + 0.5, y / height);
       }
-      shapeGeo.uvsNeedUpdate = true;
+      uvs.needsUpdate = true;
 
       const petalMesh = new THREE.Mesh(shapeGeo, petalPorcelainMaterial);
       petalMesh.castShadow = true;
