@@ -12,6 +12,7 @@ export function MakhanaNavigationLoader() {
   const [progress, setProgress] = useState(0);
 
   const startTimestampRef = useRef<number>(0);
+  const currentPathnameRef = useRef<string>(pathname);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -36,7 +37,7 @@ export function MakhanaNavigationLoader() {
       });
     }, 120);
 
-    // Safety timeout: auto dismiss after 6s
+    // Safety timeout: auto dismiss after 6s in case navigation hangs
     safetyTimeoutRef.current = setTimeout(() => {
       setIsNavigating(false);
       setProgress(0);
@@ -50,26 +51,43 @@ export function MakhanaNavigationLoader() {
 
     setProgress(100);
 
-    // Keep the lotus visible for a smooth, pleasant moment (~450ms)
-    // so the bloom animation is appreciated without feeling sluggish
+    // Ensure the lotus animation is shown for at least minDisplayTime (300ms)
+    // so it doesn't flicker away instantly on super-fast cached pages,
+    // but dismisses smoothly once the new page is mounted.
     const elapsed = Date.now() - startTimestampRef.current;
-    const minDisplayTime = 450;
+    const minDisplayTime = 300;
     const remainingTime = Math.max(0, minDisplayTime - elapsed);
 
     dismissTimerRef.current = setTimeout(() => {
       setIsNavigating(false);
       setProgress(0);
-      window.scrollTo(0, 0);
     }, remainingTime);
   }, []);
 
-  // When pathname or searchParams change, navigation finished
+  // Listen for the new route to be mounted into the DOM via template.tsx
   useEffect(() => {
-    if (isNavigating) {
+    const handleRouteMounted = () => {
+      currentPathnameRef.current = window.location.pathname;
       window.scrollTo(0, 0);
       completeNavigation();
+    };
+
+    window.addEventListener("pinkfarm:route:mounted", handleRouteMounted);
+    return () => {
+      window.removeEventListener("pinkfarm:route:mounted", handleRouteMounted);
+    };
+  }, [completeNavigation]);
+
+  // Reactive fallback: detect when pathname or searchParams change to a different URL
+  useEffect(() => {
+    if (currentPathnameRef.current !== pathname) {
+      currentPathnameRef.current = pathname;
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        completeNavigation();
+      });
     }
-  }, [pathname, searchParams, completeNavigation, isNavigating]);
+  }, [pathname, searchParams, completeNavigation]);
 
   // Intercept navigation link clicks across the application
   useEffect(() => {
@@ -113,12 +131,17 @@ export function MakhanaNavigationLoader() {
     const handleCustomStart = () => startNavigation();
     const handleCustomStop = () => completeNavigation();
 
+    // Listen to browser Back / Forward buttons
+    const handlePopState = () => startNavigation();
+
     document.addEventListener("click", handleDocumentClick, { capture: true });
+    window.addEventListener("popstate", handlePopState);
     window.addEventListener("pinkfarm:buffering:start", handleCustomStart);
     window.addEventListener("pinkfarm:buffering:stop", handleCustomStop);
 
     return () => {
       document.removeEventListener("click", handleDocumentClick, { capture: true });
+      window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);
       if (timerRef.current) clearInterval(timerRef.current);
