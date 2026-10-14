@@ -7,7 +7,7 @@ import { FadeIn, HoverCard, GlowPulse } from "@/components/ui/MotionWrappers";
 import { ProductBadges } from "@/components/products/ProductHighlightBadges";
 import { getStoreProductBySlug } from "@/lib/defaultProducts";
 
-
+export const instant = false;
 
 export default async function ProductDetailPage({
   params,

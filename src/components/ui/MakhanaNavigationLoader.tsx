@@ -2,58 +2,51 @@
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { MakhanaLoader } from "./MakhanaLoader";
+import { motion } from "framer-motion";
 
 export function MakhanaNavigationLoader() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isBuffering, setIsBuffering] = useState(false);
-  const [customMessage, setCustomMessage] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [progress, setProgress] = useState(0);
 
-  const startTimestampRef = useRef<number>(0);
-  const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startBuffering = useCallback((message?: string) => {
-    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+  const startProgress = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setIsNavigating(true);
+    setProgress(20);
 
-    startTimestampRef.current = Date.now();
-    setCustomMessage(message || null);
-    setIsBuffering(true);
-
-    // Safety timeout: auto dismiss after 6s to prevent stuck overlays
-    safetyTimeoutRef.current = setTimeout(() => {
-      setIsBuffering(false);
-      setCustomMessage(null);
-    }, 6000);
+    // Smoothly crawl up towards 85% while route payload loads
+    timerRef.current = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 85) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 85;
+        }
+        return prev + Math.random() * 12;
+      });
+    }, 120);
   }, []);
 
-  const stopBuffering = useCallback(() => {
-    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+  const completeProgress = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setProgress(100);
 
-    // Ensure a smooth, pleasant minimum display time (~380ms)
-    // so the animation blooms smoothly and doesn't jerk or flash the footer
-    const elapsed = Date.now() - startTimestampRef.current;
-    const minDisplayTime = 380;
-    const remainingTime = Math.max(0, minDisplayTime - elapsed);
+    const fadeTimer = setTimeout(() => {
+      setIsNavigating(false);
+      setProgress(0);
+    }, 300);
 
-    dismissTimerRef.current = setTimeout(() => {
-      setIsBuffering(false);
-      setCustomMessage(null);
-      window.scrollTo(0, 0);
-    }, remainingTime);
+    return () => clearTimeout(fadeTimer);
   }, []);
 
-  // When pathname or searchParams change, the next screen has arrived!
+  // When pathname or searchParams change, navigation finished
   useEffect(() => {
-    if (isBuffering) {
-      window.scrollTo(0, 0);
-      stopBuffering();
+    if (isNavigating) {
+      completeProgress();
     }
-  }, [pathname, searchParams, stopBuffering, isBuffering]);
+  }, [pathname, searchParams, completeProgress, isNavigating]);
 
   // Intercept navigation link clicks across the application
   useEffect(() => {
@@ -80,7 +73,6 @@ export function MakhanaNavigationLoader() {
         return;
       }
 
-      // Check if target is same page/hash
       const currentUrl = new URL(window.location.href);
       const destinationUrl = new URL(href, window.location.origin);
 
@@ -91,20 +83,12 @@ export function MakhanaNavigationLoader() {
         return;
       }
 
-      // User initiated screen navigation: trigger buffering immediately
-      const isProduct = destinationUrl.pathname.startsWith("/products/");
-      startBuffering(isProduct ? "Opening Product..." : "Loading Freshness...");
+      startProgress();
     };
 
-    // Custom events for manual buffering triggers across forms/actions
-    const handleCustomStart = (e: Event) => {
-      const customEvent = e as CustomEvent<{ message?: string }>;
-      startBuffering(customEvent.detail?.message);
-    };
-
-    const handleCustomStop = () => {
-      stopBuffering();
-    };
+    // Custom events for manual triggers
+    const handleCustomStart = () => startProgress();
+    const handleCustomStop = () => completeProgress();
 
     document.addEventListener("click", handleDocumentClick, { capture: true });
     window.addEventListener("pinkfarm:buffering:start", handleCustomStart);
@@ -114,40 +98,30 @@ export function MakhanaNavigationLoader() {
       document.removeEventListener("click", handleDocumentClick, { capture: true });
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);
-      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-      if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [startBuffering, stopBuffering]);
+  }, [startProgress, completeProgress]);
+
+  if (!isNavigating && progress === 0) return null;
 
   return (
-    <AnimatePresence>
-      {isBuffering && (
-        <motion.div
-          key="makhana-navigation-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.22, ease: "easeOut" } }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
-          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7]/90 backdrop-blur-md pointer-events-auto"
-        >
-          <motion.div
-            initial={{ scale: 0.88, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.96, opacity: 0 }}
-            transition={{
-              type: "spring",
-              damping: 24,
-              stiffness: 280,
-            }}
-          >
-            <MakhanaLoader
-              size="xl"
-              text={customMessage || "Loading Freshness..."}
-              subtext="Every bite crafted with love"
-            />
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div
+      aria-hidden="true"
+      className="fixed top-0 left-0 right-0 h-[3px] z-[99999] pointer-events-none overflow-hidden"
+    >
+      <motion.div
+        className="h-full bg-gradient-to-r from-brand-green via-brand-pink-accent to-[#88E2B0] shadow-[0_0_12px_rgba(42,89,78,0.6)]"
+        initial={{ width: "0%", opacity: 1 }}
+        animate={{
+          width: `${progress}%`,
+          opacity: progress === 100 ? 0 : 1,
+        }}
+        transition={{
+          width: { ease: "easeOut", duration: 0.2 },
+          opacity: { duration: 0.25, delay: progress === 100 ? 0.1 : 0 },
+        }}
+      />
+    </div>
   );
 }
+export default MakhanaNavigationLoader;
