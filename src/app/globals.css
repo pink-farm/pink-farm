@@ -56,6 +56,30 @@
   }
 }
 
+@keyframes lotus-3d-spin {
+  0% {
+    transform: translateY(0px) rotateY(-26deg) rotateX(6deg) scale(0.95);
+  }
+  25% {
+    transform: translateY(-10px) rotateY(0deg) rotateX(12deg) scale(1.04);
+  }
+  50% {
+    transform: translateY(0px) rotateY(26deg) rotateX(6deg) scale(1.08);
+  }
+  75% {
+    transform: translateY(8px) rotateY(0deg) rotateX(2deg) scale(1.01);
+  }
+  100% {
+    transform: translateY(0px) rotateY(-26deg) rotateX(6deg) scale(0.95);
+  }
+}
+
+.animate-lotus-3d-spin {
+  animation: lotus-3d-spin 4.5s ease-in-out infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
 @keyframes pulse-makhana-shadow {
   0%, 100% {
     transform: scale(1);
