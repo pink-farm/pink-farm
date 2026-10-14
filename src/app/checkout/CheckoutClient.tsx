@@ -19,12 +19,15 @@ import {
   Navigation,
   Crosshair,
   AlertCircle,
+  AlertTriangle,
+  LogIn,
   CreditCard,
   Zap,
   Lock
 } from "lucide-react";
+import Link from "next/link";
 import { SurpriseGiftCheckoutRow } from "@/components/checkout/CuteSurpriseGift";
-import type { CustomerAddress } from "@/store/customerStore";
+import { useCustomerStore, type CustomerAddress } from "@/store/customerStore";
 import { MakhanaLoader } from "@/components/ui/MakhanaLoader";
 
 const checkoutSchema = z.object({
@@ -42,6 +45,8 @@ type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 export function CheckoutClient() {
   const { items, clearCart } = useCartStore();
   const router = useRouter();
+  const isLoggedIn = useCustomerStore((state) => state.isLoggedIn);
+  const profile = useCustomerStore((state) => state.profile);
   const deliveryFeeSetting = useSettingsStore((state) => state.deliveryFee);
   const freeDeliveryThreshold = useSettingsStore((state) => state.freeDeliveryThreshold);
   const isAcceptingOrders = useSettingsStore((state) => state.isAcceptingOrders);
@@ -383,37 +388,126 @@ export function CheckoutClient() {
     <div className="flex flex-col lg:flex-row gap-10 xl:gap-12">
       {/* Checkout Form */}
       <div className="flex-[2]">
-        {/* Guest Checkout & Login Not Mandatory Notice */}
-        <div className="bg-gradient-to-r from-emerald-50 via-brand-cream/50 to-emerald-50 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <UserCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-serif font-bold text-base text-brand-green">Instant Guest Checkout</h3>
-                <span className="text-[10px] font-bold bg-emerald-700 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  No Login Required
-                </span>
+        {/* Disclaimer for Login / Authenticated Status Banner */}
+        {isLoggedIn ? (
+          <div className="bg-gradient-to-r from-emerald-50 via-teal-50/50 to-emerald-50 border border-emerald-200 rounded-2xl p-4 sm:p-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <ShieldCheck className="w-5 h-5" />
               </div>
-              <p className="text-xs text-brand-charcoal/80 mt-0.5">
-                No password or account creation needed. Place your order directly in 60 seconds!
-              </p>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-serif font-bold text-sm sm:text-base text-brand-green">
+                    Logged in as {profile?.name || profile?.phone || "Pink Farm Member"}
+                  </h3>
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Verified Account
+                  </span>
+                </div>
+                <p className="text-xs text-brand-charcoal/80 mt-0.5">
+                  ✨ Real-time parcel tracking, order history &amp; digital tax invoices are enabled for this order.
+                </p>
+              </div>
+            </div>
+            {hasLoadedSavedAddress && (
+              <div className="flex items-center gap-2 self-start sm:self-auto bg-white/90 border border-emerald-200 px-2.5 py-1.5 rounded-xl text-xs">
+                <span className="text-emerald-700 font-medium">Autofilled saved details</span>
+                <button
+                  type="button"
+                  onClick={clearSavedAddress}
+                  className="text-brand-charcoal/60 hover:text-rose-600 underline font-semibold text-[11px]"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Prominent Guest Ordering Disclaimer Box */
+          <div className="bg-gradient-to-br from-amber-50 via-orange-50/30 to-amber-50/70 border-2 border-amber-300/90 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-amber-200/80">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-serif font-bold text-base text-amber-950">
+                      Ordering as Guest? Important Notice
+                    </h3>
+                    <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full uppercase tracking-wider border border-amber-300">
+                      Guest Mode
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-900/85 mt-1 leading-relaxed">
+                    We recommend logging in before checkout. Please review the <strong>disadvantages of ordering as a guest:</strong>
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/login?redirect=/checkout"
+                className="self-start sm:self-auto inline-flex items-center gap-1.5 bg-brand-green hover:bg-brand-green-light text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all shrink-0 cursor-pointer"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Log In / Sign Up</span>
+              </Link>
+            </div>
+
+            {/* List of Disadvantages of ordering as guest */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3.5">
+              <div className="flex items-start gap-2 bg-white/75 p-2.5 rounded-xl border border-amber-200/70 text-xs text-amber-950 shadow-2xs">
+                <span className="text-rose-600 font-bold shrink-0 mt-0.5 text-sm leading-none">✕</span>
+                <div>
+                  <strong className="block text-amber-950 font-bold">Unable to Track Order in Real-Time</strong>
+                  <span className="text-[11px] text-amber-900/80">Guest orders cannot be tracked via your account dashboard or live delivery timeline.</span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 bg-white/75 p-2.5 rounded-xl border border-amber-200/70 text-xs text-amber-950 shadow-2xs">
+                <span className="text-rose-600 font-bold shrink-0 mt-0.5 text-sm leading-none">✕</span>
+                <div>
+                  <strong className="block text-amber-950 font-bold">No Order History &amp; Invoices</strong>
+                  <span className="text-[11px] text-amber-900/80">You won&apos;t be able to look up previous orders or re-download official GST tax invoices later.</span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 bg-white/75 p-2.5 rounded-xl border border-amber-200/70 text-xs text-amber-950 shadow-2xs">
+                <span className="text-rose-600 font-bold shrink-0 mt-0.5 text-sm leading-none">✕</span>
+                <div>
+                  <strong className="block text-amber-950 font-bold">Addresses Won&apos;t Be Saved</strong>
+                  <span className="text-[11px] text-amber-900/80">Delivery details are not saved for 1-click reordering; you will need to re-type them next time.</span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 bg-white/75 p-2.5 rounded-xl border border-amber-200/70 text-xs text-amber-950 shadow-2xs">
+                <span className="text-rose-600 font-bold shrink-0 mt-0.5 text-sm leading-none">✕</span>
+                <div>
+                  <strong className="block text-amber-950 font-bold">Missing Exclusive Member Perks</strong>
+                  <span className="text-[11px] text-amber-900/80">Miss out on member reward points, loyalty cashbacks &amp; priority WhatsApp courier support.</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-2.5 border-t border-amber-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-amber-900/80">
+              <span className="italic">
+                Prefer to proceed without logging in? You may still complete your delivery details below.
+              </span>
+              {hasLoadedSavedAddress && (
+                <div className="flex items-center gap-2 bg-white/80 border border-amber-200 px-2 py-1 rounded-lg">
+                  <span className="text-amber-900 font-medium">Autofilled saved details</span>
+                  <button
+                    type="button"
+                    onClick={clearSavedAddress}
+                    className="text-amber-800 hover:text-rose-600 underline font-semibold"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-          {hasLoadedSavedAddress && (
-            <div className="flex items-center gap-2 self-start sm:self-auto bg-white/90 border border-emerald-200 px-2.5 py-1.5 rounded-xl text-xs">
-              <span className="text-emerald-700 font-medium">Autofilled saved details</span>
-              <button
-                type="button"
-                onClick={clearSavedAddress}
-                className="text-brand-charcoal/60 hover:text-rose-600 underline font-semibold text-[11px]"
-              >
-                Clear
-              </button>
-            </div>
-          )}
-        </div>
+        )}
 
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-green-light/15 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-brand-green-light/15 gap-3">

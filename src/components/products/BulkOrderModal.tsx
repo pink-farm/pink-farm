@@ -48,8 +48,8 @@ export function BulkOrderModal({
   );
   const minKg = isRawMakhana ? 5 : 2;
 
-  const [quantityKg, setQuantityKg] = useState<number>(minKg);
-  const [qtyInput, setQtyInput] = useState<string>(minKg.toString());
+  const [quantityKg, setQuantityKg] = useState<number>(0);
+  const [qtyInput, setQtyInput] = useState<string>("");
   const [customerName, setCustomerName] = useState<string>("");
   const [customerPhone, setCustomerPhone] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -59,8 +59,8 @@ export function BulkOrderModal({
   // Reset or initialize state when modal opens or product changes
   useEffect(() => {
     if (isOpen) {
-      setQuantityKg(minKg);
-      setQtyInput(minKg.toString());
+      setQuantityKg(0);
+      setQtyInput("");
       setErrorMsg(null);
       setIsSuccess(false);
 
@@ -83,7 +83,8 @@ export function BulkOrderModal({
     setQtyInput(val);
 
     if (val === "") {
-      setErrorMsg(`Please enter a quantity (minimum ${minKg} kg).`);
+      setQuantityKg(0);
+      setErrorMsg(null);
       return;
     }
 
@@ -98,12 +99,15 @@ export function BulkOrderModal({
   };
 
   const handleBlurQuantity = () => {
+    if (!qtyInput || qtyInput.trim() === "") {
+      setQuantityKg(0);
+      setQtyInput("");
+      return;
+    }
     const num = parseInt(qtyInput, 10);
     if (isNaN(num) || num < minKg) {
-      // Clamping strictly back to minimum allowed threshold
-      setQuantityKg(minKg);
-      setQtyInput(minKg.toString());
-      setErrorMsg(null);
+      setErrorMsg(`Minimum bulk order is ${minKg} kg. Please enter ${minKg} kg or more.`);
+      setQuantityKg(num || 0);
     } else {
       setQuantityKg(num);
       setQtyInput(num.toString());
@@ -125,8 +129,8 @@ export function BulkOrderModal({
     e.preventDefault();
 
     // Validate quantity against limiter
-    if (quantityKg < minKg || isNaN(quantityKg)) {
-      setErrorMsg(`Bulk order requires a minimum of ${minKg} kg for this item.`);
+    if (!quantityKg || quantityKg < minKg || isNaN(quantityKg)) {
+      setErrorMsg(`Please enter required quantity (minimum ${minKg} kg).`);
       return;
     }
 
@@ -250,8 +254,8 @@ export function BulkOrderModal({
               </div>
 
               {/* Direct Typable Input */}
-              <div className="flex items-center gap-3">
-                <div className="relative flex-1 max-w-[200px]">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="relative flex-1 min-w-[220px]">
                   <input
                     type="text"
                     inputMode="numeric"
@@ -260,8 +264,8 @@ export function BulkOrderModal({
                     onFocus={(e) => e.target.select()}
                     onChange={handleQuantityInputChange}
                     onBlur={handleBlurQuantity}
-                    placeholder={`Min ${minKg}`}
-                    className="w-full h-12 pl-4 pr-12 rounded-xl border-2 border-brand-green/20 focus:border-brand-green bg-white text-brand-green font-bold text-lg shadow-xs focus:outline-none transition-colors"
+                    placeholder="Enter Required Quantity"
+                    className="w-full h-12 pl-4 pr-12 rounded-xl border-2 border-brand-green/20 focus:border-brand-green bg-white text-brand-green font-bold text-base shadow-xs focus:outline-none transition-colors placeholder:text-brand-charcoal/40 placeholder:font-normal placeholder:text-sm"
                     aria-label="Bulk quantity in kg"
                   />
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs font-bold text-brand-charcoal/70 bg-brand-cream/80 px-2 py-0.5 rounded-md border border-brand-green/10">
@@ -269,14 +273,16 @@ export function BulkOrderModal({
                   </div>
                 </div>
 
-                <div className="text-xs font-semibold text-brand-charcoal/80 flex items-baseline gap-1.5">
-                  <span className="text-sm font-bold text-brand-green">
-                    {quantityKg ? `${quantityKg} kg` : ""}
-                  </span>
-                  <span className="text-[11px] text-brand-charcoal/60">
-                    ({quantityKg >= 1000 ? `${(quantityKg / 1000).toFixed(1)} MT` : `${(quantityKg || 0) * 1000} gms`})
-                  </span>
-                </div>
+                {quantityKg > 0 && (
+                  <div className="text-xs font-semibold text-brand-charcoal/80 flex items-baseline gap-1.5 shrink-0">
+                    <span className="text-sm font-bold text-brand-green">
+                      {quantityKg} kg
+                    </span>
+                    <span className="text-[11px] text-brand-charcoal/60">
+                      ({quantityKg >= 1000 ? `${(quantityKg / 1000).toFixed(1)} MT` : `${quantityKg * 1000} gms`})
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Inline Quantity Warning if below minimum limiter */}
@@ -431,7 +437,7 @@ export function BulkOrderModal({
 
               <button
                 type="submit"
-                disabled={quantityKg < minKg || isNaN(quantityKg)}
+                disabled={!quantityKg || quantityKg < minKg || isNaN(quantityKg)}
                 className="w-2/3 h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
                 <Send size={15} />

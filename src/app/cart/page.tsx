@@ -5,15 +5,17 @@ import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { Button } from "@/components/ui/Button";
-import { Minus, Plus, Trash2, ArrowRight, Truck, CheckCircle2 } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowRight, Truck, CheckCircle2, AlertTriangle, LogIn } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleOnTap, FadeIn, ShimmerSheen } from "@/components/ui/MotionWrappers";
 import { formatPrice } from "@/lib/utils";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
+import { useCustomerStore } from "@/store/customerStore";
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem } = useCartStore();
+  const isLoggedIn = useCustomerStore((state) => state.isLoggedIn);
   const deliveryFeeSetting = useSettingsStore((state) => state.deliveryFee);
   const freeDeliveryThreshold = useSettingsStore((state) => state.freeDeliveryThreshold);
   const isAcceptingOrders = useSettingsStore((state) => state.isAcceptingOrders);
@@ -178,10 +180,32 @@ export default function CartPage() {
                 </div>
               </div>
               
-              <div className="flex justify-between font-bold text-xl text-brand-green mb-8">
+              <div className="flex justify-between font-bold text-xl text-brand-green mb-6">
                 <span>Total</span>
                 <span>₹{formatPrice(total)}</span>
               </div>
+
+              {/* Guest Checkout Disclaimer Notice if not logged in */}
+              {!isLoggedIn && (
+                <div className="mb-5 p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 space-y-1.5 shadow-2xs">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Guest Checkout Disclaimer</span>
+                  </div>
+                  <p className="text-[11px] text-amber-900/80 leading-relaxed">
+                    Ordering as a guest means you <strong>won&apos;t be able to track your package live</strong>, view order history, or download GST invoices later.
+                  </p>
+                  <div className="pt-0.5">
+                    <Link 
+                      href="/login?redirect=/checkout" 
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-green hover:underline"
+                    >
+                      <LogIn className="w-3 h-3" />
+                      <span>Log in / Sign up to enable tracking</span> &rarr;
+                    </Link>
+                  </div>
+                </div>
+              )}
               
               {isAcceptingOrders ? (
                 <ScaleOnTap>
@@ -204,9 +228,13 @@ export default function CartPage() {
                 </div>
               )}
               
-              <div className="mt-6 text-center text-xs opacity-75 flex flex-col gap-1.5">
-                <p className="font-medium text-emerald-800">⚡ Guest Checkout • UPI &amp; Cards Accepted</p>
-                <p className="opacity-70">No login required to place your order.</p>
+              <div className="mt-5 text-center text-xs opacity-80 flex flex-col gap-1">
+                <p className="font-semibold text-brand-green">🔒 100% Secure Checkout • UPI &amp; Cards</p>
+                <p className="text-[11px] text-brand-charcoal/70">
+                  {isLoggedIn 
+                    ? "✓ Logged in • Your order will be linked to your account for live tracking" 
+                    : "Guest checkout supported • Logging in recommended for tracking"}
+                </p>
               </div>
             </div>
           </FadeIn>

@@ -36,7 +36,15 @@ export function LoginForm() {
 
   const finishCustomerSignIn = (customer: { name: string; email: string; phone?: string | null }) => {
     loginCustomer({ name: customer.name, email: customer.email, phone: customer.phone || "" });
-    router.push("/account");
+    let destination = "/account";
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const redirectParam = params.get("redirect");
+      if (redirectParam && redirectParam.startsWith("/")) {
+        destination = redirectParam;
+      }
+    }
+    router.push(destination);
     router.refresh();
   };
 
