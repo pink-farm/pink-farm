@@ -405,7 +405,7 @@ export function CheckoutClient() {
                   </span>
                 </div>
                 <p className="text-xs text-brand-charcoal/80 mt-0.5">
-                  ✨ Real-time parcel tracking, order history &amp; digital tax invoices are enabled for this order.
+                  ✨ Real-time parcel tracking, order history &amp; saved receipts are enabled for this order.
                 </p>
               </div>
             </div>
@@ -467,8 +467,8 @@ export function CheckoutClient() {
               <div className="flex items-start gap-2 bg-white/75 p-2.5 rounded-xl border border-amber-200/70 text-xs text-amber-950 shadow-2xs">
                 <span className="text-rose-600 font-bold shrink-0 mt-0.5 text-sm leading-none">✕</span>
                 <div>
-                  <strong className="block text-amber-950 font-bold">No Order History &amp; Invoices</strong>
-                  <span className="text-[11px] text-amber-900/80">You won&apos;t be able to look up previous orders or re-download official GST tax invoices later.</span>
+                  <strong className="block text-amber-950 font-bold">No Order History &amp; Receipts</strong>
+                  <span className="text-[11px] text-amber-900/80">You won&apos;t be able to look up previous orders or access order receipts later.</span>
                 </div>
               </div>
 
@@ -483,8 +483,8 @@ export function CheckoutClient() {
               <div className="flex items-start gap-2 bg-white/75 p-2.5 rounded-xl border border-amber-200/70 text-xs text-amber-950 shadow-2xs">
                 <span className="text-rose-600 font-bold shrink-0 mt-0.5 text-sm leading-none">✕</span>
                 <div>
-                  <strong className="block text-amber-950 font-bold">Missing Exclusive Member Perks</strong>
-                  <span className="text-[11px] text-amber-900/80">Miss out on member reward points, loyalty cashbacks &amp; priority WhatsApp courier support.</span>
+                  <strong className="block text-amber-950 font-bold">No 1-Click Fast Reordering</strong>
+                  <span className="text-[11px] text-amber-900/80">Reordering favourite snacks takes longer without an account order dashboard.</span>
                 </div>
               </div>
             </div>

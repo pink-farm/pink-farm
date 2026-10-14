@@ -193,7 +193,7 @@ export default function CartPage() {
                     <span>Guest Checkout Disclaimer</span>
                   </div>
                   <p className="text-[11px] text-amber-900/80 leading-relaxed">
-                    Ordering as a guest means you <strong>won&apos;t be able to track your package live</strong>, view order history, or download GST invoices later.
+                    Ordering as a guest means you <strong>won&apos;t be able to track your package live</strong>, view order history, or access past receipts.
                   </p>
                   <div className="pt-0.5">
                     <Link 
