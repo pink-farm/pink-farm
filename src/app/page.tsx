@@ -18,7 +18,7 @@ import { formatPrice } from "@/lib/utils";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getStoreProducts } from "@/lib/defaultProducts";
 
-export const instant = false;
+
 
 export default async function Home() {
   const products = await getStoreProducts();

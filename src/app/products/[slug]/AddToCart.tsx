@@ -239,11 +239,16 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
           <button
             type="button"
             onClick={() => setIsBulkModalOpen(true)}
-            className="h-10 px-3.5 rounded-lg border-2 border-brand-green/20 hover:border-brand-green bg-gradient-to-r from-brand-pink/20 via-white to-brand-cream/60 hover:from-brand-pink/35 hover:to-brand-cream text-brand-green text-xs font-semibold flex items-center gap-2 transition-all shadow-xs hover:shadow-sm active:scale-95 cursor-pointer group"
+            className="h-10 px-3.5 rounded-lg bg-brand-green hover:bg-brand-green-light text-white text-xs font-bold flex items-center gap-2 transition-all shadow-sm hover:shadow-md active:scale-95 cursor-pointer group border border-brand-green"
             title={`Bulk Order (${minBulkKg} kg minimum)`}
           >
-            <Package className="w-4 h-4 text-brand-pink group-hover:scale-110 transition-transform" />
-            <span>Bulk Order <span className="text-[10px] text-brand-charcoal/70 font-normal">({minBulkKg}kg+)</span></span>
+            <div className="w-5 h-5 rounded-md bg-white/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <Package className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="tracking-tight">Bulk Order</span>
+            <span className="text-[10px] font-bold bg-white/20 text-brand-pink px-1.5 py-0.5 rounded-full border border-white/20">
+              {minBulkKg}kg+
+            </span>
           </button>
           
           {isOutOfStock && (

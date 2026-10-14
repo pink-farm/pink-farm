@@ -3,7 +3,7 @@ import { FadeIn } from "@/components/ui/MotionWrappers";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getStoreProducts } from "@/lib/defaultProducts";
 
-export const instant = false;
+
 
 export default async function ProductsPage() {
   const products = await getStoreProducts();
