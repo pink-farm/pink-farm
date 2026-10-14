@@ -150,33 +150,29 @@ export function MakhanaNavigationLoader() {
         </div>
       )}
 
-      {/* 2. Floating Lotus Loader Card (NOT full screen — page remains visible behind it) */}
+      {/* 2. Pure Rotating Lotus on Screen (No card box) */}
       <AnimatePresence>
         {isNavigating && (
-          <div className="fixed inset-0 z-[99990] flex items-center justify-center p-4 pointer-events-none">
-            {/* Soft, translucent vignette (page remains visible underneath) */}
+          <div className="fixed inset-0 z-[99990] flex items-center justify-center pointer-events-none">
+            {/* Subtle soft vignette letting the current page remain visible */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute inset-0 bg-brand-charcoal/15 backdrop-blur-[2px]"
+              transition={{ duration: 0.15 }}
+              className="absolute inset-0 bg-[#FDFBF7]/40 backdrop-blur-[2px]"
             />
 
-            {/* Centered Floating Lotus Card */}
+            {/* Normal Lotus rotating seamlessly on screen */}
             <motion.div
-              initial={{ scale: 0.85, opacity: 0, y: 15 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: -10 }}
-              transition={{
-                type: "spring",
-                damping: 24,
-                stiffness: 300,
-              }}
-              className="relative z-10 bg-white/95 backdrop-blur-xl border border-brand-green/15 rounded-3xl p-6 sm:p-7 shadow-[0_12px_40px_rgba(26,60,52,0.18)] flex flex-col items-center justify-center text-center max-w-[280px] w-full"
+              initial={{ scale: 0.88, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative z-10 flex flex-col items-center justify-center pointer-events-none"
             >
               <MakhanaLoader
-                size="md"
+                size="lg"
                 text="Loading Freshness..."
                 subtext="Crafted with pure care"
               />
