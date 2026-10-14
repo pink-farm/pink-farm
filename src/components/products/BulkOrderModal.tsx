@@ -435,7 +435,7 @@ export function BulkOrderModal({
                 className="w-2/3 h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
                 <Send size={15} />
-                <span>Send to Owner on WhatsApp</span>
+                <span>Send Enquiry</span>
               </button>
             </div>
           </form>
