@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { useCustomerStore } from "@/store/customerStore";
-import { Mail, ShieldAlert, Settings, User } from "lucide-react";
+import { Mail, ShieldAlert, Settings, User, ShieldCheck } from "lucide-react";
 
 type CustomerMethod = "password" | "otp";
 
@@ -21,8 +21,18 @@ export function LoginForm() {
   const [adminPassword, setAdminPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const router = useRouter();
   const loginCustomer = useCustomerStore((state) => state.loginCustomer);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.isAdmin) setIsAdminLoggedIn(true);
+      })
+      .catch(() => {});
+  }, []);
 
   const finishCustomerSignIn = (customer: { name: string; email: string; phone?: string | null }) => {
     loginCustomer({ name: customer.name, email: customer.email, phone: customer.phone || "" });
@@ -236,23 +246,58 @@ export function LoginForm() {
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center gap-2.5 rounded-2xl border border-amber-200/60 bg-amber-50 p-3 text-xs font-medium text-amber-900">
-            <ShieldAlert size={16} className="shrink-0 text-amber-700" />
-            <span>Store Administrator Backoffice. Authorized personnel only.</span>
-          </div>
-          <form onSubmit={handleAdminSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label htmlFor="admin-email" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Admin email</label>
-              <input id="admin-email" type="email" autoComplete="username" required value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+          {isAdminLoggedIn ? (
+            <div className="space-y-4 text-center py-2">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-sm">
+                <ShieldCheck size={28} />
+              </div>
+              <div>
+                <h3 className="font-bold text-brand-charcoal text-base">You are signed in as Administrator</h3>
+                <p className="text-xs text-brand-charcoal/60 mt-1">Your administrator session is active and persistent.</p>
+              </div>
+              <Button
+                type="button"
+                onClick={() => router.push("/admin")}
+                size="lg"
+                className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10"
+              >
+                Go to Admin Dashboard
+              </Button>
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await fetch("/api/admin/logout", { method: "POST" });
+                    setIsAdminLoggedIn(false);
+                    router.refresh();
+                  }}
+                  className="text-xs text-rose-600 hover:text-rose-800 font-semibold underline underline-offset-2 cursor-pointer transition-colors"
+                >
+                  Sign out of Administrator
+                </button>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label htmlFor="admin-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Password</label>
-              <input id="admin-password" type="password" autoComplete="current-password" required value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
-            </div>
-            <Button type="submit" size="lg" className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10" disabled={isLoading}>
-              {isLoading ? "Authenticating..." : "Access Admin Dashboard"}
-            </Button>
-          </form>
+          ) : (
+            <>
+              <div className="flex items-center gap-2.5 rounded-2xl border border-amber-200/60 bg-amber-50 p-3 text-xs font-medium text-amber-900">
+                <ShieldAlert size={16} className="shrink-0 text-amber-700" />
+                <span>Store Administrator Backoffice. Authorized personnel only.</span>
+              </div>
+              <form onSubmit={handleAdminSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="admin-email" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Admin email</label>
+                  <input id="admin-email" type="email" autoComplete="username" required value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="admin-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Password</label>
+                  <input id="admin-password" type="password" autoComplete="current-password" required value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+                </div>
+                <Button type="submit" size="lg" className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10" disabled={isLoading}>
+                  {isLoading ? "Authenticating..." : "Access Admin Dashboard"}
+                </Button>
+              </form>
+            </>
+          )}
         </div>
       )}
     </div>

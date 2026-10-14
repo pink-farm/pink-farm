@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { getCustomerSession } from "@/lib/auth";
 
 export async function GET() {
-  const session = await getCustomerSession((await cookies()).get("admin_session")?.value);
+  const session = await getCustomerSession();
   if (!session) return NextResponse.json({ error: "Please sign in to view orders." }, { status: 401 });
   try {
     const orders = await prisma.order.findMany({

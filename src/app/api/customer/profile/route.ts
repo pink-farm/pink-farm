@@ -4,7 +4,7 @@ import { getCustomerSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export async function GET() {
-  const session = await getCustomerSession((await cookies()).get("admin_session")?.value);
+  const session = await getCustomerSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const customer = await prisma.customer.findUnique({
     where: { id: String(session.userId) },

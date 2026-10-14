@@ -294,11 +294,11 @@ export const DEFAULT_SETTINGS = {
  * if empty or if database is inaccessible (e.g. cold start / read-only SQLite on Vercel),
  * safely returns the official 6 Makhana catalog.
  */
-export async function getStoreProducts(): Promise<StoreProduct[]> {
+export async function getStoreProducts(options?: { includeUnavailable?: boolean }): Promise<StoreProduct[]> {
   try {
     const products = await queryDatabase(() =>
       prisma.product.findMany({
-        where: { isAvailable: true },
+        where: options?.includeUnavailable ? undefined : { isAvailable: true },
         orderBy: [{ isFeatured: "desc" }, { createdAt: "asc" }],
         include: { variants: true },
       }),

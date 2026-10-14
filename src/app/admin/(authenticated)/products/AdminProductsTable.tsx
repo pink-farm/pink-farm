@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
   CheckCircle2, 
   XCircle, 
@@ -40,6 +41,7 @@ interface Product {
 }
 
 export function AdminProductsTable({ initialProducts }: { initialProducts: Product[] }) {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "instock" | "outofstock">("all");
@@ -66,6 +68,7 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
         throw new Error("Failed to update status");
       }
 
+      router.refresh();
       setToastMessage(
         `${product.name} is now ${nextStatus ? "In Stock" : "marked Out of Stock"}`
       );

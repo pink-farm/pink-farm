@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { LogOut, LayoutDashboard, ShoppingBag, Settings, PackageOpen } from "lucide-react";
+import { LogOut, LayoutDashboard, ShoppingBag, Settings, PackageOpen, Store, ArrowUpRight } from "lucide-react";
 import { LogoutButton } from "./LogoutButton";
 import { requireAdminSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+
+export const instant = false;
 
 export default async function AdminLayout({
   children,
@@ -37,6 +39,18 @@ export default async function AdminLayout({
             <Settings size={18} />
             <span>Store Settings</span>
           </Link>
+
+          <div className="pt-2">
+            <div className="border-t border-gray-100 my-2" />
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-brand-green bg-brand-pink/30 hover:bg-brand-pink/60 border border-brand-pink-accent/40 text-sm font-bold transition-all group"
+            >
+              <Store size={18} className="text-brand-green group-hover:scale-105 transition-transform" />
+              <span>Go to Storefront</span>
+              <ArrowUpRight size={15} className="ml-auto text-brand-green/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </Link>
+          </div>
         </nav>
 
         <div className="p-3 border-t border-gray-100">

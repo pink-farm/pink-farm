@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
-const DB_QUERY_TIMEOUT_MS = 1_500;
-const DB_RETRY_COOLDOWN_MS = 10_000;
+const DB_QUERY_TIMEOUT_MS = 8_000;
+const DB_RETRY_COOLDOWN_MS = 3_000;
 let databaseUnavailableUntil = 0;
 let lastDatabaseWarningAt = 0;
 

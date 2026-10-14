@@ -6,7 +6,7 @@ import { getStoreProducts } from "@/lib/defaultProducts";
 export const instant = false;
 
 export default async function AdminProductsPage() {
-  const products = await getStoreProducts();
+  const products = await getStoreProducts({ includeUnavailable: true });
 
   return (
     <div className="space-y-6">

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, Search, Menu, X, User } from "lucide-react";
+import { ShoppingCart, Search, Menu, X, User, ShieldCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/store/cartStore";
 import { useSettingsStore } from "@/store/settingsStore";
@@ -23,6 +23,7 @@ export function Navbar() {
   const customer = useCustomerStore();
 
   const [mounted, setMounted] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -35,6 +36,17 @@ export function Navbar() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => {
+        setIsAdmin(Boolean(data.isAdmin));
+      })
+      .catch(() => {
+        setIsAdmin(false);
+      });
+  }, [pathname]);
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -130,7 +142,18 @@ export function Navbar() {
           </nav>
 
           {/* Icons */}
-          <div className="flex items-center gap-5 md:gap-6 text-brand-green">
+          <div className="flex items-center gap-3.5 md:gap-5 text-brand-green">
+            {mounted && isAdmin && (
+              <Link 
+                href="/admin/settings" 
+                title="Go to Admin Settings"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-green text-white hover:bg-brand-green/90 transition-all shadow-sm active:scale-95"
+              >
+                <ShieldCheck size={14} />
+                <span className="hidden sm:inline">Admin Panel</span>
+              </Link>
+            )}
+
             <Link href="/products">
               <motion.button 
                 whileHover={{ scale: 1.1 }} 
@@ -144,11 +167,13 @@ export function Navbar() {
             
             {(() => {
               const isLoggedIn = mounted ? customer.isLoggedIn : false;
-              const userHref = isLoggedIn ? "/account" : "/login";
+              const userHref = isLoggedIn ? "/account" : isAdmin ? "/admin/settings" : "/login";
               const userTitle = isLoggedIn
                 ? customer.profile.name
                   ? `My Account (${customer.profile.name})`
                   : "My Account"
+                : isAdmin
+                ? "Admin Settings (Logged In)"
                 : "Sign In / Register";
 
               return (
@@ -163,9 +188,11 @@ export function Navbar() {
                     className="relative hover:text-brand-green-light transition-all duration-200"
                   >
                     <User size={22} strokeWidth={2.2} />
-                    {isLoggedIn && (
+                    {isLoggedIn ? (
                       <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white" />
-                    )}
+                    ) : isAdmin ? (
+                      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white" title="Admin Active" />
+                    ) : null}
                   </motion.div>
                 </Link>
               );

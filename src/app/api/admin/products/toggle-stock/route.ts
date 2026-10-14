@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
 
@@ -15,17 +16,41 @@ export async function POST(request: Request) {
       );
     }
 
+    // Resilient lookup: check by exact id, or by slug/sku if fallback id was passed
+    let target = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!target) {
+      target = await prisma.product.findFirst({
+        where: {
+          OR: [{ slug: productId }, { sku: productId }],
+        },
+      });
+    }
+
+    if (!target) {
+      return NextResponse.json(
+        { error: "Product not found in database" },
+        { status: 404 }
+      );
+    }
+
     // Update product availability
     const updatedProduct = await prisma.product.update({
-      where: { id: productId },
+      where: { id: target.id },
       data: { isAvailable },
     });
 
     // Also update any child variants so variant-level checks match
     await prisma.productVariant.updateMany({
-      where: { productId },
+      where: { productId: target.id },
       data: { isAvailable },
     });
+
+    revalidatePath("/admin/products");
+    revalidatePath("/products");
+    revalidatePath("/");
 
     return NextResponse.json({
       success: true,
