@@ -150,34 +150,23 @@ export function MakhanaNavigationLoader() {
         </div>
       )}
 
-      {/* 2. Pure Rotating Lotus on Screen (No card box) */}
+      {/* 2. Single Unified Lotus Loading Transition (No double text, no footer flash) */}
       <AnimatePresence>
         {isNavigating && (
-          <div className="fixed inset-0 z-[99990] flex items-center justify-center pointer-events-none">
-            {/* Subtle soft vignette letting the current page remain visible */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="absolute inset-0 bg-[#FDFBF7]/40 backdrop-blur-[2px]"
+          <motion.div
+            key="navigation-lotus-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] pointer-events-auto select-none"
+          >
+            <MakhanaLoader
+              size="xl"
+              text="Loading Freshness..."
+              subtext="Every bite crafted with love"
             />
-
-            {/* Normal Lotus rotating seamlessly on screen */}
-            <motion.div
-              initial={{ scale: 0.88, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative z-10 flex flex-col items-center justify-center pointer-events-none"
-            >
-              <MakhanaLoader
-                size="lg"
-                text="Loading Freshness..."
-                subtext="Crafted with pure care"
-              />
-            </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>
