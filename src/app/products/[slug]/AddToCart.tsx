@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/Button";
 import { useCartStore } from "@/store/cartStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart, Check, Sparkles, Percent, Copy } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, Sparkles, Percent, Copy, Package } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleOnTap, ShimmerSheen } from "@/components/ui/MotionWrappers";
+import { BulkOrderModal } from "@/components/products/BulkOrderModal";
 
 type Product = any;
 type Variant = any;
@@ -19,9 +20,16 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   const isAcceptingOrders = useSettingsStore((state) => state.isAcceptingOrders);
   const router = useRouter();
+
+  const isRawMakhana = Boolean(
+    product?.slug?.toLowerCase().includes("raw") ||
+    product?.name?.toLowerCase().includes("raw")
+  );
+  const minBulkKg = isRawMakhana ? 5 : 2;
 
   const handleCopyCode = (code: string) => {
     if (typeof navigator !== "undefined" && navigator.clipboard) {
@@ -191,8 +199,8 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
 
       <div className="space-y-1">
         <label className="font-bold text-xs text-brand-green">Quantity</label>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center border border-brand-green-light/30 rounded-lg overflow-hidden h-10 w-28 bg-white">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center border border-brand-green-light/30 rounded-lg overflow-hidden h-10 w-28 bg-white shadow-2xs">
             <button 
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               disabled={quantity <= 1 || isOutOfStock}
@@ -226,6 +234,17 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
               <Plus size={15} />
             </button>
           </div>
+
+          {/* Bulk Order Button on the right side of quantity selection button */}
+          <button
+            type="button"
+            onClick={() => setIsBulkModalOpen(true)}
+            className="h-10 px-3.5 rounded-lg border-2 border-brand-green/20 hover:border-brand-green bg-gradient-to-r from-brand-pink/20 via-white to-brand-cream/60 hover:from-brand-pink/35 hover:to-brand-cream text-brand-green text-xs font-semibold flex items-center gap-2 transition-all shadow-xs hover:shadow-sm active:scale-95 cursor-pointer group"
+            title={`Bulk Order (${minBulkKg} kg minimum)`}
+          >
+            <Package className="w-4 h-4 text-brand-pink group-hover:scale-110 transition-transform" />
+            <span>Bulk Order <span className="text-[10px] text-brand-charcoal/70 font-normal">({minBulkKg}kg+)</span></span>
+          </button>
           
           {isOutOfStock && (
             <span className="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
@@ -286,6 +305,14 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
           🔔 Store ordering is temporarily paused. You can still browse our products!
         </div>
       )}
+
+      {/* Bulk Order Modal */}
+      <BulkOrderModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        product={product}
+        selectedVariant={selectedVariant}
+      />
     </div>
   );
 }
