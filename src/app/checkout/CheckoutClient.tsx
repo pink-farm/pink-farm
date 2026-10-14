@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { SurpriseGiftCheckoutRow } from "@/components/checkout/CuteSurpriseGift";
 import type { CustomerAddress } from "@/store/customerStore";
+import { MakhanaLoader } from "@/components/ui/MakhanaLoader";
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -800,7 +801,7 @@ export function CheckoutClient() {
           >
             {isProcessing ? (
               <span className="flex items-center justify-center gap-2">
-                <Loader2 size={18} className="animate-spin" />
+                <MakhanaLoader size="xs" text="" subtext="" speedSec={1.2} />
                 <span>Completing Payment...</span>
               </span>
             ) : !isAcceptingOrders ? (
@@ -812,6 +813,15 @@ export function CheckoutClient() {
               </span>
             )}
           </Button>
+
+          {isProcessing && (
+            <MakhanaLoader
+              fullScreen
+              size="xl"
+              text="Processing Your Order..."
+              subtext="Securing your fresh favourites"
+            />
+          )}
 
           <p className="text-[11px] text-center text-brand-charcoal/60 mt-3 flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />

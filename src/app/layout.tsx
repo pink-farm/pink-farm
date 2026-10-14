@@ -12,6 +12,7 @@ import { Footer } from "@/components/layout/Footer";
 import { FloatingSocials } from "@/components/ui/FloatingSocials";
 import { LuxuryScrollProgressBar } from "@/components/ui/MotionWrappers";
 import { SettingsSync } from "@/components/layout/SettingsSync";
+import { MakhanaNavigationLoader } from "@/components/ui/MakhanaNavigationLoader";
 
 export const instant = false;
 
@@ -23,6 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body className="antialiased min-h-screen flex flex-col bg-brand-ivory text-brand-charcoal">
+        <Suspense fallback={null}>
+          <MakhanaNavigationLoader />
+        </Suspense>
         <SettingsSync />
         <LuxuryScrollProgressBar />
         <Suspense fallback={null}>

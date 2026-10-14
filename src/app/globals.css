@@ -38,6 +38,35 @@
   50% { transform: scale(1.03); filter: drop-shadow(0 10px 15px rgba(26, 64, 49, 0.3)); }
 }
 
+@keyframes spin-makhana {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-makhana {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+@keyframes pulse-makhana-shadow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.28;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.12;
+  }
+}
+
 @keyframes text-gradient-shimmer {
   0% { background-position: 200% center; }
   100% { background-position: -200% center; }
