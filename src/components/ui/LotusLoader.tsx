@@ -39,15 +39,7 @@ export function LotusLoader({
         className="relative flex items-center justify-center"
         style={{ width: `${width}px`, height: `${height}px` }}
       >
-        {/* Soft Golden/Blush Ambient Glow */}
-        <div
-          className="absolute inset-4 rounded-full pointer-events-none transition-all duration-700 animate-pulse"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(230, 184, 192, 0.45) 0%, rgba(246, 211, 101, 0.16) 45%, transparent 75%)",
-            filter: "blur(22px)",
-          }}
-        />
+
 
         {/* Pure Transparent Looping Lotus with Zero-Lag Tab Switching */}
         <div className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">

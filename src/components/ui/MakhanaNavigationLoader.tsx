@@ -129,14 +129,14 @@ export function MakhanaNavigationLoader() {
 
   return (
     <>
-      {/* 1. Top Luxury Gradient Progress Bar */}
+      {/* 1. Top Luxury Gradient Progress Bar (Flat, no glow shadow) */}
       {(isNavigating || progress > 0) && (
         <div
           aria-hidden="true"
-          className="fixed top-0 left-0 right-0 h-[3px] z-[99999] pointer-events-none overflow-hidden"
+          className="fixed top-0 left-0 right-0 h-[2.5px] z-[99999] pointer-events-none overflow-hidden"
         >
           <motion.div
-            className="h-full bg-gradient-to-r from-brand-green via-brand-pink-accent to-[#88E2B0] shadow-[0_0_12px_rgba(42,89,78,0.6)]"
+            className="h-full bg-gradient-to-r from-brand-green via-brand-pink-accent to-[#88E2B0]"
             initial={{ width: "0%", opacity: 1 }}
             animate={{
               width: `${progress}%`,
@@ -144,13 +144,13 @@ export function MakhanaNavigationLoader() {
             }}
             transition={{
               width: { ease: "easeOut", duration: 0.2 },
-              opacity: { duration: 0.25, delay: progress === 100 ? 0.1 : 0 },
+              opacity: { duration: 0.3, delay: progress === 100 ? 0.08 : 0 },
             }}
           />
         </div>
       )}
 
-      {/* 2. Single Unified Lotus Loading Transition (No double text, no footer flash) */}
+      {/* 2. Smooth Lotus Transition (No reflections, no shadows, no harsh flash) */}
       <AnimatePresence>
         {isNavigating && (
           <motion.div
@@ -158,7 +158,7 @@ export function MakhanaNavigationLoader() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            transition={{ duration: 0.28, ease: "easeInOut" }}
             className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] pointer-events-auto select-none"
           >
             <MakhanaLoader
