@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en">
       <body className="antialiased min-h-screen flex flex-col bg-brand-ivory text-brand-charcoal">
         <Suspense fallback={null}>
           <MakhanaNavigationLoader />
