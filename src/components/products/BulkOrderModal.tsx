@@ -8,8 +8,6 @@ import {
   Package, 
   Phone, 
   User, 
-  Minus, 
-  Plus, 
   AlertCircle, 
   CheckCircle2, 
   Send, 
@@ -113,16 +111,9 @@ export function BulkOrderModal({
     }
   };
 
-  const handleStepQuantity = (delta: number) => {
-    const current = isNaN(quantityKg) ? minKg : quantityKg;
-    const nextVal = Math.max(minKg, current + delta);
-    setQuantityKg(nextVal);
-    setQtyInput(nextVal.toString());
-    setErrorMsg(null);
-  };
 
-  // Quick preset pills
-  const presetPills = isRawMakhana ? [5, 10, 25, 50, 100] : [2, 5, 10, 20, 50];
+  // Quick preset pills (includes 100kg quick pill)
+  const presetPills = isRawMakhana ? [5, 10, 25, 50, 100] : [2, 5, 10, 25, 50, 100];
 
   // Phone input formatting (strictly 10 digits)
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -258,47 +249,32 @@ export function BulkOrderModal({
                 </span>
               </div>
 
-              {/* Stepper + Input */}
+              {/* Direct Typable Input */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center border-2 border-brand-green/20 rounded-xl overflow-hidden h-12 w-full max-w-[170px] bg-white shadow-xs focus-within:border-brand-green transition-colors">
-                  <button
-                    type="button"
-                    onClick={() => handleStepQuantity(-1)}
-                    disabled={quantityKg <= minKg}
-                    className="w-11 h-full flex items-center justify-center hover:bg-brand-cream text-brand-green disabled:opacity-35 disabled:hover:bg-transparent active:scale-95 transition-all cursor-pointer"
-                    aria-label="Decrease quantity"
-                  >
-                    <Minus size={16} />
-                  </button>
-
-                  <div className="flex-1 flex items-center justify-center relative">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={qtyInput}
-                      onFocus={(e) => e.target.select()}
-                      onChange={handleQuantityInputChange}
-                      onBlur={handleBlurQuantity}
-                      className="w-full text-center font-bold text-base text-brand-green focus:outline-none bg-transparent"
-                      aria-label="Bulk quantity in kg"
-                    />
+                <div className="relative flex-1 max-w-[200px]">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={qtyInput}
+                    onFocus={(e) => e.target.select()}
+                    onChange={handleQuantityInputChange}
+                    onBlur={handleBlurQuantity}
+                    placeholder={`Min ${minKg}`}
+                    className="w-full h-12 pl-4 pr-12 rounded-xl border-2 border-brand-green/20 focus:border-brand-green bg-white text-brand-green font-bold text-lg shadow-xs focus:outline-none transition-colors"
+                    aria-label="Bulk quantity in kg"
+                  />
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs font-bold text-brand-charcoal/70 bg-brand-cream/80 px-2 py-0.5 rounded-md border border-brand-green/10">
+                    kg
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleStepQuantity(1)}
-                    className="w-11 h-full flex items-center justify-center hover:bg-brand-cream text-brand-green active:scale-95 transition-all cursor-pointer"
-                    aria-label="Increase quantity"
-                  >
-                    <Plus size={16} />
-                  </button>
                 </div>
 
-                <div className="text-xs font-semibold text-brand-charcoal/80 flex items-baseline gap-1">
-                  <span className="text-lg font-bold text-brand-green">kg</span>
+                <div className="text-xs font-semibold text-brand-charcoal/80 flex items-baseline gap-1.5">
+                  <span className="text-sm font-bold text-brand-green">
+                    {quantityKg ? `${quantityKg} kg` : ""}
+                  </span>
                   <span className="text-[11px] text-brand-charcoal/60">
-                    ({quantityKg >= 1000 ? `${(quantityKg / 1000).toFixed(1)} MT` : `${quantityKg * 1000} gms`})
+                    ({quantityKg >= 1000 ? `${(quantityKg / 1000).toFixed(1)} MT` : `${(quantityKg || 0) * 1000} gms`})
                   </span>
                 </div>
               </div>
