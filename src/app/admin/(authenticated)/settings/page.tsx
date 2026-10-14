@@ -190,7 +190,7 @@ export default function StoreSettingsPage() {
         <div className="lg:col-span-7 space-y-4">
           
           {/* Card 1: Brand & Top Announcement Bar */}
-          <div className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5">
+          <div id="settings-identity" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
             <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
               <Bell size={16} className="text-brand-green" />
               <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
@@ -235,7 +235,7 @@ export default function StoreSettingsPage() {
           </div>
 
           {/* Card 2: Delivery Fees & Free Shipping Rules */}
-          <div className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5">
+          <div id="settings-delivery" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
             <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
               <Truck size={16} className="text-orange-600" />
               <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
@@ -290,7 +290,7 @@ export default function StoreSettingsPage() {
         <div className="lg:col-span-5 space-y-4">
           
           {/* Card 3: Store Ordering Status Toggle */}
-          <div className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3">
+          <div id="settings-status" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3 scroll-mt-20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Power size={16} className={isAcceptingOrders ? "text-emerald-600" : "text-amber-600"} />
@@ -324,7 +324,7 @@ export default function StoreSettingsPage() {
           </div>
 
           {/* Card 4: Customer Support & Contacts */}
-          <div className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5">
+          <div id="settings-support" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
             <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
               <Phone size={16} className="text-blue-600" />
               <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">

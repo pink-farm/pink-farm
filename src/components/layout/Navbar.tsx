@@ -242,6 +242,7 @@ export function Navbar() {
                 { name: "Shop", path: "/products" },
                 { name: "About Us", path: "/about" },
                 { name: "Contact", path: "/contact" },
+                ...(mounted && isAdmin ? [{ name: "⚙️ Admin Settings Panel", path: "/admin/settings" }] : []),
                 { 
                   name: (mounted && customer.isLoggedIn) ? "My Account & Orders" : "Sign In / Register", 
                   path: (mounted && customer.isLoggedIn) ? "/account" : "/login" 
