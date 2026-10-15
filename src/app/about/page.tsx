@@ -2,13 +2,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleOnTap, SpotlightCard, GlowPulse, ShimmerSheen } from "@/components/ui/MotionWrappers";
+import { getStoreSettings } from "@/lib/defaultProducts";
 
 export const metadata = {
   title: "About Us — Pink Farm",
   description: "Meet Anjali, the dietitian-turned-food-entrepreneur behind Pink Farm. Learn our story, our mission, and our uncompromising promise on quality.",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const storeSettings = await getStoreSettings();
+  const founderName = storeSettings.founderName || "Anjali";
+  const founderRole = storeSettings.founderRole || "Founder & Dietitian";
+  const founderStoryFirst = storeSettings.founderStoryFirst || "Anjali started her journey as a trained dietitian — someone who spent years understanding the deep connection between what we eat and how we feel. She knew that truly good food doesn't need artificial anything. It just needs care, intention, and the right source.";
+  const founderStorySecond = storeSettings.founderStorySecond || "That belief became the seed of Pink Farm. What began as a personal mission to bring honest, nutritious snacks to her own family soon turned into something much bigger — a food brand built on trust, quality, and a quiet promise to never cut corners.";
+  const founderQuote = storeSettings.founderQuote || "Pure in nature, good for you. Simple food, stronger you.";
+  const founderTags = storeSettings.founderTags?.length ? storeSettings.founderTags : ["Nutrition", "Food Science", "Innovation", "Entrepreneur", "Founder", "Curator"];
   return (
     <div className="flex flex-col gap-0 pb-0 overflow-x-hidden">
 
@@ -38,32 +46,38 @@ export default function AboutPage() {
           <div className="flex-shrink-0 relative">
             <HoverCard lift={-6}>
               <GlowPulse color="rgba(230, 184, 192, 0.45)">
-                <div className="w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-brand-pink to-brand-cream border-8 border-white shadow-2xl flex items-center justify-center overflow-hidden transition-transform duration-500 hover:scale-105">
-                  <span className="text-9xl select-none">👩‍💼</span>
+                <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-brand-pink to-brand-cream border-8 border-white shadow-2xl flex items-center justify-center overflow-hidden transition-transform duration-500 hover:scale-105">
+                  {storeSettings.founderImage ? (
+                    <Image src={storeSettings.founderImage} alt={`${founderName}, ${founderRole}`} fill unoptimized className="object-cover" sizes="(max-width: 768px) 256px, 320px" />
+                  ) : (
+                    <span className="text-9xl select-none" aria-hidden="true">👩‍💼</span>
+                  )}
                 </div>
               </GlowPulse>
             </HoverCard>
             <div className="absolute -bottom-4 -right-4 bg-brand-green text-white px-5 py-2 rounded-full font-bold text-sm shadow-lg">
-              Founder & Dietitian
+              {founderRole}
             </div>
           </div>
 
           {/* Text */}
           <FadeIn direction="left" className="flex-1 space-y-6">
             <h2 className="font-serif text-4xl md:text-5xl text-brand-green leading-tight">
-              Meet <span className="italic text-brand-green-light">Anjali.</span>
+              Meet <span className="italic text-brand-green-light">{founderName}.</span>
             </h2>
             <p className="text-brand-charcoal/80 text-lg leading-relaxed">
-              Anjali started her journey as a trained dietitian — someone who spent years understanding the deep connection between what we eat and how we feel. She knew that truly good food doesn&apos;t need artificial anything. It just needs care, intention, and the right source.
+              {founderStoryFirst}
             </p>
             <p className="text-brand-charcoal/80 text-lg leading-relaxed">
-              That belief became the seed of <strong className="text-brand-green">Pink Farm</strong>. What began as a personal mission to bring honest, nutritious snacks to her own family soon turned into something much bigger — a food brand built on trust, quality, and a quiet promise to never cut corners.
+              {founderStorySecond.split("Pink Farm").map((part: string, index: number, parts: string[]) => (
+                <span key={`${part}-${index}`}>{part}{index < parts.length - 1 && <strong className="text-brand-green">Pink Farm</strong>}</span>
+              ))}
             </p>
             <blockquote className="border-l-4 border-brand-pink pl-6 italic text-brand-green font-serif text-xl">
-              &ldquo;Pure in nature, good for you. Simple food, stronger you.&rdquo;
+              &ldquo;{founderQuote}&rdquo;
             </blockquote>
             <div className="flex flex-wrap gap-3 pt-2">
-              {["Nutrition", "Food Science", "Innovation", "Entrepreneur", "Founder", "Curator"].map(tag => (
+              {founderTags.map((tag: string) => (
                 <span key={tag} className="px-4 py-1.5 rounded-full bg-brand-pink text-brand-green text-sm font-semibold">
                   {tag}
                 </span>
@@ -132,11 +146,11 @@ export default function AboutPage() {
           <FadeIn>
             <p className="text-brand-champagne text-sm font-medium tracking-widest uppercase">Our Heart Product</p>
             <h2 className="font-serif text-4xl md:text-5xl font-bold leading-tight">
-              Premium Phool Makhana<br />
-              <span className="italic font-light text-brand-pink text-3xl md:text-4xl">Why not? You deserve the best.</span>
+              {storeSettings.heartProductTitle || "Premium Phool Makhana"}<br />
+              <span className="italic font-light text-brand-pink text-3xl md:text-4xl">{storeSettings.heartProductTagline || "Why not? You deserve the best."}</span>
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 max-w-3xl mx-auto">
-              {["Plant-Based", "Gluten-Free", "Low Calorie", "High Calcium", "No Frying", "No Preservatives", "Farm to Table", "Hygienically Packed"].map(feat => (
+              {(storeSettings.heartProductFeatures?.length ? storeSettings.heartProductFeatures : ["Plant-Based", "Gluten-Free", "Low Calorie", "High Calcium", "No Frying", "No Preservatives", "Farm to Table", "Hygienically Packed"]).map((feat: string) => (
                 <div key={feat} className="bg-white/10 border border-white/20 backdrop-blur-sm rounded-xl py-3 px-4 text-sm font-medium">
                   {feat}
                 </div>

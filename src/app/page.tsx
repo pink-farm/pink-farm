@@ -247,12 +247,13 @@ export default async function Home() {
               <div className="flex-1 relative w-full aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden">
                 <HoverCard lift={-4}>
                   <div className="relative w-full aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden">
-                    {makhanaProduct.imageUrl ? (
+                    {storeSettings.featuredProductImage || makhanaProduct.imageUrl ? (
                       <Image
-                        src={makhanaProduct.imageUrl}
+                        src={storeSettings.featuredProductImage || makhanaProduct.imageUrl}
                         alt={makhanaProduct.name}
                         fill
                         sizes="(max-width: 1024px) 100vw, 50vw"
+                        unoptimized={Boolean(storeSettings.featuredProductImage)}
                         className="object-cover transition-transform duration-700 hover:scale-105"
                       />
                     ) : (
@@ -264,9 +265,9 @@ export default async function Home() {
                 </HoverCard>
               </div>
               <div className="flex-1 space-y-6">
-                <h2 className="font-serif text-3xl md:text-5xl text-brand-green">Meet Your New Favourite Snack.</h2>
+                <h2 className="font-serif text-3xl md:text-5xl text-brand-green">{storeSettings.featuredProductHeading || "Meet Your New Favourite Snack."}</h2>
                 <p className="text-lg opacity-90 leading-relaxed">
-                  {makhanaProduct.shortDescription || "Crispy, light, and perfectly roasted. Our signature Makhana is sourced from the finest farms and packed with care to retain maximum freshness."}
+                  {storeSettings.featuredProductDescription || makhanaProduct.shortDescription || "Crispy, light, and perfectly roasted. Our signature Makhana is sourced from the finest farms and packed with care to retain maximum freshness."}
                 </p>
                 <div className="flex items-center gap-4">
                   <span className="text-2xl font-bold">₹{(makhanaProduct.basePrice / 100).toFixed(2)}</span>

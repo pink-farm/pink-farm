@@ -12,9 +12,10 @@ import { ScaleOnTap, FadeIn, ShimmerSheen } from "@/components/ui/MotionWrappers
 import { formatPrice } from "@/lib/utils";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
 import { useCustomerStore } from "@/store/customerStore";
+import { CouponCodeSection } from "@/components/checkout/CouponCodeSection";
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem } = useCartStore();
+  const { items, updateQuantity, removeItem, appliedCoupon } = useCartStore();
   const isLoggedIn = useCustomerStore((state) => state.isLoggedIn);
   const deliveryFeeSetting = useSettingsStore((state) => state.deliveryFee);
   const freeDeliveryThreshold = useSettingsStore((state) => state.freeDeliveryThreshold);
@@ -31,7 +32,8 @@ export default function CartPage() {
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const isFreeDelivery = freeDeliveryThreshold > 0 && subtotal >= freeDeliveryThreshold;
   const deliveryFee = subtotal > 0 ? (isFreeDelivery ? 0 : (deliveryFeeSetting ?? 5000)) : 0;
-  const total = subtotal + deliveryFee;
+  const couponDiscount = appliedCoupon?.discount ?? 0;
+  const total = Math.max(0, subtotal - couponDiscount + deliveryFee);
 
   if (items.length === 0) {
     return (
@@ -161,6 +163,8 @@ export default function CartPage() {
                   </span>
                 </div>
               )}
+
+              <CouponCodeSection subtotal={subtotal} />
               
               <div className="space-y-4 text-sm opacity-90 mb-6 pb-6 border-b border-brand-green-light/20">
                 <div className="flex justify-between">
@@ -174,6 +178,12 @@ export default function CartPage() {
                   </span>
                   <span className="font-bold">FREE</span>
                 </div>
+                {appliedCoupon && couponDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-700 font-bold">
+                    <span>Coupon Discount ({appliedCoupon.code})</span>
+                    <span>-₹{formatPrice(couponDiscount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Delivery</span>
                   <span>{deliveryFee === 0 ? <strong className="text-emerald-600">FREE</strong> : `₹${formatPrice(deliveryFee)}`}</span>

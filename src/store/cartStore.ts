@@ -13,8 +13,17 @@ export interface CartItem {
   maxQuantity: number;
 }
 
+export interface AppliedCoupon {
+  code: string;
+  discount: number;
+  message: string;
+}
+
 interface CartStore {
   items: CartItem[];
+  appliedCoupon: AppliedCoupon | null;
+  setAppliedCoupon: (coupon: AppliedCoupon) => void;
+  clearAppliedCoupon: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   removeItem: (id: string, variantId?: string) => void;
   updateQuantity: (id: string, variantId: string | undefined, quantity: number) => void;
@@ -25,6 +34,9 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set) => ({
       items: [],
+      appliedCoupon: null,
+      setAppliedCoupon: (coupon) => set({ appliedCoupon: coupon }),
+      clearAppliedCoupon: () => set({ appliedCoupon: null }),
       addItem: (item, quantity = 1) =>
         set((state) => {
           const existingItemIndex = state.items.findIndex(
@@ -40,9 +52,10 @@ export const useCartStore = create<CartStore>()(
           return { items: [...state.items, { ...item, quantity: Math.min(quantity, item.maxQuantity) }] };
         }),
       removeItem: (id, variantId) =>
-        set((state) => ({
-          items: state.items.filter((i) => !(i.id === id && i.variantId === variantId)),
-        })),
+        set((state) => {
+          const items = state.items.filter((i) => !(i.id === id && i.variantId === variantId));
+          return { items, appliedCoupon: items.length > 0 ? state.appliedCoupon : null };
+        }),
       updateQuantity: (id, variantId, quantity) =>
         set((state) => {
           const updatedItems = state.items.map((i) => {
@@ -53,7 +66,7 @@ export const useCartStore = create<CartStore>()(
           });
           return { items: updatedItems };
         }),
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], appliedCoupon: null }),
     }),
     {
       name: "pink-farm-cart",

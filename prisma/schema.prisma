@@ -153,6 +153,19 @@ model StoreSettings {
   heroMainImage       String?
   heroGheeImage       String?
   heroAlmondsImage    String?
+  heartProductTitle   String   @default("Premium Phool Makhana")
+  heartProductTagline String   @default("Why not? You deserve the best.")
+  heartProductFeatures String[] @default(["Plant-Based", "Gluten-Free", "Low Calorie", "High Calcium", "No Frying", "No Preservatives", "Farm to Table", "Hygienically Packed"])
+  featuredProductHeading String @default("Meet Your New Favourite Snack.")
+  featuredProductDescription String @default("Handpicked, light & wholesome")
+  featuredProductImage String?
+  founderName String @default("Anjali")
+  founderImage String?
+  founderRole String @default("Founder & Dietitian")
+  founderStoryFirst String @default("Anjali started her journey as a trained dietitian — someone who spent years understanding the deep connection between what we eat and how we feel. She knew that truly good food doesn't need artificial anything. It just needs care, intention, and the right source.")
+  founderStorySecond String @default("That belief became the seed of Pink Farm. What began as a personal mission to bring honest, nutritious snacks to her own family soon turned into something much bigger — a food brand built on trust, quality, and a quiet promise to never cut corners.")
+  founderQuote String @default("Pure in nature, good for you. Simple food, stronger you.")
+  founderTags String[] @default(["Nutrition", "Food Science", "Innovation", "Entrepreneur", "Founder", "Curator"])
   supportPhone        String   @default("+91 8437504040")
   supportEmail        String   @default("wecare@pinkfarm.in")
   businessAddress     String   @default("Dugri, Ludhiana, Punjab - 141003")
