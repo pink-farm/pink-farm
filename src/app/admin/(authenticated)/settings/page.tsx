@@ -143,10 +143,15 @@ export default function StoreSettingsPage() {
     setCouponBusy(true);
     setCouponMessage("");
     try {
+      const payload = {
+        ...couponDraft,
+        startsAt: couponDraft.startsAt ? new Date(couponDraft.startsAt).toISOString() : new Date().toISOString(),
+        expiresAt: couponDraft.expiresAt ? new Date(couponDraft.expiresAt).toISOString() : "",
+      };
       const response = await fetch(editingCouponId ? `/api/admin/coupons/${editingCouponId}` : "/api/admin/coupons", {
         method: editingCouponId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(couponDraft),
+        body: JSON.stringify(payload),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not save coupon.");

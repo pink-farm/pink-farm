@@ -72,12 +72,12 @@ export default async function CustomerReceiptPage({
             <div>
               <h1 
                 className="font-serif text-4xl sm:text-5xl font-extrabold tracking-tight leading-none text-[#1A3C34] print:text-[#1A3C34]"
-                style={{ color: "#1A3C34", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
+                style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: "#1A3C34", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
               >
                 Pink Farm
               </h1>
-              <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-gray-600 mt-1.5 pl-0.5">
-                Goodness in Every Bite
+              <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-gray-600 mt-1 pl-0.5">
+                By Suvana Organics <span className="opacity-40 mx-1">·</span> Goodness in Every Bite
               </p>
             </div>
           </div>

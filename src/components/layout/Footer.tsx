@@ -32,9 +32,17 @@ export function Footer() {
               quality={100}
               className="w-[80px] h-[80px] md:w-[95px] md:h-[95px] object-contain -translate-y-[5%] drop-shadow-md -mr-1 md:-mr-2"
             />
-            <h3 className="font-serif text-3xl md:text-4xl font-extrabold text-brand-ivory tracking-tight">
-              {storeName || "Pink Farm"}
-            </h3>
+            <div className="flex flex-col">
+              <h3 
+                className="font-serif text-3xl md:text-4xl font-extrabold text-brand-ivory tracking-tight leading-none"
+                style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+              >
+                {storeName || "Pink Farm"}
+              </h3>
+              <span className="text-[11px] md:text-xs text-brand-champagne/90 tracking-wider font-medium mt-1">
+                By Suvana Organics
+              </span>
+            </div>
           </div>
           <p className="opacity-90 mb-4 leading-relaxed">
             Goodness that feels like home. Discover thoughtfully selected everyday favourites, with premium Makhana at our heart.

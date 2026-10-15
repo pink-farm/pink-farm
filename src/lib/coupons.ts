@@ -11,7 +11,8 @@ export async function getCouponFailure(input: {
   const { coupon, subtotal, phone, customerId } = input;
   const now = new Date();
   if (!coupon.isActive) return "This coupon is not active.";
-  if (coupon.startsAt > now) return "This coupon is not available yet.";
+  const startTolerance = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  if (coupon.startsAt > startTolerance) return "This coupon is not available yet.";
   if (coupon.expiresAt && coupon.expiresAt <= now) return "This coupon has expired.";
   if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) return "This coupon has reached its usage limit.";
   if (subtotal < coupon.minimumSubtotal) return `Minimum order of ₹${Math.ceil(coupon.minimumSubtotal / 100)} required.`;

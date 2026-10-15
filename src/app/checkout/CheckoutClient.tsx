@@ -107,14 +107,25 @@ export function CheckoutClient() {
 
   const pinCodeValue = watch("pinCode");
 
+  const fetchAvailableCoupons = async () => {
+    setIsLoadingCoupons(true);
+    try {
+      const res = await fetch("/api/coupons/available", { cache: "no-store" });
+      const data = await res.json();
+      if (Array.isArray(data.coupons)) {
+        setAvailableCoupons(data.coupons);
+      } else {
+        setAvailableCoupons([]);
+      }
+    } catch {
+      setAvailableCoupons([]);
+    } finally {
+      setIsLoadingCoupons(false);
+    }
+  };
+
   useEffect(() => {
-    let cancelled = false;
-    fetch("/api/coupons/available")
-      .then((res) => res.json())
-      .then((data) => { if (!cancelled && Array.isArray(data.coupons)) setAvailableCoupons(data.coupons); })
-      .catch(() => { if (!cancelled) setAvailableCoupons([]); })
-      .finally(() => { if (!cancelled) setIsLoadingCoupons(false); });
-    return () => { cancelled = true; };
+    void fetchAvailableCoupons();
   }, []);
 
   useEffect(() => {
@@ -866,8 +877,11 @@ export function CheckoutClient() {
                 {couponSuccess && <p className="text-xs text-emerald-700 font-medium">{couponSuccess}</p>}
                 <button
                   type="button"
-                  onClick={() => setIsCouponPickerOpen(true)}
-                  className="flex w-full items-center justify-between rounded-lg border border-dashed border-amber-300 bg-amber-50/60 px-3 py-2.5 text-left text-xs font-semibold text-brand-green transition-colors hover:bg-amber-50"
+                  onClick={() => {
+                    void fetchAvailableCoupons();
+                    setIsCouponPickerOpen(true);
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg border border-dashed border-amber-300 bg-amber-50/60 px-3 py-2.5 text-left text-xs font-semibold text-brand-green transition-colors hover:bg-amber-50 cursor-pointer"
                 >
                   <span className="flex items-center gap-2"><TicketPercent size={15} className="text-amber-600" /> Browse available coupons</span>
                   <span className="text-[11px] text-gray-500">{isLoadingCoupons ? "Loading…" : `${availableCoupons.length} available`}</span>

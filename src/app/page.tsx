@@ -363,10 +363,10 @@ export default async function Home() {
 
           {/* Right — Text + CTA */}
           <FadeIn direction="left" className="flex-1 space-y-5 text-center md:text-left">
-            <p className="text-[#FF6B6B] text-sm font-semibold tracking-widest uppercase">Our Recipes Channel</p>
+            <p className="text-[#FF6B6B] text-sm font-semibold tracking-widest uppercase">Our Pink Farm Channel</p>
             <h2 className="font-serif text-4xl md:text-5xl font-extrabold leading-tight">
               Feel Free To Check<br />
-              <span className="italic font-light text-brand-pink">Our Recipes On YouTube.</span>
+              <span className="italic font-light text-brand-pink">Our Pink Farm Channel On YouTube.</span>
             </h2>
             <p className="text-white/60 text-base md:text-lg leading-relaxed max-w-lg">
               Wholesome, easy &amp; delicious ideas made with love — from Anjali&apos;s kitchen to yours. Watch recipes, product reels, and farm stories.

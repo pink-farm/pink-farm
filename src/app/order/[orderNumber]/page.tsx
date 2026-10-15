@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { CheckCircle2, Clock, Package, Truck, Home, Printer } from "lucide-react";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
@@ -67,7 +68,7 @@ export default async function OrderPage({
                   className="group flex items-center justify-center gap-3 bg-[#FF0000] text-white px-6 py-3 rounded-full font-bold shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 group-hover:scale-110 transition-transform"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                  Watch our Recipes
+                  Watch our Pink Farm Channel
                 </a>
               </div>
             </div>
@@ -97,19 +98,39 @@ export default async function OrderPage({
       )}
 
       <div className="bg-brand-cream rounded-3xl p-8 md:p-12 border border-brand-green-light/10 mb-8">
-        <div className="flex justify-between items-center mb-8 border-b border-brand-green-light/20 pb-6">
-          <div>
-            <h2 className="font-bold text-brand-green text-xl">Order #{order.orderNumber}</h2>
-            <p className="text-sm opacity-70 mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 pb-6 border-b border-brand-green-light/20 gap-4">
+          <div className="flex items-center gap-2">
+            <Image 
+              src="/lotus-logo-gold.png" 
+              alt="Pink Farm Logo" 
+              width={70} 
+              height={70} 
+              className="w-14 h-14 object-contain -translate-y-[4%] -mr-1"
+            />
+            <div className="flex flex-col">
+              <span 
+                className="font-serif text-3xl font-extrabold text-brand-green tracking-tight leading-none"
+                style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+              >
+                Pink Farm
+              </span>
+              <span className="text-[10px] text-brand-green/75 font-sans font-medium tracking-wider mt-0.5">
+                By Suvana Organics
+              </span>
+            </div>
           </div>
-          <div className="text-right">
-            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
-              order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' : 
-              order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {order.paymentMethod === "COD" ? "COD · DUE ON DELIVERY" : order.paymentStatus}
-            </span>
-            <p className="text-sm opacity-70 mt-2 font-medium">Status: {order.fulfillmentStatus}</p>
+          <div className="text-left sm:text-right">
+            <h2 className="font-bold text-brand-green text-lg">Order #{order.orderNumber}</h2>
+            <p className="text-xs opacity-70 mt-0.5">{new Date(order.createdAt).toLocaleDateString()}</p>
+            <div className="mt-1.5 flex items-center gap-2 sm:justify-end">
+              <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' : 
+                order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {order.paymentMethod === "COD" ? "COD · DUE ON DELIVERY" : order.paymentStatus}
+              </span>
+              <span className="text-xs opacity-75 font-medium">· {order.fulfillmentStatus}</span>
+            </div>
           </div>
         </div>
 
