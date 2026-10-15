@@ -63,7 +63,7 @@ export default function AboutPage() {
               &ldquo;Pure in nature, good for you. Simple food, stronger you.&rdquo;
             </blockquote>
             <div className="flex flex-wrap gap-3 pt-2">
-              {["Nutrition", "Food Science", "Healthy Living", "Dietitian", "Food Lover", "Dreamer", "Founder"].map(tag => (
+              {["Nutrition", "Food Science", "Innovation", "Entrepreneur", "Founder", "Curator"].map(tag => (
                 <span key={tag} className="px-4 py-1.5 rounded-full bg-brand-pink text-brand-green text-sm font-semibold">
                   {tag}
                 </span>
@@ -94,7 +94,7 @@ export default function AboutPage() {
               {
                 emoji: "🌾",
                 title: "Sourced with Care",
-                desc: "Our signature Phool Makhana is handpicked from the pristine lotus ponds of Bihar — plant-based, gluten-free, low-calorie, and high in calcium."
+                desc: "Every product is thoughtfully sourced from trusted origins, carefully selected for its quality, authenticity, and natural goodness."
               },
               {
                 emoji: "📦",
