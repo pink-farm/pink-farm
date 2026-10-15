@@ -27,9 +27,31 @@ export function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+    let ticking = false;
+
+    const updateScroll = () => {
+      const y = window.scrollY;
+      setScrolled((prev) => {
+        // Hysteresis deadband: activate compact mode when scrolling down past 80px,
+        // and only restore full mode when scrolled all the way back near the top (< 20px).
+        // This completely prevents the rapid big/small oscillation jitter loop.
+        if (!prev && y > 80) return true;
+        if (prev && y < 20) return false;
+        return prev;
+      });
+      ticking = false;
     };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScroll);
+        ticking = true;
+      }
+    };
+
+    // Run once on mount
+    updateScroll();
+
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
@@ -75,9 +97,9 @@ export function Navbar() {
 
       {/* Main Navigation Bar */}
       <div
-        className={`w-full backdrop-blur-xl border-b transition-all duration-300 ${
+        className={`w-full backdrop-blur-xl border-b transition-all duration-300 ease-out ${
           scrolled
-            ? "bg-brand-ivory/95 border-brand-pink-accent/40 shadow-[0_10px_30px_rgba(26,60,52,0.06)] h-16 md:h-18"
+            ? "bg-brand-ivory/95 border-brand-pink-accent/40 shadow-[0_10px_30px_rgba(26,60,52,0.06)] h-16 md:h-[70px]"
             : "bg-brand-ivory/85 border-brand-pink-accent/30 shadow-[0_4px_20px_rgba(0,0,0,0.02)] h-20"
         }`}
       >
