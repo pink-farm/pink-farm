@@ -306,9 +306,9 @@ export default async function Home() {
             <SpotlightCard className="h-full rounded-[2.5rem]" glowColor="rgba(230, 184, 192, 0.2)">
               <div className="h-full bg-white p-8 rounded-[2.5rem] shadow-sm border border-brand-pink-accent/30 hover:shadow-xl transition-all duration-300">
                 <div className="w-14 h-14 bg-brand-pink rounded-full flex items-center justify-center text-2xl mb-6 shadow-inner transition-transform duration-300 hover:rotate-6">🌱</div>
-                <h3 className="font-serif text-2xl text-brand-green mb-3 uppercase tracking-wide">Plant Protein & Pure</h3>
+                <h3 className="font-serif text-2xl text-brand-green mb-3 uppercase tracking-wide">Rooted in Origin</h3>
                 <p className="text-brand-charcoal/80 leading-relaxed text-sm">
-                  Rich in wholesome plant protein with absolutely no artificial preservatives, colors, or flavors. Pure goodness as nature intended.
+                  We source each product from the region where it naturally belongs, bringing you authentic quality straight from its roots.
                 </p>
               </div>
             </SpotlightCard>
@@ -316,10 +316,10 @@ export default async function Home() {
           <StaggerItem>
             <SpotlightCard className="h-full rounded-[2.5rem]" glowColor="rgba(230, 184, 192, 0.2)">
               <div className="h-full bg-white p-8 rounded-[2.5rem] shadow-sm border border-brand-pink-accent/30 hover:shadow-xl transition-all duration-300">
-                <div className="w-14 h-14 bg-brand-pink rounded-full flex items-center justify-center text-2xl mb-6 shadow-inner transition-transform duration-300 hover:rotate-6">👨‍🌾</div>
-                <h3 className="font-serif text-2xl text-brand-green mb-3 uppercase tracking-wide">Sourced from Bihar</h3>
+                <div className="w-14 h-14 bg-brand-pink rounded-full flex items-center justify-center text-2xl mb-6 shadow-inner transition-transform duration-300 hover:rotate-6">🍃</div>
+                <h3 className="font-serif text-2xl text-brand-green mb-3 uppercase tracking-wide">Pure by Nature</h3>
                 <p className="text-brand-charcoal/80 leading-relaxed text-sm">
-                  Our signature Makhana is handpicked directly from the pristine lotus ponds of Darbhanga, Bihar.
+                  Rich in wholesome goodness with no unnecessary additives — just simple, honest food as nature intended.
                 </p>
               </div>
             </SpotlightCard>
@@ -328,9 +328,9 @@ export default async function Home() {
             <SpotlightCard className="h-full rounded-[2.5rem]" glowColor="rgba(230, 184, 192, 0.2)">
               <div className="h-full bg-white p-8 rounded-[2.5rem] shadow-sm border border-brand-pink-accent/30 hover:shadow-xl transition-all duration-300">
                 <div className="w-14 h-14 bg-brand-pink rounded-full flex items-center justify-center text-2xl mb-6 shadow-inner transition-transform duration-300 hover:rotate-6">✨</div>
-                <h3 className="font-serif text-2xl text-brand-green mb-3 uppercase tracking-wide">Premium Quality</h3>
+                <h3 className="font-serif text-2xl text-brand-green mb-3 uppercase tracking-wide">Crafted with Care</h3>
                 <p className="text-brand-charcoal/80 leading-relaxed text-sm">
-                  Every single batch is rigorously sorted and hygienically packed to ensure you only get the largest, crunchiest bites.
+                  Thoughtfully sourced, carefully prepared, and made with attention to every detail — because quality is in the care we put into every product.
                 </p>
               </div>
             </SpotlightCard>
