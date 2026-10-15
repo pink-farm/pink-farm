@@ -194,22 +194,20 @@ export async function POST(request: Request) {
 
     // Create Order in DB
     const order = await prisma.$transaction(async (tx) => {
-      // Best-effort stock decrement without failing checkout
+      // Reserve stock atomically when the order is created. Cancellation returns it.
       for (const item of validatedItems) {
-        try {
-          if (item.variantId) {
-            await tx.productVariant.updateMany({
+        if (item.variantId) {
+          const updated = await tx.productVariant.updateMany({
               where: { id: item.variantId, productId: item.productId, stockQuantity: { gte: item.quantity } },
               data: { stockQuantity: { decrement: item.quantity } },
             });
-          } else {
-            await tx.product.updateMany({
+          if (updated.count !== 1) throw new Error("INSUFFICIENT_STOCK");
+        } else {
+          const updated = await tx.product.updateMany({
               where: { id: item.productId, stockQuantity: { gte: item.quantity } },
               data: { stockQuantity: { decrement: item.quantity } },
             });
-          }
-        } catch (stockErr) {
-          console.warn("Stock decrement warning:", stockErr);
+          if (updated.count !== 1) throw new Error("INSUFFICIENT_STOCK");
         }
       }
 
@@ -257,6 +255,9 @@ export async function POST(request: Request) {
 
   } catch (error: unknown) {
     console.error("Checkout Error:", error);
+    if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") {
+      return NextResponse.json({ error: "One or more items no longer have enough stock. Please update your cart and try again." }, { status: 409 });
+    }
     return NextResponse.json({ error: "Failed to process order. Please try again." }, { status: 500 });
   }
 }

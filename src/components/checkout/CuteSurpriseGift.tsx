@@ -59,6 +59,7 @@ export function CuteAnimatedGiftIcon({
       {/* Floating Sparkle Particles */}
       <AnimatePresence>
         <motion.div
+          key="floating-sparkle"
           animate={{
             y: [-2, -6, -2],
             x: [0, 2, 0],
@@ -76,6 +77,7 @@ export function CuteAnimatedGiftIcon({
         </motion.div>
 
         <motion.div
+          key="floating-heart"
           animate={{
             y: [0, -3, 0],
             opacity: [0.3, 0.9, 0.3],

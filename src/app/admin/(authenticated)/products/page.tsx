@@ -1,5 +1,3 @@
-import { ExternalLink } from "lucide-react";
-import Link from "next/link";
 import { AdminProductsTable } from "./AdminProductsTable";
 import { getStoreProducts } from "@/lib/defaultProducts";
 
@@ -14,18 +12,8 @@ export default async function AdminProductsPage() {
         <div>
           <h1 className="text-3xl font-serif font-bold text-gray-900">Products & Inventory</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Manage your store catalog and configure stock availability (In Stock / Out of Stock).
+            Manage product details, pricing, images, and inventory quantities.
           </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/products"
-            target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors"
-          >
-            <ExternalLink size={15} />
-            View Storefront
-          </Link>
         </div>
       </div>
 

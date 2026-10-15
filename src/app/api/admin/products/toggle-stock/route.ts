@@ -29,6 +29,13 @@ export async function POST(request: Request) {
       });
     }
 
+    if (isAvailable) {
+      const variant = await prisma.productVariant.findFirst({ where: { productId: target.id } });
+      if (variant ? variant.stockQuantity <= 0 : target.stockQuantity <= 0) {
+        return NextResponse.json({ error: "Add inventory before marking this product in stock." }, { status: 409 });
+      }
+    }
+
     if (!target) {
       return NextResponse.json(
         { error: "Product not found in database" },

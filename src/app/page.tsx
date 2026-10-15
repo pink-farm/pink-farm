@@ -166,13 +166,13 @@ export default async function Home() {
             <h2 className="font-serif text-3xl md:text-5xl text-brand-green uppercase tracking-wide">
               Our Signature <span className="italic text-brand-green-light lowercase font-light text-4xl md:text-6xl align-baseline">collection</span>
             </h2>
-            <p className="text-brand-charcoal opacity-80 tracking-wide uppercase text-sm">Six thoughtfully curated essentials, perfected for your home.</p>
+            <p className="text-brand-charcoal opacity-80 tracking-wide uppercase text-sm">Thoughtfully curated essentials, perfected for your home.</p>
           </div>
         </FadeIn>
 
         {products.length > 0 ? (
           <StaggerContainer staggerDelay={0.16} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
-            {products.slice(0, 6).map((product, index) => (
+            {products.map((product, index) => (
               <StaggerItem key={product.id}>
                 <SpotlightCard className="rounded-[2rem] h-full" glowColor="rgba(42, 89, 78, 0.15)">
                   <Link href={`/products/${product.slug}`} className="group flex flex-col gap-4 h-full p-2">

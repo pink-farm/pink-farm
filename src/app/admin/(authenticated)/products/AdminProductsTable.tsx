@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -10,10 +10,10 @@ import {
   ExternalLink, 
   Search, 
   Package, 
-  Check, 
-  AlertTriangle 
+  Check
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
+import { ProductFormModal, type EditableProduct } from "./ProductFormModal";
 
 interface ProductVariant {
   id: string;
@@ -25,20 +25,7 @@ interface ProductVariant {
   isAvailable: boolean;
 }
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  shortDescription: string;
-  imageUrl: string | null;
-  basePrice: number;
-  originalPrice: number | null;
-  sku: string;
-  category: string;
-  stockQuantity: number;
-  isAvailable: boolean;
-  variants: ProductVariant[];
-}
+type Product = EditableProduct & { variants: ProductVariant[] };
 
 export function AdminProductsTable({ initialProducts }: { initialProducts: Product[] }) {
   const router = useRouter();
@@ -47,6 +34,11 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
   const [statusFilter, setStatusFilter] = useState<"all" | "instock" | "outofstock">("all");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
+
+  useEffect(() => { setProducts(initialProducts); setStockDrafts({}); }, [initialProducts]);
 
   const toggleStock = async (product: Product) => {
     const nextStatus = !product.isAvailable;
@@ -86,6 +78,22 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
     }
   };
 
+  const saveInventory = async (product: Product) => {
+    const stockQuantity = Number(stockDrafts[product.id] ?? quantity(product));
+    if (!Number.isInteger(stockQuantity) || stockQuantity < 0) return;
+    setLoadingId(product.id);
+    try {
+      const response = await fetch("/api/admin/products/inventory", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: product.id, stockQuantity }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not update inventory.");
+      setProducts((current) => current.map((item) => item.id === product.id ? { ...item, stockQuantity, isAvailable: stockQuantity > 0, variants: item.variants.map((variant) => ({ ...variant, stockQuantity, isAvailable: stockQuantity > 0 })) } : item));
+      setStockDrafts((current) => ({ ...current, [product.id]: String(stockQuantity) }));
+      router.refresh(); setToastMessage(`Inventory updated: ${stockQuantity} units.`); setTimeout(() => setToastMessage(null), 3000);
+    } catch (err) { setToastMessage(err instanceof Error ? err.message : "Could not update inventory."); setTimeout(() => setToastMessage(null), 3000); }
+    finally { setLoadingId(null); }
+  };
+
+  const quantity = (p: Product) => p.variants?.[0]?.stockQuantity ?? p.stockQuantity;
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -94,16 +102,17 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
 
     if (!matchesSearch) return false;
 
-    if (statusFilter === "instock") return p.isAvailable;
-    if (statusFilter === "outofstock") return !p.isAvailable;
+    if (statusFilter === "instock") return p.isAvailable && quantity(p) > 0;
+    if (statusFilter === "outofstock") return !p.isAvailable || quantity(p) <= 0;
     return true;
   });
 
-  const inStockCount = products.filter((p) => p.isAvailable).length;
-  const outOfStockCount = products.filter((p) => !p.isAvailable).length;
+  const inStockCount = products.filter((p) => p.isAvailable && quantity(p) > 0).length;
+  const outOfStockCount = products.length - inStockCount;
 
   return (
     <div className="space-y-6">
+      {(showProductForm || editingProduct) && <ProductFormModal product={editingProduct} onClose={() => { setShowProductForm(false); setEditingProduct(null); }} onSaved={() => { setShowProductForm(false); setEditingProduct(null); router.refresh(); setToastMessage("Product saved successfully."); setTimeout(() => setToastMessage(null), 3000); }} onDeleted={() => { setShowProductForm(false); setEditingProduct(null); setProducts((items) => items.filter((item) => item.id !== editingProduct?.id)); router.refresh(); setToastMessage("Product deleted."); setTimeout(() => setToastMessage(null), 3000); }} />}
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-bottom-3 duration-200">
@@ -146,6 +155,7 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
       </div>
 
       {/* Controls Bar */}
+      <div className="flex justify-end"><button onClick={() => { setEditingProduct(null); setShowProductForm(true); }} className="inline-flex items-center gap-2 rounded-xl bg-brand-green px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-95"><span className="text-lg leading-none">+</span> Add New Product</button></div>
       <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-xs">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
@@ -198,14 +208,16 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
                 <th className="py-4 px-6 font-semibold">Category</th>
                 <th className="py-4 px-6 font-semibold">Pack Size</th>
                 <th className="py-4 px-6 font-semibold">Price</th>
+                <th className="py-4 px-6 font-semibold text-center">Inventory</th>
                 <th className="py-4 px-6 font-semibold text-center">Stock Status</th>
-                <th className="py-4 px-6 font-semibold text-right">Configure Availability</th>
+                <th className="py-4 px-6 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {filteredProducts.map((p) => {
                 const isLoading = loadingId === p.id;
                 const packSizes = p.variants?.map((v) => v.packSize).filter(Boolean).join(", ") || "Standard";
+                const stock = quantity(p);
 
                 return (
                   <tr key={p.id} className="hover:bg-gray-50/70 transition-colors">
@@ -247,32 +259,34 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
                       )}
                     </td>
 
+                    <td className="py-4 px-6"><div className="flex items-center justify-center gap-2"><input aria-label={`Inventory quantity for ${p.name}`} type="number" min="0" step="1" value={stockDrafts[p.id] ?? stock} onChange={(event) => setStockDrafts((current) => ({ ...current, [p.id]: event.target.value }))} className={`w-20 rounded-lg border border-gray-200 px-2 py-1.5 text-center font-semibold focus:border-brand-green focus:outline-none ${stock <= p.lowStockThreshold ? "text-rose-700" : "text-gray-800"}`}/><button onClick={() => void saveInventory(p)} disabled={isLoading || Number(stockDrafts[p.id] ?? stock) === stock} className="rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40">Save</button></div></td>
+
                     <td className="py-4 px-6 text-center">
                       <span
                         className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                          p.isAvailable
+                          p.isAvailable && stock > 0
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                             : "bg-rose-100 text-rose-800 border border-rose-200"
                         }`}
                       >
-                        {p.isAvailable ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
-                        {p.isAvailable ? "In Stock" : "Out of Stock"}
+                        {p.isAvailable && stock > 0 ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+                        {p.isAvailable && stock > 0 ? "In Stock" : "Out of Stock"}
                       </span>
                     </td>
 
-                    <td className="py-4 px-6 text-right">
-                      <button
+                    <td className="py-4 px-6 text-right"><div className="flex justify-end gap-2">
+                      <button onClick={() => { setEditingProduct(p); setShowProductForm(false); }} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50">Edit</button><button
                         onClick={() => toggleStock(p)}
                         disabled={isLoading}
                         className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          p.isAvailable
+                          p.isAvailable && stock > 0
                             ? "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 active:scale-95"
                             : "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 active:scale-95"
                         } disabled:opacity-50`}
                       >
                         {isLoading ? (
                           <Loader2 size={13} className="animate-spin" />
-                        ) : p.isAvailable ? (
+                        ) : p.isAvailable && stock > 0 ? (
                           <>
                             <XCircle size={13} />
                             Mark Out of Stock
@@ -284,14 +298,14 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
                           </>
                         )}
                       </button>
-                    </td>
+                    </div></td>
                   </tr>
                 );
               })}
 
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-400">
+                  <td colSpan={7} className="py-12 text-center text-gray-400">
                     <Package size={36} className="mx-auto mb-2 text-gray-300" />
                     No products matched your search or filter.
                   </td>
