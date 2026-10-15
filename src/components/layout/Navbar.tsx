@@ -111,17 +111,12 @@ export function Navbar() {
                 }`}
               />
             </motion.div>
-            <div className="flex flex-col">
-              <span 
-                className="font-serif text-3xl md:text-4xl font-extrabold text-brand-green tracking-tight group-hover:scale-105 transition-transform duration-300 leading-none"
-                style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-              >
-                {storeName || "Pink Farm"}
-              </span>
-              <span className="text-[9px] md:text-[10px] text-brand-green/75 font-sans font-medium tracking-wider mt-0.5">
-                By Suvana Organics
-              </span>
-            </div>
+            <span 
+              className="font-serif text-3xl md:text-4xl font-extrabold text-brand-green tracking-tight group-hover:scale-105 transition-transform duration-300"
+              style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+            >
+              {storeName || "Pink Farm"}
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
