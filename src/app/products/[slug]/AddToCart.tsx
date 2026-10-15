@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { useCartStore } from "@/store/cartStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart, Check, Sparkles, Percent, Copy, Package } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, Sparkles, Package } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleOnTap, ShimmerSheen } from "@/components/ui/MotionWrappers";
 import { BulkOrderModal } from "@/components/products/BulkOrderModal";
@@ -19,7 +19,6 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
   );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const [copiedCode, setCopiedCode] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   const isAcceptingOrders = useSettingsStore((state) => state.isAcceptingOrders);
@@ -30,14 +29,6 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
     product?.name?.toLowerCase().includes("raw")
   );
   const minBulkKg = isRawMakhana ? 5 : 2;
-
-  const handleCopyCode = (code: string) => {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(code);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2500);
-    }
-  };
 
   const isMakhana = product.category?.toLowerCase().includes("makhana") || product.slug?.includes("makhana");
   const isNuts = product.category?.toLowerCase().includes("nut") || product.slug?.includes("almond") || product.slug?.includes("cashew");
@@ -162,39 +153,6 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* Yogabar-style Coupon Discount Banner (Compact) */}
-      <div className="flex items-center justify-between gap-2.5 bg-gradient-to-r from-amber-50/80 via-brand-pink/60 to-brand-cream/80 border border-dashed border-amber-300/80 rounded-xl p-2 shadow-2xs">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-400 to-amber-500 text-brand-green flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
-            <Percent className="w-3 h-3 stroke-[2.8]" />
-          </div>
-          <div className="min-w-0">
-            <div className="font-bold text-xs text-brand-green leading-tight">
-              Flat ₹499 OFF <span className="text-[10px] font-normal text-brand-charcoal/70">| Orders above ₹1999</span>
-            </div>
-            <div className="text-[10px] text-brand-charcoal/80 mt-0.5 truncate">
-              Code: <span className="font-mono font-bold text-brand-green bg-white/90 border border-brand-pink-accent/40 px-1 py-0.2 rounded text-[11px] select-all">FLAT499</span>
-              <span className="text-[9px] text-amber-800 font-semibold bg-amber-100/70 px-1 py-0.2 rounded ml-1.5">One-time use</span>
-            </div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => handleCopyCode("FLAT499")}
-          className="text-[11px] font-bold px-2.5 py-1 rounded-md border border-brand-green/30 bg-white hover:bg-brand-green hover:text-white text-brand-green transition-all shrink-0 cursor-pointer shadow-2xs active:scale-95 flex items-center gap-1"
-        >
-          {copiedCode ? (
-            <>
-              <Check className="w-3 h-3 text-emerald-600" /> Copied!
-            </>
-          ) : (
-            <>
-              <Copy className="w-3 h-3" /> Copy
-            </>
-          )}
-        </button>
       </div>
 
       <div className="space-y-1">
