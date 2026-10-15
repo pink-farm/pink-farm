@@ -5,8 +5,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { useCustomerStore } from "@/store/customerStore";
 import { Mail, ShieldAlert, Settings, User, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import { LotusLoader } from "@/components/ui/LotusLoader";
+import { ADMIN_EMAIL } from "@/lib/auth-constants";
 
 type CustomerMethod = "password" | "otp";
+type AdminMethod = "password" | "otp";
 
 export function LoginForm() {
   const [activeTab, setActiveTab] = useState<"customer" | "admin">("customer");
@@ -17,8 +22,10 @@ export function LoginForm() {
   const [customerName, setCustomerName] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  const [adminMethod, setAdminMethod] = useState<AdminMethod>("password");
+  const [adminOtp, setAdminOtp] = useState("");
+  const [adminOtpSent, setAdminOtpSent] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -26,12 +33,21 @@ export function LoginForm() {
   const loginCustomer = useCustomerStore((state) => state.loginCustomer);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let registrationTimer: number | undefined;
+    if (params.get("register") === "1") {
+      registrationTimer = window.setTimeout(() => {
+        setIsRegistering(true);
+        setCustomerMethod("otp");
+      }, 0);
+    }
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then((data) => {
         if (data.isAdmin) setIsAdminLoggedIn(true);
       })
       .catch(() => {});
+    return () => window.clearTimeout(registrationTimer);
   }, []);
 
   const finishCustomerSignIn = (customer: { name: string; email: string; phone?: string | null }) => {
@@ -40,7 +56,7 @@ export function LoginForm() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const redirectParam = params.get("redirect");
-      if (redirectParam && redirectParam.startsWith("/")) {
+      if (redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//") && !redirectParam.startsWith("/\\")) {
         destination = redirectParam;
       }
     }
@@ -57,7 +73,7 @@ export function LoginForm() {
       const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: adminEmail, password: adminPassword }),
+        body: JSON.stringify({ email: ADMIN_EMAIL, password: adminPassword }),
       });
       const data = await response.json();
       if (!response.ok) setError(data.error || "Invalid credentials.");
@@ -88,6 +104,30 @@ export function LoginForm() {
       else finishCustomerSignIn(data.customer);
     } catch {
       setError("Unable to sign in right now. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAdminOtpSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: ADMIN_EMAIL, role: "admin", ...(adminOtpSent ? { code: adminOtp } : {}) }),
+      });
+      const data = await response.json();
+      if (!response.ok) setError(data.error || "Unable to verify your admin email.");
+      else if (!adminOtpSent) setAdminOtpSent(true);
+      else {
+        router.push("/admin");
+        router.refresh();
+      }
+    } catch {
+      setError("Unable to verify your admin email right now. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -228,6 +268,7 @@ export function LoginForm() {
               <Button type="submit" size="lg" className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
+              <Link href={`/forgot-password?role=customer&email=${encodeURIComponent(email)}`} className="block text-center text-xs font-semibold text-brand-green underline underline-offset-2">Forgot password?</Link>
               <p className="text-center text-sm text-brand-charcoal/70">Don&apos;t have an account? <button type="button" onClick={startRegistration} className="cursor-pointer font-bold text-brand-green underline underline-offset-2">Register now</button></p>
             </form>
           ) : (
@@ -289,25 +330,61 @@ export function LoginForm() {
             <>
               <div className="flex items-center gap-2.5 rounded-2xl border border-amber-200/60 bg-amber-50 p-3 text-xs font-medium text-amber-900">
                 <ShieldAlert size={16} className="shrink-0 text-amber-700" />
-                <span>Store Administrator Backoffice. Authorized personnel only.</span>
+                <span>Administrator access is reserved for {ADMIN_EMAIL}.</span>
               </div>
-              <form onSubmit={handleAdminSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="admin-email" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Admin email</label>
-                  <input id="admin-email" type="email" autoComplete="username" required value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
-                </div>
-                <div className="space-y-1.5">
-                  <label htmlFor="admin-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Password</label>
-                  <input id="admin-password" type="password" autoComplete="current-password" required value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
-                </div>
-                <Button type="submit" size="lg" className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10" disabled={isLoading}>
-                  {isLoading ? "Authenticating..." : "Access Admin Dashboard"}
-                </Button>
-              </form>
+              <div className="grid grid-cols-2 rounded-xl bg-brand-cream/70 p-1">
+                <button type="button" onClick={() => { setAdminMethod("password"); setAdminOtpSent(false); setAdminOtp(""); setError(""); }} className={`cursor-pointer rounded-lg py-2.5 text-sm font-semibold ${adminMethod === "password" ? "bg-white text-brand-green shadow-sm" : "text-brand-charcoal/60"}`}>Password</button>
+                <button type="button" onClick={() => { setAdminMethod("otp"); setAdminOtpSent(false); setAdminOtp(""); setError(""); }} className={`cursor-pointer rounded-lg py-2.5 text-sm font-semibold ${adminMethod === "otp" ? "bg-white text-brand-green shadow-sm" : "text-brand-charcoal/60"}`}>Email code</button>
+              </div>
+              {adminMethod === "password" ? (
+                <form onSubmit={handleAdminSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="admin-email" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Admin email</label>
+                    <input id="admin-email" type="email" autoComplete="username" required value={ADMIN_EMAIL} readOnly className="w-full cursor-not-allowed rounded-xl border border-brand-green-light/20 bg-brand-cream/60 p-3.5 text-sm font-semibold text-brand-green" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="admin-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Password</label>
+                    <input id="admin-password" type="password" autoComplete="current-password" required value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+                  </div>
+                  <Button type="submit" size="lg" className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10" disabled={isLoading}>
+                    {isLoading ? "Authenticating..." : "Access Admin Dashboard"}
+                  </Button>
+                  <Link href={`/forgot-password?role=admin&email=${encodeURIComponent(ADMIN_EMAIL)}`} className="block text-center text-xs font-semibold text-brand-green underline underline-offset-2">Forgot admin password?</Link>
+                </form>
+              ) : (
+                <form onSubmit={handleAdminOtpSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="admin-otp-email" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Admin email</label>
+                    <input id="admin-otp-email" type="email" value={ADMIN_EMAIL} readOnly className="w-full cursor-not-allowed rounded-xl border border-brand-green-light/20 bg-brand-cream/60 p-3.5 text-sm font-semibold text-brand-green" />
+                  </div>
+                  {adminOtpSent && (
+                    <div className="space-y-1.5">
+                      <label htmlFor="admin-login-code" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">6-digit sign-in code</label>
+                      <p className="text-sm text-brand-charcoal/65">We sent a secure code to {ADMIN_EMAIL}.</p>
+                      <input id="admin-login-code" type="text" inputMode="numeric" autoComplete="one-time-code" required maxLength={6} value={adminOtp} onChange={(event) => setAdminOtp(event.target.value.replace(/\D/g, ""))} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-center font-mono text-xl tracking-[0.55em] focus:border-brand-green focus:bg-white focus:outline-none" />
+                    </div>
+                  )}
+                  <Button type="submit" size="lg" className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-sm shadow-lg shadow-brand-green/10" disabled={isLoading}>
+                    <Mail size={16} /> {adminOtpSent ? "Verify code and sign in" : "Email me a sign-in code"}
+                  </Button>
+                  {adminOtpSent && <button type="button" onClick={() => { setAdminOtpSent(false); setAdminOtp(""); setError(""); }} className="w-full cursor-pointer text-xs font-semibold text-brand-green underline underline-offset-2">Send a new code</button>}
+                  <Link href={`/forgot-password?role=admin&email=${encodeURIComponent(ADMIN_EMAIL)}`} className="block text-center text-xs font-semibold text-brand-green underline underline-offset-2">Forgot admin password?</Link>
+                </form>
+              )}
             </>
           )}
         </div>
       )}
+
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-ivory/90 px-5 backdrop-blur-md">
+            <div className="rounded-[2rem] border border-brand-green/10 bg-white/95 px-8 py-7 shadow-2xl shadow-brand-green/10">
+              <LotusLoader size="sm" text="A moment of care" subtext="Securing your Pink Farm account" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

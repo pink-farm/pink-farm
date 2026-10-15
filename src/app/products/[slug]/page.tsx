@@ -5,6 +5,7 @@ import { AddToCart } from "./AddToCart";
 import { ChevronRight, Star } from "lucide-react";
 import { FadeIn, HoverCard, GlowPulse } from "@/components/ui/MotionWrappers";
 import { ProductBadges } from "@/components/products/ProductHighlightBadges";
+import { ProductFeedback } from "@/components/products/ProductFeedback";
 import { getStoreProductBySlug } from "@/lib/defaultProducts";
 
 export const instant = false;
@@ -70,16 +71,9 @@ export default async function ProductDetailPage({
         {/* Details */}
         <div className="flex-1 flex flex-col pt-0 min-w-0">
           <FadeIn direction="left">
-            {/* Reviews Rating Banner matching Yogabar */}
-            <div className="flex items-center gap-1.5 mb-1">
-              <div className="flex items-center text-amber-500">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <span className="text-[11px] font-bold text-brand-green">4.9/5.0</span>
-              <span className="text-[11px] text-brand-charcoal/60 font-medium">(420+ Reviews)</span>
-            </div>
+            <Link href="#reviews" className="mb-1 inline-flex items-center gap-1.5 rounded-full px-1 py-1 text-[11px] font-semibold text-brand-charcoal/65 transition-colors hover:text-brand-green focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green">
+              <Star size={14} className="text-amber-500" /> Read real customer reviews
+            </Link>
 
             <h1 className="font-serif text-2xl md:text-3xl lg:text-[32px] text-brand-green mb-1 leading-snug">
               {product.name}
@@ -121,6 +115,10 @@ export default async function ProductDetailPage({
             </div>
           </FadeIn>
         </div>
+      </div>
+
+      <div className="mt-10 md:mt-14">
+        <ProductFeedback slug={product.slug} />
       </div>
     </div>
   );

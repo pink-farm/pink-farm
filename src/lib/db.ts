@@ -11,9 +11,13 @@ const globalForPrisma = globalThis as unknown as {
 
 // During development a hot reload can retain a client generated from an older
 // Prisma schema. Recreate it when the generated client lacks the current models.
-const cachedPrisma = globalForPrisma.prisma as (PrismaClient & { coupon?: unknown }) | undefined;
+const cachedPrisma = globalForPrisma.prisma as (PrismaClient & {
+  coupon?: unknown;
+  productReview?: unknown;
+  productComment?: unknown;
+}) | undefined;
 export const prisma =
-  (cachedPrisma?.coupon ? cachedPrisma : undefined) ??
+  (cachedPrisma?.coupon && cachedPrisma.productReview && cachedPrisma.productComment ? cachedPrisma : undefined) ??
   new PrismaClient({
     log: [],
     ...(process.env.DATABASE_URL

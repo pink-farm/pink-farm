@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { ADMIN_EMAIL } from "../src/lib/auth-constants";
 
 const prisma = new PrismaClient();
 
@@ -31,19 +32,18 @@ async function main() {
   }
 
   // Create Admin User
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminEmail || !adminPassword || adminPassword.length < 16) {
-    throw new Error("Set ADMIN_EMAIL and an ADMIN_PASSWORD of at least 16 characters before seeding.");
+  if (!adminPassword || adminPassword.length < 16) {
+    throw new Error("Set an ADMIN_PASSWORD of at least 16 characters before seeding the authorized admin account.");
   }
   const existingAdmin = await prisma.adminUser.findUnique({
-    where: { email: adminEmail }
+    where: { email: ADMIN_EMAIL }
   });
 
   if (!existingAdmin) {
     await prisma.adminUser.create({
       data: {
-        email: adminEmail,
+        email: ADMIN_EMAIL,
         password: await bcrypt.hash(adminPassword, 12),
         name: "Pink Farm Admin"
       }

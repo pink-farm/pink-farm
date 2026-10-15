@@ -3,12 +3,14 @@ import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/db";
 import { createSession } from "@/lib/auth";
+import { ADMIN_EMAIL } from "@/lib/auth-constants";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-type OtpPurpose = "login" | "register";
+type OtpPurpose = "login" | "register" | "admin_login";
+const otpSecret = process.env.SESSION_SECRET || process.env.ADMIN_JWT_SECRET || (process.env.NODE_ENV === "development" ? "local-development-only-change-me-32-chars" : "");
 
 const hashCode = (email: string, code: string) =>
-  createHmac("sha256", process.env.SESSION_SECRET || process.env.ADMIN_JWT_SECRET || "")
+  createHmac("sha256", otpSecret)
     .update(`${email}:${code}`)
     .digest("hex");
 
@@ -24,10 +26,14 @@ export async function POST(request: Request) {
     const name = typeof values.name === "string" ? values.name.trim().slice(0, 100) : "";
     const password = typeof values.password === "string" ? values.password : "";
     const code = typeof values.code === "string" ? values.code.trim() : "";
-    const purpose: OtpPurpose = values.mode === "register" ? "register" : "login";
+    const isAdminLogin = values.role === "admin";
+    const purpose: OtpPurpose = values.mode === "register" ? "register" : isAdminLogin ? "admin_login" : "login";
 
     if (!emailPattern.test(email)) {
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
+    }
+    if (otpSecret.length < 32) {
+      return NextResponse.json({ error: "Secure email verification is not configured yet." }, { status: 503 });
     }
 
     if (!code) {
@@ -41,6 +47,13 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "This email is already registered. Please sign in instead." }, { status: 409 });
         }
         passwordHash = await bcrypt.hash(password, 12);
+      } else if (isAdminLogin) {
+        if (email !== ADMIN_EMAIL) {
+          return NextResponse.json({ error: "Only the authorized Pink Farm administrator can sign in here." }, { status: 403 });
+        }
+        if (!(await prisma.adminUser.findUnique({ where: { email: ADMIN_EMAIL }, select: { id: true } }))) {
+          return NextResponse.json({ error: "The authorized admin account is not set up yet." }, { status: 404 });
+        }
       } else if (!(await prisma.customer.findUnique({ where: { email }, select: { id: true } }))) {
         return NextResponse.json({ error: "No account was found for this email. Register to create one." }, { status: 404 });
       }
@@ -118,6 +131,15 @@ export async function POST(request: Request) {
     if (!valid) {
       await prisma.otpChallenge.update({ where: { id: challenge.id }, data: { attempts: { increment: 1 } } });
       return NextResponse.json({ error: "That code is not correct." }, { status: 400 });
+    }
+
+    if (purpose === "admin_login") {
+      if (email !== ADMIN_EMAIL) return NextResponse.json({ error: "This admin code is no longer valid." }, { status: 403 });
+      const admin = await prisma.adminUser.findUnique({ where: { email: ADMIN_EMAIL } });
+      if (!admin) return NextResponse.json({ error: "The authorized admin account is not set up yet." }, { status: 404 });
+      await prisma.otpChallenge.deleteMany({ where: { email } });
+      await createSession(admin.id, "admin");
+      return NextResponse.json({ success: true, admin: true });
     }
 
     let customer;

@@ -1,5 +1,7 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import { cookies } from "next/headers";
+import { ADMIN_EMAIL } from "@/lib/auth-constants";
+export { ADMIN_EMAIL } from "@/lib/auth-constants";
 
 function getEncodedKey() {
   const secret = process.env.SESSION_SECRET || process.env.ADMIN_JWT_SECRET || (process.env.NODE_ENV === "development" ? "local-development-only-change-me-32-chars" : "");
@@ -39,7 +41,7 @@ export async function getSession(sessionValue?: string, cookieName: string = ADM
 
 export async function createSession(userId: string, role: "admin" | "customer") {
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
-  const session = await encrypt({ userId, role, expiresAt: expiresAt.toISOString() });
+  const session = await encrypt({ userId, role, ...(role === "admin" ? { email: ADMIN_EMAIL } : {}), expiresAt: expiresAt.toISOString() });
   const cookieStore = await cookies();
   const cookieName = role === "admin" ? ADMIN_COOKIE_NAME : CUSTOMER_COOKIE_NAME;
 
@@ -85,7 +87,7 @@ export async function getCustomerSession(sessionValue?: string) {
 
 export async function requireAdminSession() {
   const session = await getSession(undefined, ADMIN_COOKIE_NAME);
-  return session?.role === "admin" && typeof session.userId === "string" ? session : null;
+  return session?.role === "admin" && session.email === ADMIN_EMAIL && typeof session.userId === "string" ? session : null;
 }
 
 export async function deleteSession(role?: "admin" | "customer") {

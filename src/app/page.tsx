@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { prisma } from "@/lib/db";
 import { ShieldCheck, Truck, Lock, Package } from "lucide-react";
 import { 
   FadeIn, 
@@ -129,7 +128,7 @@ export default async function Home() {
       {/* D. INFINITE MARQUEE TICKER */}
       <div className="w-full bg-brand-green text-brand-ivory py-3 overflow-hidden flex whitespace-nowrap border-y border-brand-green-light/30">
         <div className="animate-marquee inline-block font-medium tracking-widest text-sm uppercase">
-          ✦ PURE & HYGIENIC ✦ PREMIUM GOODS ✦ FAST PAN-INDIA DISPATCH ✦ NO ARTIFICIAL PRESERVATIVES ✦ FARM TO TABLE ✦ GOOGLE RATING 4.9 VERIFIED ✦ PURE & HYGIENIC ✦ PREMIUM GOODS ✦ FAST PAN-INDIA DISPATCH ✦ NO ARTIFICIAL PRESERVATIVES ✦ FARM TO TABLE ✦ GOOGLE RATING 4.9 VERIFIED ✦
+          ✦ PURE & HYGIENIC ✦ PREMIUM GOODS ✦ FAST PAN-INDIA DISPATCH ✦ NO ARTIFICIAL PRESERVATIVES ✦ FARM TO TABLE ✦ ACCOUNT-HOLDER REVIEWS ✦ PURE & HYGIENIC ✦ PREMIUM GOODS ✦ FAST PAN-INDIA DISPATCH ✦ NO ARTIFICIAL PRESERVATIVES ✦ FARM TO TABLE ✦ ACCOUNT-HOLDER REVIEWS ✦
         </div>
       </div>
 
