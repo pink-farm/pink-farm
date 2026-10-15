@@ -315,317 +315,561 @@ export default function StoreSettingsPage() {
       )}
       {saveError && <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs font-medium text-rose-700">{saveError}</div>}
 
-      {/* 2-Column Responsive Layout that fits on screen */}
-      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      {/* Main Settings Form */}
+      <form onSubmit={handleSave} className="space-y-6">
         
-        {/* LEFT COLUMN: Store Identity & Shipping Rules (col-span-7) */}
-        <div className="lg:col-span-7 space-y-4">
+        {/* 2-Column Balanced Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           
-          {/* Card 1: Brand & Top Announcement Bar */}
-          <div id="settings-identity" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
-            <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
-              <Bell size={16} className="text-brand-green" />
-              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-                Store Identity & Announcement Bar
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-600">Store Name</label>
-                <input
-                  type="text"
-                  value={storeName}
-                  onChange={(e) => setStoreName(e.target.value)}
-                  placeholder="Pink Farm"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm"
-                />
+          {/* ============================================================== */}
+          {/* LEFT COLUMN: Brand Identity & Storefront Visuals               */}
+          {/* ============================================================== */}
+          <div className="space-y-6">
+            
+            {/* Card 1: Brand & Top Announcement Bar */}
+            <div id="settings-identity" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-4 scroll-mt-20">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
+                <Bell size={16} className="text-brand-green shrink-0" />
+                <div>
+                  <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Store Identity & Announcement Bar
+                  </h2>
+                  <p className="text-[11px] text-gray-500">Configure your storefront title and header banner</p>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-600">Top Announcement Text</label>
-                <input
-                  type="text"
-                  value={announcementText}
-                  onChange={(e) => setAnnouncementText(e.target.value)}
-                  placeholder="Welcome to Pink Farm — Goodness in Every Bite."
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm"
-                />
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-gray-600">Store Name</label>
+                  <input
+                    type="text"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    placeholder="Pink Farm"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-gray-600">Top Announcement Text</label>
+                  <input
+                    type="text"
+                    value={announcementText}
+                    onChange={(e) => setAnnouncementText(e.target.value)}
+                    placeholder="Welcome to Pink Farm — Goodness in Every Bite."
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Inline Mini Live Preview */}
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200/70 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                  <Sparkles size={12} className="text-brand-pink-accent" />
+                  Live Top Bar Preview
+                </div>
+                <div className="bg-gradient-to-r from-brand-green to-brand-green-light text-brand-ivory text-center py-2 px-3 rounded-md text-xs font-medium truncate shadow-2xs">
+                  ✨ {announcementText || "Welcome to Pink Farm — Goodness in Every Bite."}
+                </div>
               </div>
             </div>
 
-            {/* Inline Mini Live Preview */}
-            <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200/60 flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                <Sparkles size={11} className="text-brand-pink-accent" />
-                Live Top Bar Preview
+            {/* Card 2: Homepage Hero Bubble Images */}
+            <div id="settings-hero-images" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-4 scroll-mt-20">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
+                <ImagePlus size={16} className="text-brand-green shrink-0" />
+                <div>
+                  <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Homepage Bubble Images</h2>
+                  <p className="text-[11px] text-gray-500">Change the three floating product images on the homepage.</p>
+                </div>
               </div>
-              <div className="bg-gradient-to-r from-brand-green to-brand-green-light text-brand-ivory text-center py-1.5 px-3 rounded-md text-xs font-medium truncate">
-                ✨ {announcementText || "Welcome to Pink Farm — Goodness in Every Bite."}
+
+              <div className="space-y-3">
+                {heroImageFields.map((field) => (
+                  <div key={field.key} className="flex items-center gap-3.5 rounded-lg border border-gray-100 p-3 bg-gray-50/50">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-brand-pink-accent/40 bg-white shadow-2xs">
+                      <img src={field.image} alt={`${field.label} preview`} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <p className="truncate text-xs font-bold text-gray-800">{field.label}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-brand-green/10 px-2.5 py-1.5 text-[11px] font-semibold text-brand-green hover:bg-brand-green/15 transition-colors">
+                          <ImagePlus size={13} /> Upload image
+                          <input type="file" accept="image/*" className="sr-only" onChange={(event) => void handleHeroImageUpload(event, field.setImage)} />
+                        </label>
+                        {field.image !== field.defaultImage && (
+                          <button type="button" onClick={() => field.setImage(field.defaultImage)} className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-gray-100 transition-colors">
+                            <RotateCcw size={12} /> Restore default
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+              {heroImageError && <p role="alert" className="text-xs font-medium text-rose-700">{heroImageError}</p>}
+              <p className="text-[11px] leading-relaxed text-gray-500">
+                Images are compressed automatically before saving. Use square product photos for best results.
+              </p>
             </div>
+
           </div>
 
-          {/* Card 2: Delivery Fees & Free Shipping Rules */}
-          <div id="settings-delivery" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
-            <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
-              <Truck size={16} className="text-orange-600" />
-              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-                Delivery Fees & Shipping Threshold
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-600">Standard Delivery Fee (₹)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={deliveryFeeRupees}
-                    onChange={(e) => setDeliveryFeeRupees(e.target.value)}
-                    placeholder="50"
-                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm font-semibold"
-                  />
+          {/* ============================================================== */}
+          {/* RIGHT COLUMN: Store Operations, Shipping & Contacts            */}
+          {/* ============================================================== */}
+          <div className="space-y-6">
+            
+            {/* Card 3: Store Ordering Status Toggle */}
+            <div id="settings-status" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Power size={16} className={isAcceptingOrders ? "text-emerald-600" : "text-amber-600"} />
+                  <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Store Ordering Status
+                  </h2>
                 </div>
+
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isAcceptingOrders}
+                    onChange={(e) => setIsAcceptingOrders(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
+                </label>
               </div>
 
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-600">Free Delivery Above (₹)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={freeThresholdRupees}
-                    onChange={(e) => setFreeThresholdRupees(e.target.value)}
-                    placeholder="500"
-                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm font-semibold"
-                  />
-                </div>
+              <div className={`p-2.5 rounded-lg text-xs font-medium ${isAcceptingOrders ? "bg-emerald-50 text-emerald-800 border border-emerald-100" : "bg-amber-50 text-amber-800 border border-amber-100"}`}>
+                {isAcceptingOrders ? (
+                  <span>✓ Store is actively taking orders. Cart &amp; checkout are fully accessible to customers.</span>
+                ) : (
+                  <span>⚠️ Orders are paused. Cart &amp; checkout show polite pause notices to customers.</span>
+                )}
               </div>
             </div>
 
-            <div className="bg-orange-50/70 border border-orange-200/70 rounded-lg p-2.5 text-xs text-orange-900 flex items-center justify-between">
-              <span>
-                📦 <strong>Active Rule:</strong> ₹{deliveryFeeRupees || 0} delivery fee. Orders of ₹{freeThresholdRupees || 0}+ get <strong>FREE shipping</strong>.
-              </span>
+            {/* Card 4: Delivery Fees & Free Shipping Rules */}
+            <div id="settings-delivery" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
+                <Truck size={16} className="text-orange-600" />
+                <div>
+                  <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Delivery Fees & Shipping Threshold
+                  </h2>
+                  <p className="text-[11px] text-gray-500">Configure standard shipping charge and free shipping cutoff</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-gray-600">Standard Delivery Fee (₹)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={deliveryFeeRupees}
+                      onChange={(e) => setDeliveryFeeRupees(e.target.value)}
+                      placeholder="50"
+                      className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-gray-600">Free Delivery Above (₹)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={freeThresholdRupees}
+                      onChange={(e) => setFreeThresholdRupees(e.target.value)}
+                      placeholder="500"
+                      className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm font-semibold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-orange-50/70 border border-orange-200/70 rounded-lg p-2.5 text-xs text-orange-900 flex items-center justify-between">
+                <span>
+                  📦 <strong>Active Rule:</strong> ₹{deliveryFeeRupees || 0} delivery fee. Orders of ₹{freeThresholdRupees || 0}+ get <strong>FREE shipping</strong>.
+                </span>
+              </div>
             </div>
+
+            {/* Card 5: Customer Support & Contacts */}
+            <div id="settings-support" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
+                <Phone size={16} className="text-blue-600" />
+                <div>
+                  <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Support & Contacts
+                  </h2>
+                  <p className="text-[11px] text-gray-500">Contact information displayed to customers across the site</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-gray-600 flex items-center gap-1.5">
+                    <Phone size={11} className="text-gray-400" />
+                    Support Phone / WhatsApp
+                  </label>
+                  <input
+                    type="text"
+                    value={supportPhone}
+                    onChange={(e) => setSupportPhone(e.target.value)}
+                    placeholder="+91 8437504040"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-gray-600 flex items-center gap-1.5">
+                    <Mail size={11} className="text-gray-400" />
+                    Support Email
+                  </label>
+                  <input
+                    type="email"
+                    value={supportEmail}
+                    onChange={(e) => setSupportEmail(e.target.value)}
+                    placeholder="wecare@pinkfarm.in"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-gray-600 flex items-center gap-1.5">
+                    <MapPin size={11} className="text-gray-400" />
+                    Business Address
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={businessAddress}
+                    onChange={(e) => setBusinessAddress(e.target.value)}
+                    placeholder="Dugri, Ludhiana, Punjab - 141003"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>
 
-        {/* RIGHT COLUMN: Ordering Status & Customer Contacts (col-span-5) */}
-        <div className="lg:col-span-5 space-y-4">
-          
-          {/* Card 3: Store Ordering Status Toggle */}
-          <div id="settings-status" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3 scroll-mt-20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Power size={16} className={isAcceptingOrders ? "text-emerald-600" : "text-amber-600"} />
-                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-                  Store Ordering Status
-                </h2>
-              </div>
-
-              <label className="relative inline-flex items-center cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={isAcceptingOrders}
-                  onChange={(e) => setIsAcceptingOrders(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
-              </label>
-            </div>
-
-            <p className="text-xs text-gray-500">
-              {isAcceptingOrders ? (
-                <span className="text-emerald-700 font-medium">
-                  ✓ Store is actively taking orders. Cart & checkout are fully accessible.
-                </span>
-              ) : (
-                <span className="text-amber-700 font-medium">
-                  ⚠️ Orders are paused. Cart & checkout show polite pause notices.
-                </span>
-              )}
-            </p>
-          </div>
-
-          {/* Card 4: Customer Support & Contacts */}
-          <div id="settings-support" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
-            <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
-              <Phone size={16} className="text-blue-600" />
-              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-                Support & Contacts
-              </h2>
-            </div>
-
-            <div className="space-y-2.5">
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-600 flex items-center gap-1.5">
-                  <Phone size={11} className="text-gray-400" />
-                  Support Phone / WhatsApp
-                </label>
-                <input
-                  type="text"
-                  value={supportPhone}
-                  onChange={(e) => setSupportPhone(e.target.value)}
-                  placeholder="+91 8437504040"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-600 flex items-center gap-1.5">
-                  <Mail size={11} className="text-gray-400" />
-                  Support Email
-                </label>
-                <input
-                  type="email"
-                  value={supportEmail}
-                  onChange={(e) => setSupportEmail(e.target.value)}
-                  placeholder="wecare@pinkfarm.in"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-600 flex items-center gap-1.5">
-                  <MapPin size={11} className="text-gray-400" />
-                  Business Address
-                </label>
-                <textarea
-                  rows={2}
-                  value={businessAddress}
-                  onChange={(e) => setBusinessAddress(e.target.value)}
-                  placeholder="Dugri, Ludhiana, Punjab - 141003"
-                  className="w-full px-3 py-1.5 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-green text-sm resize-none"
-                />
-              </div>
+        {/* Quick Save Card for Store Settings */}
+        <div className="p-4 bg-brand-pink/20 rounded-xl border border-brand-pink/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-brand-green font-medium">
+            <ShieldCheck size={18} className="text-brand-green shrink-0" />
+            <div>
+              <p className="font-bold text-gray-900">Ready to publish changes?</p>
+              <p className="text-gray-600 text-[11px]">Store settings update live on your website and database immediately upon saving.</p>
             </div>
           </div>
-
-          {/* Card 5: Homepage Hero Bubble Images */}
-          <div id="settings-hero-images" className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 scroll-mt-20">
-            <div className="flex items-center gap-2 pb-2.5 border-b border-gray-100">
-              <ImagePlus size={16} className="text-brand-green" />
-              <div>
-                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Homepage Bubble Images</h2>
-                <p className="mt-1 text-[11px] text-gray-500">Change the three floating product images on the homepage.</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {heroImageFields.map((field) => (
-                <div key={field.key} className="flex items-center gap-3 rounded-lg border border-gray-100 p-2.5">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-brand-pink-accent/40 bg-gray-50">
-                    <img src={field.image} alt={`${field.label} preview`} className="h-full w-full object-cover" />
-                  </div>
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <p className="truncate text-xs font-semibold text-gray-700">{field.label}</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-brand-green/10 px-2.5 py-1.5 text-[11px] font-semibold text-brand-green hover:bg-brand-green/15">
-                        <ImagePlus size={13} /> Upload image
-                        <input type="file" accept="image/*" className="sr-only" onChange={(event) => void handleHeroImageUpload(event, field.setImage)} />
-                      </label>
-                      {field.image !== field.defaultImage && (
-                        <button type="button" onClick={() => field.setImage(field.defaultImage)} className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-gray-100">
-                          <RotateCcw size={12} /> Restore default
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {heroImageError && <p role="alert" className="text-xs font-medium text-rose-700">{heroImageError}</p>}
-            <p className="text-[11px] leading-relaxed text-gray-500">Images are compressed before saving. Use square product photos for the best fit.</p>
-          </div>
-
-          <section id="settings-coupons" onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-4 scroll-mt-20">
-            <div className="flex items-center gap-2 border-b border-gray-100 pb-2.5">
-              <TicketPercent size={16} className="text-brand-green" />
-              <div>
-                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Coupon Management</h2>
-                <p className="mt-1 text-[11px] text-gray-500">Set discount, eligible order value, dates, and redemption limits.</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="space-y-1 text-xs font-bold text-gray-600">Coupon code
-                <input value={couponDraft.code} onChange={(e) => setCouponDraft({ ...couponDraft, code: e.target.value.toUpperCase() })} placeholder="e.g. WELCOME10" maxLength={32} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal" />
-              </label>
-              <label className="space-y-1 text-xs font-bold text-gray-600">Discount type
-                <select value={couponDraft.discountType} onChange={(e) => setCouponDraft({ ...couponDraft, discountType: e.target.value as CouponDraft["discountType"] })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal">
-                  <option value="FIXED">Fixed amount (₹)</option><option value="PERCENTAGE">Percentage (%)</option>
-                </select>
-              </label>
-              <label className="space-y-1 text-xs font-bold text-gray-600">{couponDraft.discountType === "FIXED" ? "Discount amount (₹)" : "Discount percentage (%)"}
-                <input type="number" min="1" max={couponDraft.discountType === "PERCENTAGE" ? 100 : undefined} value={couponDraft.discountValue} onChange={(e) => setCouponDraft({ ...couponDraft, discountValue: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal" />
-              </label>
-              <label className="space-y-1 text-xs font-bold text-gray-600">Minimum order subtotal (₹)
-                <input type="number" min="0" value={couponDraft.minimumSubtotal} onChange={(e) => setCouponDraft({ ...couponDraft, minimumSubtotal: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal" />
-              </label>
-              {couponDraft.discountType === "PERCENTAGE" && <label className="space-y-1 text-xs font-bold text-gray-600">Maximum discount (₹)
-                <input type="number" min="1" value={couponDraft.maximumDiscount} onChange={(e) => setCouponDraft({ ...couponDraft, maximumDiscount: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal" />
-              </label>}
-              <label className="space-y-1 text-xs font-bold text-gray-600">Starts at
-                <input type="datetime-local" value={couponDraft.startsAt} onChange={(e) => setCouponDraft({ ...couponDraft, startsAt: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal" />
-              </label>
-              <label className="space-y-1 text-xs font-bold text-gray-600">Expires at (optional)
-                <input type="datetime-local" value={couponDraft.expiresAt} onChange={(e) => setCouponDraft({ ...couponDraft, expiresAt: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal" />
-              </label>
-              <label className="space-y-1 text-xs font-bold text-gray-600">Total redemptions (optional)
-                <input type="number" min="1" value={couponDraft.usageLimit} onChange={(e) => setCouponDraft({ ...couponDraft, usageLimit: e.target.value })} placeholder="Unlimited" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal" />
-              </label>
-              <label className="space-y-1 text-xs font-bold text-gray-600">Uses per customer (optional)
-                <input type="number" min="1" value={couponDraft.perCustomerLimit} onChange={(e) => setCouponDraft({ ...couponDraft, perCustomerLimit: e.target.value })} placeholder="Unlimited" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-normal" />
-              </label>
-            </div>
-            <div className="flex flex-wrap gap-4 text-xs text-gray-700">
-              <label className="flex items-center gap-2"><input type="checkbox" checked={couponDraft.firstOrderOnly} onChange={(e) => setCouponDraft({ ...couponDraft, firstOrderOnly: e.target.checked })} /> First order only</label>
-              <label className="flex items-center gap-2"><input type="checkbox" checked={couponDraft.isActive} onChange={(e) => setCouponDraft({ ...couponDraft, isActive: e.target.checked })} /> Active</label>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => void saveCoupon()} disabled={couponBusy} className="rounded-lg bg-brand-green px-4 py-2 text-xs font-bold text-white disabled:opacity-60">{couponBusy ? "Saving…" : editingCouponId ? "Save coupon" : "Add coupon"}</button>
-              {editingCouponId && <button type="button" onClick={() => { setCouponDraft(emptyCoupon); setEditingCouponId(null); }} className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold">Cancel edit</button>}
-              {couponMessage && <p role="status" className="self-center text-xs text-gray-600">{couponMessage}</p>}
-            </div>
-            <div className="divide-y divide-gray-100 rounded-lg border border-gray-100">
-              {coupons.length === 0 ? <p className="p-3 text-xs text-gray-500">No coupons created yet.</p> : coupons.map((coupon) => (
-                <div key={coupon.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-gray-900">{coupon.code} <span className={`ml-1 rounded-full px-2 py-0.5 text-[10px] ${coupon.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>{coupon.isActive ? "Active" : "Inactive"}</span></p>
-                    <p className="mt-1 text-[11px] text-gray-500">{coupon.discountType === "FIXED" ? `₹${(coupon.discountValue / 100).toFixed(2)} off` : `${coupon.discountValue}% off (up to ₹${((coupon.maximumDiscount || 0) / 100).toFixed(2)})`} · min ₹{(coupon.minimumSubtotal / 100).toFixed(2)} · used {coupon.usedCount}{coupon.usageLimit ? ` / ${coupon.usageLimit}` : ""}</p>
-                  </div>
-                  <div className="flex gap-1"><button type="button" onClick={() => editCoupon(coupon)} aria-label={`Edit ${coupon.code}`} className="rounded-md p-2 text-gray-600 hover:bg-gray-100"><Pencil size={14} /></button><button type="button" onClick={() => void deleteCoupon(coupon.id)} aria-label={`Delete ${coupon.code}`} className="rounded-md p-2 text-rose-600 hover:bg-rose-50"><Trash2 size={14} /></button></div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Quick Save Card */}
-          <div className="p-3.5 bg-brand-pink/20 rounded-xl border border-brand-pink/40 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs text-brand-green font-medium">
-              <ShieldCheck size={16} className="text-brand-green shrink-0" />
-              <span>Real-time sync to DB & LocalStorage</span>
-            </div>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="px-4 py-2 rounded-lg bg-brand-green hover:bg-brand-green-dark text-white font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0 disabled:opacity-50"
-            >
-              {isSaving ? "Saving..." : saveSuccess ? "Saved!" : "Save Settings"}
-            </button>
-          </div>
-
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="px-5 py-2.5 rounded-lg bg-brand-green hover:bg-brand-green-dark text-white font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isSaving ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : saveSuccess ? (
+              <CheckCircle2 size={14} className="text-emerald-300" />
+            ) : (
+              <Save size={14} />
+            )}
+            <span>{isSaving ? "Saving..." : saveSuccess ? "Saved!" : "Save All Settings"}</span>
+          </button>
         </div>
 
       </form>
+
+      {/* ============================================================== */}
+      {/* FULL WIDTH SECTION: Coupon & Discount Management               */}
+      {/* ============================================================== */}
+      <section
+        id="settings-coupons"
+        onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }}
+        className="bg-white rounded-xl p-5 sm:p-6 border border-gray-200/90 shadow-2xs space-y-5 scroll-mt-20"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0">
+              <TicketPercent size={18} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                  Coupon Management
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-green/10 text-brand-green">
+                  {coupons.filter(c => c.isActive).length} Active
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Set discounts, eligible order subtotal thresholds, validity dates, and redemption limits.
+              </p>
+            </div>
+          </div>
+
+          {editingCouponId && (
+            <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-800 rounded-md border border-amber-200 self-start sm:self-auto">
+              Editing Coupon #{editingCouponId.slice(0, 8)}...
+            </span>
+          )}
+        </div>
+
+        {/* Coupon Form Fields in Spacious Responsive Grid */}
+        <div className="bg-gray-50/70 p-4 rounded-xl border border-gray-200/60 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <label className="space-y-1 text-xs font-bold text-gray-700">
+              <span>Coupon Code</span>
+              <input
+                value={couponDraft.code}
+                onChange={(e) => setCouponDraft({ ...couponDraft, code: e.target.value.toUpperCase() })}
+                placeholder="e.g. WELCOME10"
+                maxLength={32}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-mono font-bold tracking-wider uppercase focus:outline-none focus:border-brand-green"
+              />
+            </label>
+
+            <label className="space-y-1 text-xs font-bold text-gray-700">
+              <span>Discount Type</span>
+              <select
+                value={couponDraft.discountType}
+                onChange={(e) => setCouponDraft({ ...couponDraft, discountType: e.target.value as CouponDraft["discountType"] })}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal focus:outline-none focus:border-brand-green"
+              >
+                <option value="FIXED">Fixed Amount (₹)</option>
+                <option value="PERCENTAGE">Percentage (%)</option>
+              </select>
+            </label>
+
+            <label className="space-y-1 text-xs font-bold text-gray-700">
+              <span>{couponDraft.discountType === "FIXED" ? "Discount Amount (₹)" : "Discount Percentage (%)"}</span>
+              <input
+                type="number"
+                min="1"
+                max={couponDraft.discountType === "PERCENTAGE" ? 100 : undefined}
+                value={couponDraft.discountValue}
+                onChange={(e) => setCouponDraft({ ...couponDraft, discountValue: e.target.value })}
+                placeholder={couponDraft.discountType === "FIXED" ? "50" : "10"}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal focus:outline-none focus:border-brand-green"
+              />
+            </label>
+
+            <label className="space-y-1 text-xs font-bold text-gray-700">
+              <span>Min Order Subtotal (₹)</span>
+              <input
+                type="number"
+                min="0"
+                value={couponDraft.minimumSubtotal}
+                onChange={(e) => setCouponDraft({ ...couponDraft, minimumSubtotal: e.target.value })}
+                placeholder="0"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal focus:outline-none focus:border-brand-green"
+              />
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {couponDraft.discountType === "PERCENTAGE" ? (
+              <label className="space-y-1 text-xs font-bold text-gray-700">
+                <span>Maximum Cap (₹)</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={couponDraft.maximumDiscount}
+                  onChange={(e) => setCouponDraft({ ...couponDraft, maximumDiscount: e.target.value })}
+                  placeholder="e.g. 200"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal focus:outline-none focus:border-brand-green"
+                />
+              </label>
+            ) : null}
+
+            <label className="space-y-1 text-xs font-bold text-gray-700">
+              <span>Starts At</span>
+              <input
+                type="datetime-local"
+                value={couponDraft.startsAt}
+                onChange={(e) => setCouponDraft({ ...couponDraft, startsAt: e.target.value })}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal focus:outline-none focus:border-brand-green"
+              />
+            </label>
+
+            <label className="space-y-1 text-xs font-bold text-gray-700">
+              <span>Expires At (optional)</span>
+              <input
+                type="datetime-local"
+                value={couponDraft.expiresAt}
+                onChange={(e) => setCouponDraft({ ...couponDraft, expiresAt: e.target.value })}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal focus:outline-none focus:border-brand-green"
+              />
+            </label>
+
+            <label className="space-y-1 text-xs font-bold text-gray-700">
+              <span>Total Redemptions (optional)</span>
+              <input
+                type="number"
+                min="1"
+                value={couponDraft.usageLimit}
+                onChange={(e) => setCouponDraft({ ...couponDraft, usageLimit: e.target.value })}
+                placeholder="Unlimited"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal focus:outline-none focus:border-brand-green"
+              />
+            </label>
+
+            <label className="space-y-1 text-xs font-bold text-gray-700">
+              <span>Uses Per Customer (optional)</span>
+              <input
+                type="number"
+                min="1"
+                value={couponDraft.perCustomerLimit}
+                onChange={(e) => setCouponDraft({ ...couponDraft, perCustomerLimit: e.target.value })}
+                placeholder="Unlimited"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal focus:outline-none focus:border-brand-green"
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-gray-200/60">
+            <div className="flex flex-wrap items-center gap-5 text-xs text-gray-700">
+              <label className="flex items-center gap-2 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={couponDraft.firstOrderOnly}
+                  onChange={(e) => setCouponDraft({ ...couponDraft, firstOrderOnly: e.target.checked })}
+                  className="rounded border-gray-300 text-brand-green focus:ring-brand-green"
+                />
+                <span>First order only</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={couponDraft.isActive}
+                  onChange={(e) => setCouponDraft({ ...couponDraft, isActive: e.target.checked })}
+                  className="rounded border-gray-300 text-brand-green focus:ring-brand-green"
+                />
+                <span>Active coupon</span>
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              {editingCouponId && (
+                <button
+                  type="button"
+                  onClick={() => { setCouponDraft(emptyCoupon); setEditingCouponId(null); }}
+                  className="rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel Edit
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => void saveCoupon()}
+                disabled={couponBusy}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-green hover:bg-brand-green-dark px-4 py-2 text-xs font-bold text-white shadow-xs transition-colors disabled:opacity-60 cursor-pointer"
+              >
+                {couponBusy ? (
+                  <RefreshCw size={13} className="animate-spin" />
+                ) : (
+                  <TicketPercent size={13} />
+                )}
+                <span>{couponBusy ? "Saving…" : editingCouponId ? "Update Coupon" : "Add Coupon"}</span>
+              </button>
+            </div>
+          </div>
+
+          {couponMessage && (
+            <p role="status" className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-lg">
+              {couponMessage}
+            </p>
+          )}
+        </div>
+
+        {/* Existing Coupons Table / Cards */}
+        <div className="space-y-2.5">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Configured Coupons ({coupons.length})
+          </h3>
+
+          {coupons.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-gray-50/50">
+              <TicketPercent size={28} className="mx-auto text-gray-300 mb-2" />
+              <p className="text-xs font-bold text-gray-600">No coupons created yet</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">Use the form above to add your first discount or promotional coupon.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {coupons.map((coupon) => (
+                <div
+                  key={coupon.id}
+                  className={`flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all ${
+                    coupon.id === editingCouponId
+                      ? "border-brand-green bg-brand-green/5 shadow-xs"
+                      : "border-gray-200/90 bg-white hover:border-gray-300"
+                  }`}
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-sm tracking-wider text-gray-900 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                        {coupon.code}
+                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${coupon.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                        {coupon.isActive ? "● Active" : "○ Inactive"}
+                      </span>
+                      {coupon.firstOrderOnly && (
+                        <span className="rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-semibold">
+                          First Order
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs font-bold text-brand-green">
+                      {coupon.discountType === "FIXED"
+                        ? `₹${(coupon.discountValue / 100).toFixed(0)} FLAT OFF`
+                        : `${coupon.discountValue}% OFF${coupon.maximumDiscount ? ` (up to ₹${((coupon.maximumDiscount) / 100).toFixed(0)})` : ""}`}
+                    </p>
+
+                    <p className="text-[11px] text-gray-500">
+                      Min spend ₹{(coupon.minimumSubtotal / 100).toFixed(0)} · Used {coupon.usedCount}{coupon.usageLimit ? `/${coupon.usageLimit}` : ""}
+                      {coupon.expiresAt ? ` · Exp: ${new Date(coupon.expiresAt).toLocaleDateString()}` : ""}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => editCoupon(coupon)}
+                      aria-label={`Edit ${coupon.code}`}
+                      className="rounded-lg p-2 text-gray-600 hover:text-brand-green hover:bg-brand-pink/30 transition-colors"
+                      title="Edit coupon"
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void deleteCoupon(coupon.id)}
+                      aria-label={`Delete ${coupon.code}`}
+                      className="rounded-lg p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      title="Delete coupon"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

@@ -139,9 +139,11 @@ export function AdminSidebarNav() {
                           </div>
                           {[
                             { id: "settings-identity", label: "🏷️ Store Identity & Top Bar" },
-                            { id: "settings-delivery", label: "🚚 Delivery Fees & Free Shipping" },
+                            { id: "settings-hero-images", label: "🖼️ Homepage Bubble Images" },
                             { id: "settings-status", label: "⚡ Store Online / Pause Toggle" },
+                            { id: "settings-delivery", label: "🚚 Delivery Fees & Shipping" },
                             { id: "settings-support", label: "📞 Support Phone, Email & Address" },
+                            { id: "settings-coupons", label: "🎟️ Coupon Management" },
                           ].map((sec) => (
                             <button
                               key={sec.id}
