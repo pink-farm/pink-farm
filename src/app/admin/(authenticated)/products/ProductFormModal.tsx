@@ -8,7 +8,8 @@ export interface EditableProduct {
   basePrice: number; originalPrice: number | null; sku: string; category: string; stockQuantity: number;
   lowStockThreshold: number; isAvailable: boolean; isFeatured: boolean; ingredients?: string | null;
   nutritionalInfo?: string | null; storage?: string | null; allergens?: string | null; deliveryNotes?: string | null;
-  seoTitle?: string | null; seoDesc?: string | null; tags?: string; variants: { packSize: string }[];
+  seoTitle?: string | null; seoDesc?: string | null; tags?: string;
+  variants: { id: string; name: string; packSize: string; price: number; originalPrice: number | null; stockQuantity: number; isAvailable: boolean }[];
 }
 
 const inputClass = "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 outline-none focus:border-brand-green";
