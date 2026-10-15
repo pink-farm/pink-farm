@@ -4,6 +4,9 @@ import { persist } from "zustand/middleware";
 export interface StoreSettingsData {
   storeName: string;
   announcementText: string;
+  heroMainImage: string;
+  heroGheeImage: string;
+  heroAlmondsImage: string;
   supportPhone: string;
   supportEmail: string;
   businessAddress: string;
@@ -15,6 +18,9 @@ export interface StoreSettingsData {
 export const DEFAULT_SETTINGS: StoreSettingsData = {
   storeName: "Pink Farm",
   announcementText: "Welcome to Pink Farm — Goodness in Every Bite.",
+  heroMainImage: "/images/makhana_sig.jpg",
+  heroGheeImage: "/images/ghee.jpg",
+  heroAlmondsImage: "/images/almonds.jpg",
   supportPhone: "+91 8437504040",
   supportEmail: "wecare@pinkfarm.in",
   businessAddress: "Dugri, Ludhiana, Punjab - 141003",
@@ -48,6 +54,9 @@ export const useSettingsStore = create<SettingsStore>()(
               set({
                 storeName: data.storeName,
                 announcementText: data.announcementText ?? get().announcementText,
+                heroMainImage: data.heroMainImage ?? get().heroMainImage,
+                heroGheeImage: data.heroGheeImage ?? get().heroGheeImage,
+                heroAlmondsImage: data.heroAlmondsImage ?? get().heroAlmondsImage,
                 supportPhone: data.supportPhone ?? get().supportPhone,
                 supportEmail: data.supportEmail ?? get().supportEmail,
                 businessAddress: data.businessAddress ?? get().businessAddress,

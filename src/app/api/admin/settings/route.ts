@@ -6,6 +6,9 @@ const DEFAULT_SETTINGS = {
   id: "default",
   storeName: "Pink Farm",
   announcementText: "Welcome to Pink Farm — Goodness in Every Bite.",
+  heroMainImage: "/images/makhana_sig.jpg",
+  heroGheeImage: "/images/ghee.jpg",
+  heroAlmondsImage: "/images/almonds.jpg",
   supportPhone: "+91 8437504040",
   supportEmail: "wecare@pinkfarm.in",
   businessAddress: "Dugri, Ludhiana, Punjab - 141003",
@@ -13,6 +16,15 @@ const DEFAULT_SETTINGS = {
   freeDeliveryThreshold: 50000, // in paise = ₹500
   isAcceptingOrders: true,
 };
+
+const MAX_HERO_IMAGE_LENGTH = 900_000;
+
+function isSafeHeroImage(value: string) {
+  return (
+    value.length <= MAX_HERO_IMAGE_LENGTH &&
+    (value.startsWith("/images/") || /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value))
+  );
+}
 
 export async function GET() {
   try {
@@ -48,9 +60,23 @@ export async function POST(request: Request) {
       }
     }
 
+    const heroImages = [
+      ["heroMainImage", body.heroMainImage],
+      ["heroGheeImage", body.heroGheeImage],
+      ["heroAlmondsImage", body.heroAlmondsImage],
+    ] as const;
+    for (const [field, value] of heroImages) {
+      if (value !== undefined && (typeof value !== "string" || !isSafeHeroImage(value))) {
+        return NextResponse.json({ error: `Invalid ${field}. Upload a smaller JPEG image and try again.` }, { status: 400 });
+      }
+    }
+
     const dataToSave = {
       storeName: typeof body.storeName === "string" ? body.storeName : DEFAULT_SETTINGS.storeName,
       announcementText: typeof body.announcementText === "string" ? body.announcementText : DEFAULT_SETTINGS.announcementText,
+      heroMainImage: typeof body.heroMainImage === "string" ? body.heroMainImage : DEFAULT_SETTINGS.heroMainImage,
+      heroGheeImage: typeof body.heroGheeImage === "string" ? body.heroGheeImage : DEFAULT_SETTINGS.heroGheeImage,
+      heroAlmondsImage: typeof body.heroAlmondsImage === "string" ? body.heroAlmondsImage : DEFAULT_SETTINGS.heroAlmondsImage,
       supportPhone: typeof body.supportPhone === "string" ? body.supportPhone : DEFAULT_SETTINGS.supportPhone,
       supportEmail: typeof body.supportEmail === "string" ? body.supportEmail : DEFAULT_SETTINGS.supportEmail,
       businessAddress: typeof body.businessAddress === "string" ? body.businessAddress : DEFAULT_SETTINGS.businessAddress,

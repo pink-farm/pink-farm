@@ -49,6 +49,9 @@ export async function PATCH(
       } });
       if (changed.count !== 1) throw new Error("ORDER_CHANGED");
       if (normalizedStatus === "CANCELLED" && current.fulfillmentStatus !== "CANCELLED") {
+        if (current.couponCode) {
+          await tx.coupon.updateMany({ where: { code: current.couponCode, usedCount: { gt: 0 } }, data: { usedCount: { decrement: 1 } } });
+        }
         for (const item of current.items) {
           if (item.variantId) await tx.productVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { increment: item.quantity } } });
           else await tx.product.update({ where: { id: item.productId }, data: { stockQuantity: { increment: item.quantity } } });

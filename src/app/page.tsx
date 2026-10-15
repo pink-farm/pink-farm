@@ -16,12 +16,12 @@ import {
 } from "@/components/ui/MotionWrappers";
 import { formatPrice } from "@/lib/utils";
 import ComboBuilder from "@/components/products/ComboBuilder";
-import { getStoreProducts } from "@/lib/defaultProducts";
+import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
 
 export const instant = false;
 
 export default async function Home() {
-  const products = await getStoreProducts();
+  const [products, storeSettings] = await Promise.all([getStoreProducts(), getStoreSettings()]);
   const makhanaProduct = products.find(p => p.category.toLowerCase() === 'makhana') || products[0];
 
   return (
@@ -81,7 +81,7 @@ export default async function Home() {
                 <GlowPulse color="rgba(230, 184, 192, 0.45)">
                   <div className="shadow-2xl rounded-full overflow-hidden border-8 border-brand-ivory/60 w-[320px] h-[320px] relative transition-transform duration-700 hover:scale-105">
                     <Image 
-                      src="/images/makhana_sig.jpg" 
+                      src={storeSettings.heroMainImage || "/images/makhana_sig.jpg"}
                       alt="Signature Makhana" 
                       fill
                       sizes="(min-width: 768px) 320px, 0px"
@@ -98,7 +98,7 @@ export default async function Home() {
               <HoverCard lift={-5}>
                 <div className="shadow-xl rounded-full overflow-hidden border-4 border-brand-ivory/50 opacity-95 w-[190px] h-[190px] relative transition-transform duration-700 hover:scale-105">
                   <Image 
-                    src="/images/ghee.jpg" 
+                      src={storeSettings.heroGheeImage || "/images/ghee.jpg"}
                     alt="Premium Ghee" 
                     fill
                     sizes="(min-width: 768px) 190px, 0px"
@@ -113,7 +113,7 @@ export default async function Home() {
               <HoverCard lift={-5}>
                 <div className="shadow-2xl rounded-full overflow-hidden border-4 border-brand-ivory/50 opacity-95 w-[220px] h-[220px] relative transition-transform duration-700 hover:scale-105">
                   <Image 
-                    src="/images/almonds.jpg" 
+                      src={storeSettings.heroAlmondsImage || "/images/almonds.jpg"}
                     alt="Premium Almonds" 
                     fill
                     sizes="(min-width: 768px) 220px, 0px"

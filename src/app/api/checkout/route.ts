@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { getCustomerSession } from "@/lib/auth";
+import { calculateCouponDiscount, getCouponFailure } from "@/lib/coupons";
 
 type CheckoutItem = { id: string; variantId?: string; variantName?: string; name?: string; quantity: number };
 type CheckoutCustomerDetails = { fullName?: string; mobile?: string; addressLine1?: string; addressLine2?: string; city?: string; state?: string; pinCode?: string; deliveryInstructions?: string; couponCode?: string };
@@ -145,55 +146,62 @@ export async function POST(request: Request) {
 
     const finalDeliveryFee = subtotal > 0 ? (freeThreshold > 0 && subtotal >= freeThreshold ? 0 : deliveryFee) : 0;
     
-    // Validate coupon
+    // Validate coupon against server-calculated subtotal and customer identity.
     let discount = 0;
     const rawCoupon = couponCode || rawDetails.couponCode;
-    
-    if (rawCoupon && (String(rawCoupon).toUpperCase() === "FLAT499" || String(rawCoupon).toUpperCase() === "FIRST499")) {
-      const codeName = String(rawCoupon).toUpperCase();
-      if (subtotal >= 199900) {
-        try {
-          const priorOrder = await prisma.order.findFirst({
-            where: {
-              customerPhone: cleanCustomerDetails.mobile,
-              discount: { gt: 0 },
-            },
-          });
-          if (priorOrder) {
-            return NextResponse.json(
-              { error: `Coupon ${codeName} has already been used for this mobile number.` },
-              { status: 400 }
-            );
-          }
-          discount = 49900; // ₹499 in paise
-        } catch {
-          // Non-fatal coupon check
-          discount = 49900;
-        }
-      } else {
-        return NextResponse.json(
-          { error: `Minimum order of ₹1999 required to use coupon ${codeName}.` },
-          { status: 400 }
-        );
-      }
-    }
-
-    const totalAmount = Math.max(0, subtotal - discount + finalDeliveryFee);
-
-    // Generate Order Number
-    const orderNumber = `PF-${new Date().getFullYear()}-${randomUUID().replace(/-/g, "").toUpperCase().slice(0, 8)}`;
-
-    const selectedMethod = "ONLINE";
-    const isPaidOnline = true;
-
-    // Resilient Customer ID
     const customerSession = await getCustomerSession();
     const customerId = (customerSession?.userId && /^[0-9a-fA-F]{24}$/.test(String(customerSession.userId)))
       ? String(customerSession.userId)
       : undefined;
+    const normalizedCoupon = rawCoupon ? String(rawCoupon).trim().toUpperCase() : "";
+    let coupon: Awaited<ReturnType<typeof prisma.coupon.findUnique>> = null;
+    if (normalizedCoupon) {
+      coupon = await prisma.coupon.findUnique({ where: { code: normalizedCoupon } });
+      if (!coupon) return NextResponse.json({ error: "Invalid coupon code." }, { status: 400 });
+      const failure = await getCouponFailure({ coupon, subtotal, phone: cleanCustomerDetails.mobile, customerId });
+      if (failure) return NextResponse.json({ error: failure }, { status: 400 });
+      discount = calculateCouponDiscount(coupon, subtotal);
+    }
+    const totalAmount = Math.max(0, subtotal - discount + finalDeliveryFee);
+
+    // Generate Order Number
+    const orderNumber = `PF-${new Date().getFullYear()}-${randomUUID().replace(/-/g, "").toUpperCase().slice(0, 8)}`;
+    const selectedMethod = "ONLINE";
+    const isPaidOnline = true;
 
     // Create Order in DB
     const order = await prisma.$transaction(async (tx) => {
+      if (coupon) {
+        if (coupon.firstOrderOnly || coupon.perCustomerLimit !== null) {
+          const identityWhere = customerId
+            ? { OR: [{ customerId }, { customerPhone: cleanCustomerDetails.mobile }] }
+            : { customerPhone: cleanCustomerDetails.mobile };
+          if (coupon.firstOrderOnly) {
+            const previousOrder = await tx.order.findFirst({
+              where: { ...identityWhere, fulfillmentStatus: { not: "CANCELLED" } },
+              select: { id: true },
+            });
+            if (previousOrder) throw new Error("COUPON_NOT_ELIGIBLE");
+          }
+          if (coupon.perCustomerLimit !== null) {
+            const priorUses = await tx.order.count({
+              where: { ...identityWhere, couponCode: coupon.code, fulfillmentStatus: { not: "CANCELLED" } },
+            });
+            if (priorUses >= coupon.perCustomerLimit) throw new Error("COUPON_NOT_ELIGIBLE");
+          }
+        }
+        const claimed = await tx.coupon.updateMany({
+          where: {
+            id: coupon.id,
+            isActive: true,
+            startsAt: { lte: new Date() },
+            ...(coupon.expiresAt ? { expiresAt: { gt: new Date() } } : {}),
+            ...(coupon.usageLimit !== null ? { usedCount: { lt: coupon.usageLimit } } : {}),
+          },
+          data: { usedCount: { increment: 1 } },
+        });
+        if (claimed.count !== 1) throw new Error("COUPON_UNAVAILABLE");
+      }
       // Reserve stock atomically when the order is created. Cancellation returns it.
       for (const item of validatedItems) {
         if (item.variantId) {
@@ -226,6 +234,7 @@ export async function POST(request: Request) {
           subtotal,
           deliveryFee: finalDeliveryFee,
           discount,
+          couponCode: coupon?.code,
           totalAmount,
           paymentStatus: isPaidOnline ? "PAID" : "PENDING",
           paymentMethod: selectedMethod,
@@ -257,6 +266,12 @@ export async function POST(request: Request) {
     console.error("Checkout Error:", error);
     if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") {
       return NextResponse.json({ error: "One or more items no longer have enough stock. Please update your cart and try again." }, { status: 409 });
+    }
+    if (error instanceof Error && error.message === "COUPON_UNAVAILABLE") {
+      return NextResponse.json({ error: "This coupon has just reached its usage limit. Please remove it and try again." }, { status: 409 });
+    }
+    if (error instanceof Error && error.message === "COUPON_NOT_ELIGIBLE") {
+      return NextResponse.json({ error: "This coupon is no longer eligible for your order." }, { status: 409 });
     }
     return NextResponse.json({ error: "Failed to process order. Please try again." }, { status: 500 });
   }

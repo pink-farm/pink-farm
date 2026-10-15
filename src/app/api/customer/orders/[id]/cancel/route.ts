@@ -47,6 +47,9 @@ export async function POST(
     const updatedOrder = await prisma.$transaction(async (tx) => {
       const changed = await tx.order.updateMany({ where: { id, customerId: String(session.userId), fulfillmentStatus: currentFulfillment }, data: { fulfillmentStatus: "CANCELLED" } });
       if (changed.count !== 1) throw new Error("ORDER_CHANGED");
+      if (order.couponCode) {
+        await tx.coupon.updateMany({ where: { code: order.couponCode, usedCount: { gt: 0 } }, data: { usedCount: { decrement: 1 } } });
+      }
       for (const item of await tx.orderItem.findMany({ where: { orderId: id } })) {
         if (item.variantId) await tx.productVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { increment: item.quantity } } });
         else await tx.product.update({ where: { id: item.productId }, data: { stockQuantity: { increment: item.quantity } } });

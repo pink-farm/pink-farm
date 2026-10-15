@@ -69,6 +69,7 @@ model Order {
   subtotal         Int         // In paise
   deliveryFee      Int         // In paise
   discount         Int         @default(0)
+  couponCode       String?
   totalAmount      Int         // In paise
 
   paymentStatus    String      @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
@@ -149,6 +150,9 @@ model StoreSettings {
   id                  String   @id @default("default") @map("_id")
   storeName           String   @default("Pink Farm")
   announcementText    String   @default("Welcome to Pink Farm — Goodness in Every Bite.")
+  heroMainImage       String?
+  heroGheeImage       String?
+  heroAlmondsImage    String?
   supportPhone        String   @default("+91 8437504040")
   supportEmail        String   @default("wecare@pinkfarm.in")
   businessAddress     String   @default("Dugri, Ludhiana, Punjab - 141003")
@@ -156,6 +160,24 @@ model StoreSettings {
   freeDeliveryThreshold Int?   @default(50000) // 500 INR
   isAcceptingOrders   Boolean  @default(true)
   updatedAt           DateTime @updatedAt
+}
+
+model Coupon {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  code              String   @unique
+  discountType      String   // FIXED or PERCENTAGE
+  discountValue     Int      // Fixed discounts in paise; percentage as whole percent
+  minimumSubtotal   Int      @default(0) // paise
+  maximumDiscount   Int?     // paise; used for percentage discounts
+  startsAt          DateTime @default(now())
+  expiresAt         DateTime?
+  isActive          Boolean  @default(true)
+  usageLimit        Int?
+  usedCount         Int      @default(0)
+  perCustomerLimit  Int?
+  firstOrderOnly    Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model AdminUser {
