@@ -9,7 +9,6 @@ import {
   MapPin,
   Package,
   Wallet,
-  Bell,
   ShieldCheck,
   CheckCircle2,
   Plus,
@@ -42,7 +41,7 @@ import { useCustomerStore, CustomerAddress } from "@/store/customerStore";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
 
-type AccountTab = "profile" | "addresses" | "orders" | "notifications" | "security";
+type AccountTab = "profile" | "addresses" | "orders" | "security";
 
 export function CustomerAccountClient() {
   const router = useRouter();
@@ -102,11 +101,7 @@ export function CustomerAccountClient() {
   // Referral / Wallet state
   const [copiedReferral, setCopiedReferral] = useState(false);
 
-  // Notification Preferences States
-  const [prefWhatsapp, setPrefWhatsapp] = useState(customer.preferences.whatsappAlerts);
-  const [prefSms, setPrefSms] = useState(customer.preferences.smsUpdates);
-  const [prefNewsletter, setPrefNewsletter] = useState(customer.preferences.emailNewsletter);
-  const [prefDeliveryNotes, setPrefDeliveryNotes] = useState(customer.preferences.deliveryNotes);
+
 
   // Synchronize initial state from customer store
   useEffect(() => {
@@ -117,10 +112,7 @@ export function CustomerAccountClient() {
     setProfileGender(customer.profile.gender || "");
     setDietaryPrefs(customer.profile.dietaryPreferences || []);
     
-    setPrefWhatsapp(customer.preferences.whatsappAlerts);
-    setPrefSms(customer.preferences.smsUpdates);
-    setPrefNewsletter(customer.preferences.emailNewsletter);
-    setPrefDeliveryNotes(customer.preferences.deliveryNotes);
+
   }, [customer.profile, customer.preferences]);
 
   // Fetch Orders
@@ -189,19 +181,7 @@ export function CustomerAccountClient() {
     setTimeout(() => setSaveSuccessMsg(null), 3500);
   };
 
-  const handleSavePreferences = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("/api/customer/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ preferences: { whatsappAlerts: prefWhatsapp, smsUpdates: prefSms, emailNewsletter: prefNewsletter, deliveryNotes: prefDeliveryNotes } }) });
-    if (!res.ok) { setSaveSuccessMsg("Could not save your preferences. Please try again."); return; }
-    customer.updatePreferences({
-      whatsappAlerts: prefWhatsapp,
-      smsUpdates: prefSms,
-      emailNewsletter: prefNewsletter,
-      deliveryNotes: prefDeliveryNotes,
-    });
-    setSaveSuccessMsg("Your delivery & notification preferences have been updated!");
-    setTimeout(() => setSaveSuccessMsg(null), 3500);
-  };
+
 
   const handleConfirmCancelOrder = async () => {
     if (!cancellingOrder) return;
@@ -520,20 +500,7 @@ export function CustomerAccountClient() {
               </button>
 
 
-              <button
-                onClick={() => setActiveTab("notifications")}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${
-                  activeTab === "notifications"
-                    ? "bg-brand-green text-white shadow-md shadow-brand-green/20"
-                    : "text-brand-charcoal/80 hover:bg-brand-cream/60 hover:text-brand-green"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Bell size={18} />
-                  <span>Order Alerts & Prefs</span>
-                </div>
-                <ChevronRight size={16} className={activeTab === "notifications" ? "opacity-100" : "opacity-40"} />
-              </button>
+
 
               <button
                 onClick={() => setActiveTab("security")}
@@ -1212,96 +1179,7 @@ export function CustomerAccountClient() {
 
 
 
-            {/* TAB 5: NOTIFICATIONS & PREFERENCES */}
-            {activeTab === "notifications" && (
-              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-green/10 animate-fade-in-up">
-                <div className="border-b border-brand-green/10 pb-5 mb-6">
-                  <h2 className="font-serif text-2xl font-bold text-brand-green">
-                    Order Alerts & Delivery Preferences
-                  </h2>
-                  <p className="text-sm text-brand-charcoal/70 mt-1">
-                    Control how you receive shipment status, tracking alerts, discounts, and order updates.
-                  </p>
-                </div>
 
-                <form onSubmit={handleSavePreferences} className="space-y-6">
-                  {/* Channels */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-brand-cream/20 border border-brand-green/10">
-                      <div>
-                        <div className="font-bold text-brand-charcoal text-sm flex items-center gap-2">
-                          <span>💬 WhatsApp Instant Updates</span>
-                          <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                            Recommended
-                          </span>
-                        </div>
-                        <p className="text-xs text-brand-charcoal/60 mt-0.5">
-                          Receive order confirmation, live tracking link, and dispatch alerts directly on WhatsApp ({customer.profile.phone}).
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={prefWhatsapp}
-                          onChange={(e) => setPrefWhatsapp(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-brand-cream/20 border border-brand-green/10">
-                      <div>
-                        <div className="font-bold text-brand-charcoal text-sm">
-                          📱 SMS Delivery OTP & Dispatch Alerts
-                        </div>
-                        <p className="text-xs text-brand-charcoal/60 mt-0.5">
-                          Receive 4-digit security PIN for doorstep delivery verification.
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={prefSms}
-                          onChange={(e) => setPrefSms(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-brand-cream/20 border border-brand-green/10">
-                      <div>
-                        <div className="font-bold text-brand-charcoal text-sm">
-                          🏷️ Discounts, Sale Alerts & Offers
-                        </div>
-                        <p className="text-xs text-brand-charcoal/60 mt-0.5">
-                          Get notified about seasonal discounts, coupon codes, and special promotional offers.
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={prefNewsletter}
-                          onChange={(e) => setPrefNewsletter(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 flex justify-end">
-                    <button
-                      type="submit"
-                      className="px-6 py-3 bg-brand-green text-white font-bold rounded-xl hover:bg-brand-green-light transition-all shadow-sm text-sm cursor-pointer"
-                    >
-                      Save Preferences
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
 
             {/* TAB 6: SECURITY & SESSIONS */}
             {activeTab === "security" && (
