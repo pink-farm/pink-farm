@@ -44,7 +44,31 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
     return "7.5 g protein per 100 gm";
   };
 
-  const highlights = isMakhana
+  const customHighlights: string[] | null = (() => {
+    if (!product?.highlights) return null;
+    if (Array.isArray(product.highlights)) {
+      const arr = (product.highlights as string[]).filter(Boolean);
+      return arr.length > 0 ? arr : null;
+    }
+    if (typeof product.highlights === "string") {
+      const trimmed = product.highlights.trim();
+      if (!trimmed) return null;
+      if (trimmed.startsWith("[")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[];
+        } catch {}
+      }
+      const lines = trimmed
+        .split("\n")
+        .map((l: string) => l.trim().replace(/^[-•*]\s*/, ""))
+        .filter(Boolean);
+      if (lines.length > 0) return lines;
+    }
+    return null;
+  })();
+
+  const defaultHighlights: string[] = isMakhana
     ? [
         "0% Palm Oil — Crafted with clean ingredients, zero trans fats",
         "Roasted Not Fried — Handcrafted slow-roasting for guilt-free crunch",
@@ -63,6 +87,8 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
         "Prepared using authentic, traditional processing methods",
         "Sourced ethically directly from farm origin",
       ];
+
+  const highlights: string[] = customHighlights && customHighlights.length > 0 ? customHighlights : defaultHighlights;
 
   const currentPrice = selectedVariant ? selectedVariant.price : product.basePrice;
   const currentStock = selectedVariant ? selectedVariant.stockQuantity : product.stockQuantity;

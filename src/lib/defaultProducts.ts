@@ -28,6 +28,7 @@ export interface StoreProduct {
   isAvailable: boolean;
   isFeatured: boolean;
   tags: string;
+  highlights?: string | null;
   ingredients: string | null;
   nutritionalInfo: string | null;
   storage: string | null;
@@ -58,6 +59,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     isAvailable: true,
     isFeatured: true,
     tags: "[]",
+    highlights: "0% Palm Oil — Pure, raw, unroasted fox nuts\nHigh Plant Protein — 9.7 g protein per 100 gm\n100% Natural & Gluten-Free\nIdeal for home roasting, seasoning, and traditional curries",
     ingredients: null,
     nutritionalInfo: null,
     storage: null,
@@ -97,6 +99,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     isAvailable: true,
     isFeatured: true,
     tags: "[]",
+    highlights: "0% Palm Oil — Crafted with clean ingredients, zero trans fats\nRoasted Not Fried — Handcrafted slow-roasting for guilt-free crunch\nPlant Protein — 7.8 g protein per 100 gm\nNo Artificial Colours, Just Authentic Seasonings!",
     ingredients: null,
     nutritionalInfo: null,
     storage: null,
@@ -136,6 +139,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     isAvailable: true,
     isFeatured: true,
     tags: "[]",
+    highlights: "0% Palm Oil — Crafted with clean ingredients, zero trans fats\nRoasted Not Fried — Handcrafted slow-roasting for guilt-free crunch\nPlant Protein — 7.19g protein per 100 gm\nNo Artificial Colours, Just Authentic Seasonings!",
     ingredients: null,
     nutritionalInfo: "7.19g Protein per 100g",
     storage: null,
@@ -175,6 +179,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     isAvailable: true,
     isFeatured: true,
     tags: "[]",
+    highlights: "0% Palm Oil — Crafted with clean ingredients, zero trans fats\nRoasted Not Fried — Handcrafted slow-roasting for guilt-free crunch\nPlant Protein — 7.2 g protein per 100 gm\nNo Artificial Colours, Just Authentic Seasonings!",
     ingredients: null,
     nutritionalInfo: null,
     storage: null,
@@ -214,6 +219,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     isAvailable: true,
     isFeatured: true,
     tags: "[]",
+    highlights: "0% Palm Oil — Crafted with clean ingredients, zero trans fats\nRoasted Not Fried — Handcrafted slow-roasting for guilt-free crunch\nPlant Protein — 6.2 gm protein per 100 gm\nNo Artificial Colours, Just Authentic Seasonings!",
     ingredients: null,
     nutritionalInfo: null,
     storage: null,
@@ -253,6 +259,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     isAvailable: true,
     isFeatured: true,
     tags: "[]",
+    highlights: "0% Palm Oil — Crafted with clean ingredients, zero trans fats\nRoasted Not Fried — Handcrafted slow-roasting for guilt-free crunch\nPlant Protein — 7.4 g protein per 100 gm\nNo Artificial Colours, Just Authentic Seasonings!",
     ingredients: null,
     nutritionalInfo: null,
     storage: null,
@@ -310,6 +317,27 @@ export const DEFAULT_SETTINGS = {
   deliveryFee: 5000,
   freeDeliveryThreshold: 50000,
   isAcceptingOrders: true,
+  comboEnabled: true,
+  comboEyebrow: "Make Your Own Combo",
+  comboTitlePrefix: "Curate Your",
+  comboTitleHighlight: "Pink Farm Combo",
+  comboSubtitle: "Mix & match your favourite flavoured makhanas. Add multiple packs of any flavour — combo discounts apply directly on the original MRP!",
+  comboTier1Count: 3,
+  comboTier1Discount: 11,
+  comboTier1Label: "Trio Combo",
+  comboTier1Tagline: "Pick any 3 — save 11% on MRP",
+  comboTier1Badge: "✦ 11% OFF",
+  comboTier1Emoji: "🌿",
+  comboTier2Count: 5,
+  comboTier2Discount: 15,
+  comboTier2Label: "Penta Combo",
+  comboTier2Tagline: "Pick any 5 — save 15% on MRP",
+  comboTier2Badge: "✦ 15% OFF",
+  comboTier2Emoji: "🌸",
+  comboButtonText: "Shop My Combo",
+  comboFooterNote: "✦ Combo discount applies to total MRP ✦ Multiples allowed ✦",
+  comboProductIds: [] as string[],
+  storeCategories: ["Makhana", "Nuts", "Pantry"] as string[],
 };
 
 /**

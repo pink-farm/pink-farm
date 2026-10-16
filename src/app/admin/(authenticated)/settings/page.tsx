@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -28,9 +28,13 @@ import {
   Layers,
   ArrowRight,
   Sliders,
+  Check,
+  Package,
+  Plus,
+  Tag,
 } from "lucide-react";
 import { useSettingsStore, DEFAULT_SETTINGS } from "@/store/settingsStore";
-import type { StoreProduct } from "@/lib/defaultProducts";
+import { FALLBACK_PRODUCTS, type StoreProduct } from "@/lib/defaultProducts";
 
 type Coupon = {
   id: string;
@@ -62,7 +66,7 @@ type CouponDraft = {
   isActive: boolean;
 };
 
-type SettingsTab = "products" | "store" | "operations" | "founder" | "coupons" | "all";
+type SettingsTab = "products" | "combo" | "categories" | "store" | "operations" | "founder" | "coupons" | "all";
 
 function toLocalDateTimeInput(value: Date) {
   const local = new Date(value.getTime() - value.getTimezoneOffset() * 60_000);
@@ -181,6 +185,130 @@ export default function StoreSettingsPage() {
   const [freeThresholdRupees, setFreeThresholdRupees] = useState("500");
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
 
+  // Combo Builder Settings
+  const [comboEnabled, setComboEnabled] = useState(DEFAULT_SETTINGS.comboEnabled);
+  const [comboEyebrow, setComboEyebrow] = useState(DEFAULT_SETTINGS.comboEyebrow);
+  const [comboTitlePrefix, setComboTitlePrefix] = useState(DEFAULT_SETTINGS.comboTitlePrefix);
+  const [comboTitleHighlight, setComboTitleHighlight] = useState(DEFAULT_SETTINGS.comboTitleHighlight);
+  const [comboSubtitle, setComboSubtitle] = useState(DEFAULT_SETTINGS.comboSubtitle);
+  const [comboTier1Count, setComboTier1Count] = useState(String(DEFAULT_SETTINGS.comboTier1Count));
+  const [comboTier1Discount, setComboTier1Discount] = useState(String(DEFAULT_SETTINGS.comboTier1Discount));
+  const [comboTier1Label, setComboTier1Label] = useState(DEFAULT_SETTINGS.comboTier1Label);
+  const [comboTier1Tagline, setComboTier1Tagline] = useState(DEFAULT_SETTINGS.comboTier1Tagline);
+  const [comboTier1Badge, setComboTier1Badge] = useState(DEFAULT_SETTINGS.comboTier1Badge);
+  const [comboTier1Emoji, setComboTier1Emoji] = useState(DEFAULT_SETTINGS.comboTier1Emoji);
+  const [comboTier2Count, setComboTier2Count] = useState(String(DEFAULT_SETTINGS.comboTier2Count));
+  const [comboTier2Discount, setComboTier2Discount] = useState(String(DEFAULT_SETTINGS.comboTier2Discount));
+  const [comboTier2Label, setComboTier2Label] = useState(DEFAULT_SETTINGS.comboTier2Label);
+  const [comboTier2Tagline, setComboTier2Tagline] = useState(DEFAULT_SETTINGS.comboTier2Tagline);
+  const [comboTier2Badge, setComboTier2Badge] = useState(DEFAULT_SETTINGS.comboTier2Badge);
+  const [comboTier2Emoji, setComboTier2Emoji] = useState(DEFAULT_SETTINGS.comboTier2Emoji);
+  const [comboButtonText, setComboButtonText] = useState(DEFAULT_SETTINGS.comboButtonText);
+  const [comboFooterNote, setComboFooterNote] = useState(DEFAULT_SETTINGS.comboFooterNote);
+  const [comboProductIds, setComboProductIds] = useState<string[]>(DEFAULT_SETTINGS.comboProductIds);
+  const [storeCategories, setStoreCategories] = useState<string[]>(DEFAULT_SETTINGS.storeCategories);
+  const [newCategoryInput, setNewCategoryInput] = useState("");
+  const [previewCategoryTab, setPreviewCategoryTab] = useState("all");
+  const [previewTierTab, setPreviewTierTab] = useState<0 | 1>(0);
+
+  const handleAddCategory = (rawName?: string) => {
+    const nameToAdd = (rawName || newCategoryInput).trim();
+    if (!nameToAdd) return;
+    if (storeCategories.some((c) => c.toLowerCase() === nameToAdd.toLowerCase())) {
+      alert(`Category "${nameToAdd}" is already in your categories list.`);
+      return;
+    }
+    setStoreCategories([...storeCategories, nameToAdd]);
+    setNewCategoryInput("");
+  };
+
+  const handleDeleteCategory = (catToDelete: string) => {
+    const prodCount = products.filter(
+      (p) => p.category?.toLowerCase() === catToDelete.toLowerCase()
+    ).length;
+
+    const message =
+      prodCount > 0
+        ? `"${catToDelete}" has ${prodCount} product${prodCount === 1 ? "" : "s"} assigned to it.\n\nDeleting it will remove the "${catToDelete}" tab from the storefront filter bar. (The products will still be available under the "All" tab).\n\nAre you sure you want to delete this category?`
+        : `Delete category "${catToDelete}" from the storefront filter bar?`;
+
+    if (!window.confirm(message)) return;
+    setStoreCategories(storeCategories.filter((c) => c !== catToDelete));
+  };
+
+  const handleResetCategories = () => {
+    if (window.confirm("Reset categories back to defaults (Makhana, Nuts, Pantry)?")) {
+      setStoreCategories(["Makhana", "Nuts", "Pantry"]);
+    }
+  };
+
+  const catalogProducts = products.length > 0 ? products : FALLBACK_PRODUCTS;
+
+  // Active combo products logic
+  const effectiveComboProductIds = useMemo(() => {
+    if (comboProductIds.length > 0) return comboProductIds;
+    return catalogProducts
+      .filter((p) => !p.slug.toLowerCase().includes("raw") && !p.name.toLowerCase().includes("raw"))
+      .map((p) => p.id);
+  }, [comboProductIds, catalogProducts]);
+
+  const isProductInCombo = (productId: string) => {
+    return effectiveComboProductIds.includes(productId);
+  };
+
+  const handleToggleComboProduct = (productId: string) => {
+    const baseList =
+      comboProductIds.length === 0 ? [...effectiveComboProductIds] : [...comboProductIds];
+
+    if (baseList.includes(productId)) {
+      setComboProductIds(baseList.filter((id) => id !== productId));
+    } else {
+      setComboProductIds([...baseList, productId]);
+    }
+  };
+
+  const handleSelectAllComboProducts = () => {
+    setComboProductIds(catalogProducts.map((p) => p.id));
+  };
+
+  const handleSelectFlavouredComboProducts = () => {
+    const flavouredIds = catalogProducts
+      .filter((p) => !p.slug.toLowerCase().includes("raw") && !p.name.toLowerCase().includes("raw"))
+      .map((p) => p.id);
+    setComboProductIds(flavouredIds);
+  };
+
+  const handleClearAllComboProducts = () => {
+    setComboProductIds([]);
+  };
+
+  const previewSelectedProducts = useMemo(() => {
+    return catalogProducts.filter((p) => effectiveComboProductIds.includes(p.id));
+  }, [catalogProducts, effectiveComboProductIds]);
+
+  const handleResetComboDefaults = () => {
+    setComboEnabled(DEFAULT_SETTINGS.comboEnabled);
+    setComboEyebrow(DEFAULT_SETTINGS.comboEyebrow);
+    setComboTitlePrefix(DEFAULT_SETTINGS.comboTitlePrefix);
+    setComboTitleHighlight(DEFAULT_SETTINGS.comboTitleHighlight);
+    setComboSubtitle(DEFAULT_SETTINGS.comboSubtitle);
+    setComboTier1Count(String(DEFAULT_SETTINGS.comboTier1Count));
+    setComboTier1Discount(String(DEFAULT_SETTINGS.comboTier1Discount));
+    setComboTier1Label(DEFAULT_SETTINGS.comboTier1Label);
+    setComboTier1Tagline(DEFAULT_SETTINGS.comboTier1Tagline);
+    setComboTier1Badge(DEFAULT_SETTINGS.comboTier1Badge);
+    setComboTier1Emoji(DEFAULT_SETTINGS.comboTier1Emoji);
+    setComboTier2Count(String(DEFAULT_SETTINGS.comboTier2Count));
+    setComboTier2Discount(String(DEFAULT_SETTINGS.comboTier2Discount));
+    setComboTier2Label(DEFAULT_SETTINGS.comboTier2Label);
+    setComboTier2Tagline(DEFAULT_SETTINGS.comboTier2Tagline);
+    setComboTier2Badge(DEFAULT_SETTINGS.comboTier2Badge);
+    setComboTier2Emoji(DEFAULT_SETTINGS.comboTier2Emoji);
+    setComboButtonText(DEFAULT_SETTINGS.comboButtonText);
+    setComboFooterNote(DEFAULT_SETTINGS.comboFooterNote);
+    setComboProductIds(DEFAULT_SETTINGS.comboProductIds);
+  };
+
   // Status & Save Feedback
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -238,6 +366,34 @@ export default function StoreSettingsPage() {
         String(Math.round((storeSettings.freeDeliveryThreshold ?? 50000) / 100))
       );
       setIsAcceptingOrders(storeSettings.isAcceptingOrders);
+      if (typeof storeSettings.comboEnabled === "boolean") setComboEnabled(storeSettings.comboEnabled);
+      if (typeof storeSettings.comboEyebrow === "string") setComboEyebrow(storeSettings.comboEyebrow);
+      if (typeof storeSettings.comboTitlePrefix === "string") setComboTitlePrefix(storeSettings.comboTitlePrefix);
+      if (typeof storeSettings.comboTitleHighlight === "string") setComboTitleHighlight(storeSettings.comboTitleHighlight);
+      if (typeof storeSettings.comboSubtitle === "string") setComboSubtitle(storeSettings.comboSubtitle);
+      if (typeof storeSettings.comboTier1Count === "number") setComboTier1Count(String(storeSettings.comboTier1Count));
+      if (typeof storeSettings.comboTier1Discount === "number") setComboTier1Discount(String(storeSettings.comboTier1Discount));
+      if (typeof storeSettings.comboTier1Label === "string") setComboTier1Label(storeSettings.comboTier1Label);
+      if (typeof storeSettings.comboTier1Tagline === "string") setComboTier1Tagline(storeSettings.comboTier1Tagline);
+      if (typeof storeSettings.comboTier1Badge === "string") setComboTier1Badge(storeSettings.comboTier1Badge);
+      if (typeof storeSettings.comboTier1Emoji === "string") setComboTier1Emoji(storeSettings.comboTier1Emoji);
+      if (typeof storeSettings.comboTier2Count === "number") setComboTier2Count(String(storeSettings.comboTier2Count));
+      if (typeof storeSettings.comboTier2Discount === "number") setComboTier2Discount(String(storeSettings.comboTier2Discount));
+      if (typeof storeSettings.comboTier2Label === "string") setComboTier2Label(storeSettings.comboTier2Label);
+      if (typeof storeSettings.comboTier2Tagline === "string") setComboTier2Tagline(storeSettings.comboTier2Tagline);
+      if (typeof storeSettings.comboTier2Badge === "string") setComboTier2Badge(storeSettings.comboTier2Badge);
+      if (typeof storeSettings.comboTier2Emoji === "string") setComboTier2Emoji(storeSettings.comboTier2Emoji);
+      if (typeof storeSettings.comboButtonText === "string") setComboButtonText(storeSettings.comboButtonText);
+      if (typeof storeSettings.comboFooterNote === "string") setComboFooterNote(storeSettings.comboFooterNote);
+      if (Array.isArray(storeSettings.comboProductIds)) setComboProductIds(storeSettings.comboProductIds);
+      if (Array.isArray(storeSettings.storeCategories)) setStoreCategories(storeSettings.storeCategories);
+    }
+
+    if (typeof window !== "undefined") {
+      const tabParam = new URLSearchParams(window.location.search).get("tab");
+      if (tabParam === "categories") {
+        setActiveTab("categories");
+      }
     }
 
     fetch("/api/admin/settings")
@@ -294,6 +450,27 @@ export default function StoreSettingsPage() {
           if (typeof data.isAcceptingOrders === "boolean") {
             setIsAcceptingOrders(data.isAcceptingOrders);
           }
+          if (typeof data.comboEnabled === "boolean") setComboEnabled(data.comboEnabled);
+          if (typeof data.comboEyebrow === "string") setComboEyebrow(data.comboEyebrow);
+          if (typeof data.comboTitlePrefix === "string") setComboTitlePrefix(data.comboTitlePrefix);
+          if (typeof data.comboTitleHighlight === "string") setComboTitleHighlight(data.comboTitleHighlight);
+          if (typeof data.comboSubtitle === "string") setComboSubtitle(data.comboSubtitle);
+          if (typeof data.comboTier1Count === "number") setComboTier1Count(String(data.comboTier1Count));
+          if (typeof data.comboTier1Discount === "number") setComboTier1Discount(String(data.comboTier1Discount));
+          if (typeof data.comboTier1Label === "string") setComboTier1Label(data.comboTier1Label);
+          if (typeof data.comboTier1Tagline === "string") setComboTier1Tagline(data.comboTier1Tagline);
+          if (typeof data.comboTier1Badge === "string") setComboTier1Badge(data.comboTier1Badge);
+          if (typeof data.comboTier1Emoji === "string") setComboTier1Emoji(data.comboTier1Emoji);
+          if (typeof data.comboTier2Count === "number") setComboTier2Count(String(data.comboTier2Count));
+          if (typeof data.comboTier2Discount === "number") setComboTier2Discount(String(data.comboTier2Discount));
+          if (typeof data.comboTier2Label === "string") setComboTier2Label(data.comboTier2Label);
+          if (typeof data.comboTier2Tagline === "string") setComboTier2Tagline(data.comboTier2Tagline);
+          if (typeof data.comboTier2Badge === "string") setComboTier2Badge(data.comboTier2Badge);
+          if (typeof data.comboTier2Emoji === "string") setComboTier2Emoji(data.comboTier2Emoji);
+          if (typeof data.comboButtonText === "string") setComboButtonText(data.comboButtonText);
+          if (typeof data.comboFooterNote === "string") setComboFooterNote(data.comboFooterNote);
+          if (Array.isArray(data.comboProductIds)) setComboProductIds(data.comboProductIds);
+          if (Array.isArray(data.storeCategories)) setStoreCategories(data.storeCategories);
         }
       })
       .catch((err) => {
@@ -443,6 +620,27 @@ export default function StoreSettingsPage() {
       deliveryFee: deliveryFeePaise,
       freeDeliveryThreshold: freeThresholdPaise,
       isAcceptingOrders,
+      comboEnabled,
+      comboEyebrow: comboEyebrow.trim() || DEFAULT_SETTINGS.comboEyebrow,
+      comboTitlePrefix: comboTitlePrefix.trim() || DEFAULT_SETTINGS.comboTitlePrefix,
+      comboTitleHighlight: comboTitleHighlight.trim() || DEFAULT_SETTINGS.comboTitleHighlight,
+      comboSubtitle: comboSubtitle.trim() || DEFAULT_SETTINGS.comboSubtitle,
+      comboTier1Count: Number(comboTier1Count) || DEFAULT_SETTINGS.comboTier1Count,
+      comboTier1Discount: Number(comboTier1Discount) || DEFAULT_SETTINGS.comboTier1Discount,
+      comboTier1Label: comboTier1Label.trim() || DEFAULT_SETTINGS.comboTier1Label,
+      comboTier1Tagline: comboTier1Tagline.trim() || DEFAULT_SETTINGS.comboTier1Tagline,
+      comboTier1Badge: comboTier1Badge.trim() || DEFAULT_SETTINGS.comboTier1Badge,
+      comboTier1Emoji: comboTier1Emoji.trim() || DEFAULT_SETTINGS.comboTier1Emoji,
+      comboTier2Count: Number(comboTier2Count) || DEFAULT_SETTINGS.comboTier2Count,
+      comboTier2Discount: Number(comboTier2Discount) || DEFAULT_SETTINGS.comboTier2Discount,
+      comboTier2Label: comboTier2Label.trim() || DEFAULT_SETTINGS.comboTier2Label,
+      comboTier2Tagline: comboTier2Tagline.trim() || DEFAULT_SETTINGS.comboTier2Tagline,
+      comboTier2Badge: comboTier2Badge.trim() || DEFAULT_SETTINGS.comboTier2Badge,
+      comboTier2Emoji: comboTier2Emoji.trim() || DEFAULT_SETTINGS.comboTier2Emoji,
+      comboButtonText: comboButtonText.trim() || DEFAULT_SETTINGS.comboButtonText,
+      comboFooterNote: comboFooterNote.trim() || DEFAULT_SETTINGS.comboFooterNote,
+      comboProductIds,
+      storeCategories,
     };
 
     try {
@@ -526,6 +724,8 @@ export default function StoreSettingsPage() {
 
   const TAB_ITEMS: { id: SettingsTab; label: string; icon: React.ElementType; badge?: string }[] = [
     { id: "products", label: "Featured & Spotlights", icon: Sparkles, badge: "3 items" },
+    { id: "combo", label: "Combo Builder", icon: Sliders, badge: comboEnabled ? "Active" : "Paused" },
+    { id: "categories", label: "Categories Bar", icon: LayoutGrid, badge: `${storeCategories.length} tabs` },
     { id: "store", label: "Store & Brand", icon: Store, badge: isAcceptingOrders ? "Online" : "Paused" },
     { id: "operations", label: "Delivery & Support", icon: Truck, badge: `₹${deliveryFeeRupees} fee` },
     { id: "founder", label: "Founder Story", icon: HeartHandshake },
@@ -641,8 +841,8 @@ export default function StoreSettingsPage() {
       {/* ============================================================== */}
       {/* ORGANIZED SEGMENTED NAVIGATION TABS (Sticky & Eye-Soothing)    */}
       {/* ============================================================== */}
-      <div className="sticky top-2 z-20 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl border border-stone-200/80 shadow-xs">
-        <nav className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
+      <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-stone-200/80 shadow-xs">
+        <nav className="flex flex-wrap items-center gap-1.5 py-0.5">
           {TAB_ITEMS.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
@@ -652,13 +852,13 @@ export default function StoreSettingsPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
                     ? "bg-[#1A4031] text-white shadow-xs"
                     : "text-stone-600 hover:text-stone-900 hover:bg-stone-100/80"
                 }`}
               >
-                <Icon size={15} className={isActive ? "text-[#D8EADB]" : "text-stone-400"} />
+                <Icon size={14} className={isActive ? "text-[#D8EADB]" : "text-stone-400"} />
                 <span>{tab.label}</span>
                 {tab.badge && (
                   <span
@@ -1086,6 +1286,876 @@ export default function StoreSettingsPage() {
               </div>
 
               {heroImageError && <p role="alert" className="text-xs font-medium text-rose-700">{heroImageError}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------ */}
+        {/* TAB: Make Your Own Combo / Bundle Builder                   */}
+        {/* ------------------------------------------------------------ */}
+        {(activeTab === "combo" || activeTab === "all") && (
+          <div className="space-y-6">
+            {activeTab === "all" && (
+              <div className="flex items-center gap-2 pt-4 border-b border-stone-200 pb-2">
+                <Sliders size={18} className="text-brand-green" />
+                <h2 className="text-base font-bold text-stone-900">Make Your Own Combo Builder</h2>
+              </div>
+            )}
+
+            {/* Main Configuration Card */}
+            <div className="bg-white rounded-2xl p-5 sm:p-7 border border-stone-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6 transition-all hover:border-stone-300">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-pink/60 to-brand-pink text-brand-green flex items-center justify-center shrink-0 border border-brand-pink-accent/40 shadow-xs">
+                    <Sliders size={20} className="text-brand-green" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">
+                        Curate Your Combo Builder
+                      </h3>
+                      <span
+                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                          comboEnabled
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : "bg-stone-100 text-stone-500 border-stone-200"
+                        }`}
+                      >
+                        {comboEnabled ? "● Live on Website" : "○ Hidden"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-500">
+                      Customize titles, bundle quantities, discount percentages, and tags for your mix &amp; match Makhana combo.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                  <Link
+                    href="/combo"
+                    target="_blank"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100 text-xs font-semibold transition-colors"
+                  >
+                    <ExternalLink size={13} />
+                    <span>View /combo</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleResetComboDefaults}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-stone-500 hover:text-stone-800 hover:bg-stone-100 text-xs font-medium transition-colors cursor-pointer"
+                    title="Reset all combo settings back to default"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Reset Defaults</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Master Enabled / Disabled Toggle */}
+              <div className="flex items-center justify-between p-4 rounded-xl bg-stone-50/70 border border-stone-200/80">
+                <div className="space-y-0.5">
+                  <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
+                    <span>Show Combo Builder Section</span>
+                    <span className="text-[10px] text-stone-400 font-normal">
+                      (Homepage, Products page &amp; /combo page)
+                    </span>
+                  </label>
+                  <p className="text-xs text-stone-500">
+                    When active, customers can choose flavours and add bundle discounts straight to cart.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setComboEnabled(!comboEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
+                    comboEnabled ? "bg-emerald-600" : "bg-stone-300"
+                  }`}
+                  role="switch"
+                  aria-checked={comboEnabled}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                      comboEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Section Header Controls */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="block text-xs font-bold text-stone-700">Eyebrow Badge Text</label>
+                  <input
+                    type="text"
+                    value={comboEyebrow}
+                    onChange={(e) => setComboEyebrow(e.target.value)}
+                    placeholder="Make Your Own Combo"
+                    maxLength={80}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm transition-all"
+                  />
+                  <p className="text-[11px] text-stone-400">
+                    The small uppercase badge text with sparkles displayed above the title.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-stone-700">Title Prefix</label>
+                  <input
+                    type="text"
+                    value={comboTitlePrefix}
+                    onChange={(e) => setComboTitlePrefix(e.target.value)}
+                    placeholder="Curate Your"
+                    maxLength={80}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-stone-700">
+                    Title Highlighted Words (Gradient Italic Text)
+                  </label>
+                  <input
+                    type="text"
+                    value={comboTitleHighlight}
+                    onChange={(e) => setComboTitleHighlight(e.target.value)}
+                    placeholder="Pink Farm Combo"
+                    maxLength={100}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="block text-xs font-bold text-stone-700">Section Subtitle / Explanatory Description</label>
+                  <textarea
+                    value={comboSubtitle}
+                    onChange={(e) => setComboSubtitle(e.target.value)}
+                    rows={2}
+                    placeholder="Mix & match your favourite flavoured makhanas. Add multiple packs of any flavour — combo discounts apply directly on the original MRP!"
+                    maxLength={300}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm resize-y transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Tier Cards: Tier 1 and Tier 2 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                {/* TIER 1 CARD */}
+                <div className="rounded-2xl border-2 border-emerald-100 bg-gradient-to-b from-emerald-50/40 to-white p-5 space-y-4 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-emerald-100/80 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{comboTier1Emoji || "🌿"}</span>
+                      <div>
+                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-emerald-900">
+                          Tier 1 Configuration
+                        </h4>
+                        <p className="text-[11px] text-stone-500">Smaller bundle option</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
+                      {comboTier1Count || 3} Packs · {comboTier1Discount || 11}% OFF
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-stone-700">Tier Name</label>
+                      <input
+                        type="text"
+                        value={comboTier1Label}
+                        onChange={(e) => setComboTier1Label(e.target.value)}
+                        placeholder="Trio Combo"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-stone-700">Emoji Icon</label>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={comboTier1Emoji}
+                          onChange={(e) => setComboTier1Emoji(e.target.value)}
+                          placeholder="🌿"
+                          maxLength={6}
+                          className="w-16 px-2.5 py-2 text-center rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                        />
+                        <div className="flex items-center gap-1">
+                          {["🌿", "🌱", "✨", "🌸", "🥜"].map((em) => (
+                            <button
+                              key={em}
+                              type="button"
+                              onClick={() => setComboTier1Emoji(em)}
+                              className="text-sm p-1 rounded-md hover:bg-stone-200/60 cursor-pointer"
+                            >
+                              {em}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-stone-700">Required Items Count</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={comboTier1Count}
+                        onChange={(e) => setComboTier1Count(e.target.value)}
+                        placeholder="3"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-stone-700">Discount Percentage (%)</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min={1}
+                          max={99}
+                          value={comboTier1Discount}
+                          onChange={(e) => setComboTier1Discount(e.target.value)}
+                          placeholder="11"
+                          className="w-full px-3 py-2 pr-7 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                        />
+                        <span className="absolute right-3 top-2 text-stone-400 text-xs font-bold">%</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 col-span-2">
+                      <label className="block text-xs font-bold text-stone-700">Badge Text</label>
+                      <input
+                        type="text"
+                        value={comboTier1Badge}
+                        onChange={(e) => setComboTier1Badge(e.target.value)}
+                        placeholder="✦ 11% OFF"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1 col-span-2">
+                      <label className="block text-xs font-bold text-stone-700">Tagline / Instruction</label>
+                      <input
+                        type="text"
+                        value={comboTier1Tagline}
+                        onChange={(e) => setComboTier1Tagline(e.target.value)}
+                        placeholder="Pick any 3 — save 11% on MRP"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* TIER 2 CARD */}
+                <div className="rounded-2xl border-2 border-pink-100 bg-gradient-to-b from-pink-50/40 to-white p-5 space-y-4 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-pink-100/80 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{comboTier2Emoji || "🌸"}</span>
+                      <div>
+                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-rose-900">
+                          Tier 2 Configuration
+                        </h4>
+                        <p className="text-[11px] text-stone-500">Bigger bundle option</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold bg-pink-100 text-rose-800 px-2.5 py-0.5 rounded-full">
+                      {comboTier2Count || 5} Packs · {comboTier2Discount || 15}% OFF
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-stone-700">Tier Name</label>
+                      <input
+                        type="text"
+                        value={comboTier2Label}
+                        onChange={(e) => setComboTier2Label(e.target.value)}
+                        placeholder="Penta Combo"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-stone-700">Emoji Icon</label>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={comboTier2Emoji}
+                          onChange={(e) => setComboTier2Emoji(e.target.value)}
+                          placeholder="🌸"
+                          maxLength={6}
+                          className="w-16 px-2.5 py-2 text-center rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                        />
+                        <div className="flex items-center gap-1">
+                          {["🌸", "🌿", "🔥", "⭐", "🎁"].map((em) => (
+                            <button
+                              key={em}
+                              type="button"
+                              onClick={() => setComboTier2Emoji(em)}
+                              className="text-sm p-1 rounded-md hover:bg-stone-200/60 cursor-pointer"
+                            >
+                              {em}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-stone-700">Required Items Count</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={comboTier2Count}
+                        onChange={(e) => setComboTier2Count(e.target.value)}
+                        placeholder="5"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-stone-700">Discount Percentage (%)</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min={1}
+                          max={99}
+                          value={comboTier2Discount}
+                          onChange={(e) => setComboTier2Discount(e.target.value)}
+                          placeholder="15"
+                          className="w-full px-3 py-2 pr-7 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                        />
+                        <span className="absolute right-3 top-2 text-stone-400 text-xs font-bold">%</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 col-span-2">
+                      <label className="block text-xs font-bold text-stone-700">Badge Text</label>
+                      <input
+                        type="text"
+                        value={comboTier2Badge}
+                        onChange={(e) => setComboTier2Badge(e.target.value)}
+                        placeholder="✦ 15% OFF"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1 col-span-2">
+                      <label className="block text-xs font-bold text-stone-700">Tagline / Instruction</label>
+                      <input
+                        type="text"
+                        value={comboTier2Tagline}
+                        onChange={(e) => setComboTier2Tagline(e.target.value)}
+                        placeholder="Pick any 5 — save 15% on MRP"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ELIGIBLE PRODUCTS SELECTION SECTION */}
+              <div className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-5 sm:p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-stone-200/80 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green shrink-0">
+                      <Package size={20} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-stone-900">
+                          Included Products in Combos
+                        </h4>
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {previewSelectedProducts.length} of {catalogProducts.length} Available
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stone-500 mt-0.5">
+                        Choose which products from your store catalog customers can add to their combo bundle.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Quick Action Buttons */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleSelectAllComboProducts}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-stone-100 border border-stone-200 text-stone-700 transition-colors shadow-2xs cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSelectFlavouredComboProducts}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-green/10 hover:bg-brand-green/15 text-brand-green border border-brand-green/20 transition-colors shadow-2xs cursor-pointer"
+                    >
+                      Flavours Only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearAllComboProducts}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-rose-50 hover:text-rose-600 border border-stone-200 text-stone-500 transition-colors shadow-2xs cursor-pointer"
+                    >
+                      Reset Default
+                    </button>
+                  </div>
+                </div>
+
+                {/* Product Selection Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {catalogProducts.map((product) => {
+                    const active = isProductInCombo(product.id);
+                    return (
+                      <div
+                        key={product.id}
+                        onClick={() => handleToggleComboProduct(product.id)}
+                        className={`cursor-pointer rounded-xl p-3 flex items-center gap-3 transition-all select-none border-2 ${
+                          active
+                            ? "bg-white border-emerald-500 shadow-xs ring-1 ring-emerald-500/20"
+                            : "bg-white/80 border-stone-200 hover:border-stone-300 opacity-60 hover:opacity-100"
+                        }`}
+                      >
+                        <div className="w-14 h-14 rounded-lg overflow-hidden bg-stone-100 shrink-0 border border-stone-200/60 relative">
+                          <img
+                            src={product.imageUrl || "/images/makhana_sig.jpg"}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-stone-900 truncate">{product.name}</p>
+                          <p className="text-[11px] text-stone-500 mt-0.5">
+                            ₹{Math.round(product.basePrice / 100)} ·{" "}
+                            <span className="text-stone-400 capitalize">{product.category || "Makhana"}</span>
+                          </p>
+                          <div className="mt-1.5">
+                            {active ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                <Check size={11} className="stroke-[3]" /> In Combo
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center text-[10px] font-medium text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200">
+                                Excluded
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center gap-2 pt-1 text-[11px] text-stone-500">
+                  <Sparkles size={12} className="text-brand-green" />
+                  <span>
+                    Click any product card to toggle it in or out of the combo builder. Changes apply live once you save.
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Button & Footer Note */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-stone-700">Shop Button Text</label>
+                  <input
+                    type="text"
+                    value={comboButtonText}
+                    onChange={(e) => setComboButtonText(e.target.value)}
+                    placeholder="Shop My Combo"
+                    maxLength={60}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-stone-700">Bottom Trust Note</label>
+                  <input
+                    type="text"
+                    value={comboFooterNote}
+                    onChange={(e) => setComboFooterNote(e.target.value)}
+                    placeholder="✦ Combo discount applies to total MRP ✦ Multiples allowed ✦"
+                    maxLength={200}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* LIVE REALISTIC PREVIEW (Matches screenshot aesthetic!) */}
+              <div className="space-y-3 pt-4 border-t border-stone-100">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-brand-pink-accent" />
+                    Live Website Visual Preview
+                  </p>
+                  <span className="text-[10px] text-stone-400 font-medium">
+                    Updates live as you type
+                  </span>
+                </div>
+
+                {/* Dark Luxury Container simulating the exact section */}
+                <div className="rounded-3xl overflow-hidden p-6 sm:p-10 text-center relative border border-white/10 shadow-2xl bg-gradient-to-br from-[#0d1a16] via-[#12261f] to-[#1a1a2e]">
+                  <div className="relative z-10 space-y-6 max-w-2xl mx-auto">
+                    {/* Eyebrow */}
+                    <p className="text-brand-pink-accent text-xs font-bold tracking-[0.3em] uppercase flex items-center justify-center gap-2">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      {comboEyebrow || "Make Your Own Combo"}
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </p>
+
+                    {/* Heading */}
+                    <h2 className="font-serif text-3xl sm:text-5xl text-white leading-tight font-normal">
+                      {comboTitlePrefix || "Curate Your"}{" "}
+                      <span className="italic font-light bg-[linear-gradient(110deg,#E6B8C0,45%,#FDF2F4,55%,#E6B8C0)] bg-[length:200%_100%] text-transparent bg-clip-text">
+                        {comboTitleHighlight || "Pink Farm Combo"}
+                      </span>
+                    </h2>
+
+                    {/* Subtitle */}
+                    <p className="text-white/60 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+                      {comboSubtitle ||
+                        "Mix & match your favourite flavoured makhanas. Add multiple packs of any flavour — combo discounts apply directly on the original MRP!"}
+                    </p>
+
+                    {/* Tier Switcher Buttons */}
+                    <div className="flex items-center justify-center gap-3 pt-1 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewTierTab(0)}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs tracking-wide transition-all border ${
+                          previewTierTab === 0
+                            ? "bg-gradient-to-r from-[#E6B8C0] to-[#F7D4DC] text-brand-green border-[#E6B8C0] shadow-[0_0_20px_rgba(230,184,192,0.45)] scale-105"
+                            : "bg-white/5 border-white/10 text-white/60"
+                        }`}
+                      >
+                        <span className="text-base">{comboTier1Emoji || "🌿"}</span>
+                        <span>{comboTier1Label || "Trio Combo"}</span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            previewTierTab === 0 ? "bg-brand-green/20 text-brand-green" : "bg-white/10 text-white/50"
+                          }`}
+                        >
+                          {comboTier1Badge || `✦ ${comboTier1Discount || 11}% OFF`}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPreviewTierTab(1)}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs tracking-wide transition-all border ${
+                          previewTierTab === 1
+                            ? "bg-gradient-to-r from-[#E6B8C0] to-[#F7D4DC] text-brand-green border-[#E6B8C0] shadow-[0_0_20px_rgba(230,184,192,0.45)] scale-105"
+                            : "bg-white/5 border-white/10 text-white/60"
+                        }`}
+                      >
+                        <span className="text-base">{comboTier2Emoji || "🌸"}</span>
+                        <span>{comboTier2Label || "Penta Combo"}</span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            previewTierTab === 1 ? "bg-brand-green/20 text-brand-green" : "bg-white/10 text-white/50"
+                          }`}
+                        >
+                          {comboTier2Badge || `✦ ${comboTier2Discount || 15}% OFF`}
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Progress Bar simulator */}
+                    <div className="space-y-2 max-w-sm mx-auto pt-2">
+                      <p className="text-white/80 text-xs">
+                        <span className="text-[#E6B8C0] font-bold">0</span>
+                        <span className="text-white/40">
+                          {" "}
+                          / {previewTierTab === 0 ? comboTier1Count || 3 : comboTier2Count || 5} items chosen
+                        </span>
+                        {" · "}
+                        <span className="text-white/70 italic">
+                          {previewTierTab === 0
+                            ? comboTier1Tagline || "Pick any 3 — save 11% on MRP"
+                            : comboTier2Tagline || "Pick any 5 — save 15% on MRP"}
+                        </span>
+                      </p>
+                      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full w-0 bg-gradient-to-r from-[#E6B8C0] to-[#F7D4DC] rounded-full" />
+                      </div>
+                      <p className="text-[11px] text-white/40">
+                        Add{" "}
+                        <span className="text-brand-pink-accent font-semibold">
+                          {previewTierTab === 0 ? comboTier1Count || 3 : comboTier2Count || 5} more
+                        </span>{" "}
+                        items to unlock {previewTierTab === 0 ? comboTier1Discount || 11 : comboTier2Discount || 15}% off!
+                      </p>
+                    </div>
+
+                    {/* Active Flavours in Visual Preview */}
+                    <div className="pt-2 text-left bg-black/25 rounded-2xl p-4 border border-white/5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider">
+                          Eligible Products ({previewSelectedProducts.length})
+                        </p>
+                        <span className="text-[9px] text-brand-pink-accent font-medium">
+                          displayed in live combo builder
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {previewSelectedProducts.slice(0, 4).map((p) => (
+                          <div
+                            key={p.id}
+                            className="p-1.5 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2"
+                          >
+                            <div className="w-7 h-7 rounded-md overflow-hidden bg-white/10 shrink-0">
+                              <img
+                                src={p.imageUrl || "/images/makhana_sig.jpg"}
+                                alt={p.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <p className="text-white text-[11px] font-medium truncate">{p.name}</p>
+                          </div>
+                        ))}
+                        {previewSelectedProducts.length > 4 && (
+                          <div className="p-1.5 rounded-lg bg-white/5 border border-dashed border-white/10 flex items-center justify-center text-[10px] text-white/50 font-medium">
+                            +{previewSelectedProducts.length - 4} more
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Summary Button Preview */}
+                    <div className="pt-4 flex flex-col items-center gap-2">
+                      <div className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-bold text-xs bg-gradient-to-r from-[#E6B8C0] to-[#F7D4DC] text-brand-green shadow-lg">
+                        <span>{comboButtonText || "Shop My Combo"}</span>
+                        <ArrowRight size={14} />
+                      </div>
+                      <p className="text-[10px] text-white/40 tracking-wider">
+                        {comboFooterNote || "✦ Combo discount applies to total MRP ✦ Multiples allowed ✦"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------ */}
+        {/* TAB: Store Categories Filter Bar                              */}
+        {/* ------------------------------------------------------------ */}
+        {(activeTab === "categories" || activeTab === "all") && (
+          <div className="space-y-6">
+            {activeTab === "all" && (
+              <div className="flex items-center gap-2 pt-4 border-b border-stone-200 pb-2">
+                <LayoutGrid size={18} className="text-brand-green" />
+                <h2 className="text-base font-bold text-stone-900">Product Categories Bar</h2>
+              </div>
+            )}
+
+            <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-7 space-y-6 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green shrink-0">
+                    <LayoutGrid size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-base text-stone-900">
+                        Product Categories Filter Bar
+                      </h3>
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        {storeCategories.length} Categories
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      Configure the category tabs that customers click to filter products on your <span className="font-semibold text-stone-700">/products</span> page.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetCategories}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors cursor-pointer"
+                  >
+                    <RotateCcw size={13} /> Reset Defaults
+                  </button>
+                </div>
+              </div>
+
+              {/* LIVE STOREFRONT CATEGORY BAR PREVIEW */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-brand-green" />
+                    Live Storefront Filter Bar Preview
+                  </p>
+                  <span className="text-[11px] text-stone-400">Click any tab to test active state</span>
+                </div>
+
+                {/* Beige Bar Simulator identical to storefront */}
+                <div className="bg-[#FAF7F2] p-4 sm:p-5 rounded-2xl border border-stone-200/90 shadow-2xs">
+                  <div className="flex gap-4 sm:gap-6 items-center flex-wrap">
+                    {/* "All" is always first */}
+                    <button
+                      type="button"
+                      onClick={() => setPreviewCategoryTab("all")}
+                      className={`font-medium transition-colors relative py-1 text-sm sm:text-base cursor-pointer ${
+                        previewCategoryTab === "all"
+                          ? "text-brand-green font-bold"
+                          : "text-brand-charcoal opacity-70 hover:text-brand-green"
+                      }`}
+                    >
+                      <span>All</span>
+                      {previewCategoryTab === "all" && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-green rounded-full" />
+                      )}
+                    </button>
+
+                    {/* Configured Categories */}
+                    {storeCategories.map((cat) => {
+                      const isSelected = previewCategoryTab.toLowerCase() === cat.toLowerCase();
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setPreviewCategoryTab(cat)}
+                          className={`font-medium transition-colors relative py-1 text-sm sm:text-base cursor-pointer ${
+                            isSelected
+                              ? "text-brand-green font-bold"
+                              : "text-brand-charcoal opacity-70 hover:text-brand-green"
+                          }`}
+                        >
+                          <span>{cat}</span>
+                          {isSelected && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-green rounded-full" />
+                          )}
+                        </button>
+                      );
+                    })}
+
+                    {/* Make a Combo Tab */}
+                    {comboEnabled && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-green bg-brand-pink/70 px-3 py-1 rounded-full border border-brand-pink-accent/40 shadow-2xs select-none">
+                        <span>🌸</span> Make a Combo
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* CURRENT CATEGORIES LIST */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-stone-700 uppercase tracking-wider">
+                    Active Categories ({storeCategories.length})
+                  </p>
+                  <span className="text-[11px] text-stone-400">
+                    Click the red trash icon to remove a category
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {storeCategories.map((cat) => {
+                    const prodCount = products.filter(
+                      (p) => p.category?.toLowerCase() === cat.toLowerCase()
+                    ).length;
+
+                    return (
+                      <div
+                        key={cat}
+                        className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-3.5 flex items-center justify-between gap-3 hover:border-stone-300 transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-white border border-stone-200/60 flex items-center justify-center text-brand-green shrink-0 shadow-2xs">
+                            <Tag size={15} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-stone-900 truncate">{cat}</p>
+                            <p className="text-[11px] text-stone-500">
+                              {prodCount} product{prodCount === 1 ? "" : "s"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCategory(cat)}
+                          title={`Delete ${cat}`}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer shrink-0"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ADD NEW CATEGORY INPUT */}
+              <div className="rounded-2xl border border-stone-200 bg-stone-50/60 p-4 sm:p-5 space-y-3">
+                <label className="block text-xs font-bold text-stone-800">
+                  Add New Category
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <input
+                    type="text"
+                    value={newCategoryInput}
+                    onChange={(e) => setNewCategoryInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCategory();
+                      }
+                    }}
+                    placeholder="Enter category name (e.g. Gourmet Snacks, Roasted Makhana, Seeds)"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddCategory()}
+                    disabled={!newCategoryInput.trim()}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-green hover:bg-brand-green/90 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-all cursor-pointer shrink-0"
+                  >
+                    <Plus size={16} /> Add Category
+                  </button>
+                </div>
+
+                {/* Quick Suggested Chips */}
+                <div className="space-y-1.5 pt-1">
+                  <p className="text-[11px] text-stone-500 font-medium">Quick suggestions:</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {[
+                      "Roasted Makhana",
+                      "Gourmet Snacks",
+                      "Seeds & Berries",
+                      "Everyday Essentials",
+                      "Healthy Sips",
+                      "Gift Boxes",
+                    ]
+                      .filter((s) => !storeCategories.some((c) => c.toLowerCase() === s.toLowerCase()))
+                      .slice(0, 4)
+                      .map((suggested) => (
+                        <button
+                          key={suggested}
+                          type="button"
+                          onClick={() => handleAddCategory(suggested)}
+                          className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white hover:bg-stone-100 border border-stone-200 text-stone-700 transition-colors shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <Plus size={11} /> {suggested}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-[11px] text-stone-500 pt-1 border-t border-stone-100">
+                <Sparkles size={13} className="text-brand-green" />
+                <span>
+                  Remember to click <strong className="text-stone-700">Save Changes</strong> to publish your category changes live across the storefront!
+                </span>
+              </div>
             </div>
           </div>
         )}

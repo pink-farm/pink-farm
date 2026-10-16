@@ -33,6 +33,28 @@ export interface StoreSettingsData {
   deliveryFee: number; // in paise
   freeDeliveryThreshold: number; // in paise
   isAcceptingOrders: boolean;
+  // Combo Builder Settings
+  comboEnabled: boolean;
+  comboEyebrow: string;
+  comboTitlePrefix: string;
+  comboTitleHighlight: string;
+  comboSubtitle: string;
+  comboTier1Count: number;
+  comboTier1Discount: number;
+  comboTier1Label: string;
+  comboTier1Tagline: string;
+  comboTier1Badge: string;
+  comboTier1Emoji: string;
+  comboTier2Count: number;
+  comboTier2Discount: number;
+  comboTier2Label: string;
+  comboTier2Tagline: string;
+  comboTier2Badge: string;
+  comboTier2Emoji: string;
+  comboButtonText: string;
+  comboFooterNote: string;
+  comboProductIds: string[];
+  storeCategories: string[];
 }
 
 export const DEFAULT_SETTINGS: StoreSettingsData = {
@@ -67,6 +89,27 @@ export const DEFAULT_SETTINGS: StoreSettingsData = {
   deliveryFee: 5000, // ₹50
   freeDeliveryThreshold: 50000, // ₹500
   isAcceptingOrders: true,
+  comboEnabled: true,
+  comboEyebrow: "Make Your Own Combo",
+  comboTitlePrefix: "Curate Your",
+  comboTitleHighlight: "Pink Farm Combo",
+  comboSubtitle: "Mix & match your favourite flavoured makhanas. Add multiple packs of any flavour — combo discounts apply directly on the original MRP!",
+  comboTier1Count: 3,
+  comboTier1Discount: 11,
+  comboTier1Label: "Trio Combo",
+  comboTier1Tagline: "Pick any 3 — save 11% on MRP",
+  comboTier1Badge: "✦ 11% OFF",
+  comboTier1Emoji: "🌿",
+  comboTier2Count: 5,
+  comboTier2Discount: 15,
+  comboTier2Label: "Penta Combo",
+  comboTier2Tagline: "Pick any 5 — save 15% on MRP",
+  comboTier2Badge: "✦ 15% OFF",
+  comboTier2Emoji: "🌸",
+  comboButtonText: "Shop My Combo",
+  comboFooterNote: "✦ Combo discount applies to total MRP ✦ Multiples allowed ✦",
+  comboProductIds: [],
+  storeCategories: ["Makhana", "Nuts", "Pantry"],
 };
 
 interface SettingsStore extends StoreSettingsData {
@@ -129,6 +172,32 @@ export const useSettingsStore = create<SettingsStore>()(
                   typeof data.isAcceptingOrders === "boolean"
                     ? data.isAcceptingOrders
                     : get().isAcceptingOrders,
+                comboEnabled:
+                  typeof data.comboEnabled === "boolean" ? data.comboEnabled : get().comboEnabled,
+                comboEyebrow: data.comboEyebrow ?? get().comboEyebrow,
+                comboTitlePrefix: data.comboTitlePrefix ?? get().comboTitlePrefix,
+                comboTitleHighlight: data.comboTitleHighlight ?? get().comboTitleHighlight,
+                comboSubtitle: data.comboSubtitle ?? get().comboSubtitle,
+                comboTier1Count:
+                  typeof data.comboTier1Count === "number" ? data.comboTier1Count : get().comboTier1Count,
+                comboTier1Discount:
+                  typeof data.comboTier1Discount === "number" ? data.comboTier1Discount : get().comboTier1Discount,
+                comboTier1Label: data.comboTier1Label ?? get().comboTier1Label,
+                comboTier1Tagline: data.comboTier1Tagline ?? get().comboTier1Tagline,
+                comboTier1Badge: data.comboTier1Badge ?? get().comboTier1Badge,
+                comboTier1Emoji: data.comboTier1Emoji ?? get().comboTier1Emoji,
+                comboTier2Count:
+                  typeof data.comboTier2Count === "number" ? data.comboTier2Count : get().comboTier2Count,
+                comboTier2Discount:
+                  typeof data.comboTier2Discount === "number" ? data.comboTier2Discount : get().comboTier2Discount,
+                comboTier2Label: data.comboTier2Label ?? get().comboTier2Label,
+                comboTier2Tagline: data.comboTier2Tagline ?? get().comboTier2Tagline,
+                comboTier2Badge: data.comboTier2Badge ?? get().comboTier2Badge,
+                comboTier2Emoji: data.comboTier2Emoji ?? get().comboTier2Emoji,
+                comboButtonText: data.comboButtonText ?? get().comboButtonText,
+                comboFooterNote: data.comboFooterNote ?? get().comboFooterNote,
+                comboProductIds: Array.isArray(data.comboProductIds) ? data.comboProductIds : get().comboProductIds,
+                storeCategories: Array.isArray(data.storeCategories) ? data.storeCategories : get().storeCategories,
                 isLoading: false,
               });
             }
@@ -149,6 +218,27 @@ export const useSettingsStore = create<SettingsStore>()(
         deliveryFee: state.deliveryFee,
         freeDeliveryThreshold: state.freeDeliveryThreshold,
         isAcceptingOrders: state.isAcceptingOrders,
+        comboEnabled: state.comboEnabled,
+        comboEyebrow: state.comboEyebrow,
+        comboTitlePrefix: state.comboTitlePrefix,
+        comboTitleHighlight: state.comboTitleHighlight,
+        comboSubtitle: state.comboSubtitle,
+        comboTier1Count: state.comboTier1Count,
+        comboTier1Discount: state.comboTier1Discount,
+        comboTier1Label: state.comboTier1Label,
+        comboTier1Tagline: state.comboTier1Tagline,
+        comboTier1Badge: state.comboTier1Badge,
+        comboTier1Emoji: state.comboTier1Emoji,
+        comboTier2Count: state.comboTier2Count,
+        comboTier2Discount: state.comboTier2Discount,
+        comboTier2Label: state.comboTier2Label,
+        comboTier2Tagline: state.comboTier2Tagline,
+        comboTier2Badge: state.comboTier2Badge,
+        comboTier2Emoji: state.comboTier2Emoji,
+        comboButtonText: state.comboButtonText,
+        comboFooterNote: state.comboFooterNote,
+        comboProductIds: state.comboProductIds,
+        storeCategories: state.storeCategories,
       }),
     }
   )

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { HoverCard, SpotlightCard } from "@/components/ui/MotionWrappers";
 import { formatPrice } from "@/lib/utils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface Product {
   id: string;
@@ -21,17 +22,52 @@ interface Product {
   isFeatured: boolean;
 }
 
-export function ProductListClient({ initialProducts }: { initialProducts: Product[] }) {
+export function ProductListClient({
+  initialProducts,
+  initialCategories,
+}: {
+  initialProducts: Product[];
+  initialCategories?: string[];
+}) {
+  const comboEnabled = useSettingsStore((s) => s.comboEnabled);
+  const storeCategories = useSettingsStore((s) => s.storeCategories);
+  const fetchSettings = useSettingsStore((s) => s.fetchSettings);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
 
-  const categories = [
-    { id: "all", label: "All" },
-    { id: "makhana", label: "Makhana" },
-    { id: "nuts", label: "Nuts" },
-    { id: "pantry", label: "Pantry" },
-  ];
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+  const categories = useMemo(() => {
+    const configured =
+      Array.isArray(storeCategories) && storeCategories.length > 0
+        ? storeCategories
+        : Array.isArray(initialCategories) && initialCategories.length > 0
+        ? initialCategories
+        : ["Makhana", "Nuts", "Pantry"];
+
+    const list: { id: string; label: string }[] = [{ id: "all", label: "All" }];
+    const seen = new Set<string>();
+
+    configured.forEach((cat) => {
+      const trimmed = cat.trim();
+      if (trimmed && !seen.has(trimmed.toLowerCase())) {
+        seen.add(trimmed.toLowerCase());
+        list.push({ id: trimmed.toLowerCase(), label: trimmed });
+      }
+    });
+
+    return list;
+  }, [storeCategories, initialCategories]);
+
+  // If currently selected category was deleted, fallback to "all"
+  useEffect(() => {
+    if (selectedCategory !== "all" && !categories.some((c) => c.id === selectedCategory)) {
+      setSelectedCategory("all");
+    }
+  }, [categories, selectedCategory]);
 
   const filteredProducts = useMemo(() => {
     let result = [...initialProducts];
@@ -95,12 +131,14 @@ export function ProductListClient({ initialProducts }: { initialProducts: Produc
               </button>
             );
           })}
-          <a
-            href="#combo-builder"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-green bg-brand-pink/70 hover:bg-brand-pink px-3 py-1 rounded-full transition-all border border-brand-pink-accent/40 hover:scale-105"
-          >
-            <span>🌸</span> Make a Combo
-          </a>
+          {comboEnabled && (
+            <a
+              href="#combo-builder"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-green bg-brand-pink/70 hover:bg-brand-pink px-3 py-1 rounded-full transition-all border border-brand-pink-accent/40 hover:scale-105"
+            >
+              <span>🌸</span> Make a Combo
+            </a>
+          )}
         </div>
 
         <div className="flex items-center gap-4">

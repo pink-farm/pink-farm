@@ -21,6 +21,7 @@ function parseProduct(body: Record<string, unknown>) {
     basePrice, originalPrice: original, stockQuantity,
     lowStockThreshold: Math.max(0, Math.floor(Number(body.lowStockThreshold) || 0)),
     isAvailable: stockQuantity > 0 && body.isAvailable !== false, isFeatured: body.isFeatured === true,
+    highlights: String(body.highlights ?? "").trim() || null,
     ingredients: String(body.ingredients ?? "").trim() || null, nutritionalInfo: String(body.nutritionalInfo ?? "").trim() || null,
     storage: String(body.storage ?? "").trim() || null, allergens: String(body.allergens ?? "").trim() || null,
     deliveryNotes: String(body.deliveryNotes ?? "").trim() || null, seoTitle: String(body.seoTitle ?? "").trim() || null,
@@ -42,6 +43,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       else await tx.productVariant.create({ data: { productId: id, name: packSize, packSize, price: data.basePrice, originalPrice: data.originalPrice, stockQuantity: data.stockQuantity, isAvailable: data.isAvailable } });
       return product;
     });
+
+    try {
+      const settings = await prisma.storeSettings.findUnique({ where: { id: "default" } });
+      const currentCats = settings?.storeCategories || ["Makhana", "Nuts", "Pantry"];
+      if (data.category && !currentCats.some((c) => c.toLowerCase() === data.category.toLowerCase())) {
+        await prisma.storeSettings.upsert({
+          where: { id: "default" },
+          update: { storeCategories: [...currentCats, data.category] },
+          create: { id: "default", storeCategories: [...currentCats, data.category] },
+        });
+      }
+    } catch {}
+
     revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath(`/products/${updated.slug}`); revalidatePath("/");
     return NextResponse.json({ success: true });
   } catch (error) {

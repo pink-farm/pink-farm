@@ -1,12 +1,14 @@
 import { ProductListClient } from "./ProductListClient";
 import { FadeIn } from "@/components/ui/MotionWrappers";
 import ComboBuilder from "@/components/products/ComboBuilder";
-import { getStoreProducts } from "@/lib/defaultProducts";
+import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
 
 export const instant = false;
 
 export default async function ProductsPage() {
-  const products = await getStoreProducts();
+  const [products, settings] = await Promise.all([getStoreProducts(), getStoreSettings()]);
+  const maxDiscount = Math.max(settings.comboTier1Discount || 11, settings.comboTier2Discount || 15);
+  const showCombo = settings.comboEnabled !== false;
 
   return (
     <div className="flex flex-col gap-12 pb-16 overflow-x-hidden">
@@ -18,24 +20,29 @@ export default async function ProductsPage() {
               Thoughtfully curated essentials for your home.
             </p>
             {/* Quick jump to custom combo builder */}
-            <div className="pt-2">
-              <a
-                href="#combo-builder"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold bg-brand-pink text-brand-green border border-brand-pink-accent/50 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300"
-              >
-                <span>🌸</span>
-                <span>Want to bundle & save? Build your own combo (Up to 15% OFF)</span>
-                <span className="text-brand-green font-extrabold">↓</span>
-              </a>
-            </div>
+            {showCombo && (
+              <div className="pt-2">
+                <a
+                  href="#combo-builder"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold bg-brand-pink text-brand-green border border-brand-pink-accent/50 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300"
+                >
+                  <span>🌸</span>
+                  <span>Want to bundle &amp; save? Build your own combo (Up to {maxDiscount}% OFF)</span>
+                  <span className="text-brand-green font-extrabold">↓</span>
+                </a>
+              </div>
+            )}
           </div>
         </FadeIn>
 
-        <ProductListClient initialProducts={products} />
+        <ProductListClient
+          initialProducts={products}
+          initialCategories={settings.storeCategories}
+        />
       </div>
 
       {/* MAKE YOUR OWN COMBO SECTION */}
-      <ComboBuilder products={products} />
+      {showCombo && <ComboBuilder products={products} />}
     </div>
   );
 }

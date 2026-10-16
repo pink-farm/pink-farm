@@ -36,6 +36,27 @@ const DEFAULT_SETTINGS = {
   deliveryFee: 5000, // in paise = ₹50
   freeDeliveryThreshold: 50000, // in paise = ₹500
   isAcceptingOrders: true,
+  comboEnabled: true,
+  comboEyebrow: "Make Your Own Combo",
+  comboTitlePrefix: "Curate Your",
+  comboTitleHighlight: "Pink Farm Combo",
+  comboSubtitle: "Mix & match your favourite flavoured makhanas. Add multiple packs of any flavour — combo discounts apply directly on the original MRP!",
+  comboTier1Count: 3,
+  comboTier1Discount: 11,
+  comboTier1Label: "Trio Combo",
+  comboTier1Tagline: "Pick any 3 — save 11% on MRP",
+  comboTier1Badge: "✦ 11% OFF",
+  comboTier1Emoji: "🌿",
+  comboTier2Count: 5,
+  comboTier2Discount: 15,
+  comboTier2Label: "Penta Combo",
+  comboTier2Tagline: "Pick any 5 — save 15% on MRP",
+  comboTier2Badge: "✦ 15% OFF",
+  comboTier2Emoji: "🌸",
+  comboButtonText: "Shop My Combo",
+  comboFooterNote: "✦ Combo discount applies to total MRP ✦ Multiples allowed ✦",
+  comboProductIds: [] as string[],
+  storeCategories: ["Makhana", "Nuts", "Pantry"] as string[],
 };
 
 const MAX_HERO_IMAGE_LENGTH = 900_000;
@@ -140,6 +161,90 @@ export async function POST(request: Request) {
         typeof body.isAcceptingOrders === "boolean"
           ? body.isAcceptingOrders
           : DEFAULT_SETTINGS.isAcceptingOrders,
+      comboEnabled:
+        typeof body.comboEnabled === "boolean"
+          ? body.comboEnabled
+          : DEFAULT_SETTINGS.comboEnabled,
+      comboEyebrow:
+        typeof body.comboEyebrow === "string"
+          ? body.comboEyebrow.slice(0, 80)
+          : DEFAULT_SETTINGS.comboEyebrow,
+      comboTitlePrefix:
+        typeof body.comboTitlePrefix === "string"
+          ? body.comboTitlePrefix.slice(0, 80)
+          : DEFAULT_SETTINGS.comboTitlePrefix,
+      comboTitleHighlight:
+        typeof body.comboTitleHighlight === "string"
+          ? body.comboTitleHighlight.slice(0, 100)
+          : DEFAULT_SETTINGS.comboTitleHighlight,
+      comboSubtitle:
+        typeof body.comboSubtitle === "string"
+          ? body.comboSubtitle.slice(0, 300)
+          : DEFAULT_SETTINGS.comboSubtitle,
+      comboTier1Count:
+        body.comboTier1Count !== undefined && !isNaN(Number(body.comboTier1Count))
+          ? Math.max(1, Math.min(20, Math.round(Number(body.comboTier1Count))))
+          : DEFAULT_SETTINGS.comboTier1Count,
+      comboTier1Discount:
+        body.comboTier1Discount !== undefined && !isNaN(Number(body.comboTier1Discount))
+          ? Math.max(1, Math.min(99, Math.round(Number(body.comboTier1Discount))))
+          : DEFAULT_SETTINGS.comboTier1Discount,
+      comboTier1Label:
+        typeof body.comboTier1Label === "string"
+          ? body.comboTier1Label.slice(0, 50)
+          : DEFAULT_SETTINGS.comboTier1Label,
+      comboTier1Tagline:
+        typeof body.comboTier1Tagline === "string"
+          ? body.comboTier1Tagline.slice(0, 120)
+          : DEFAULT_SETTINGS.comboTier1Tagline,
+      comboTier1Badge:
+        typeof body.comboTier1Badge === "string"
+          ? body.comboTier1Badge.slice(0, 40)
+          : DEFAULT_SETTINGS.comboTier1Badge,
+      comboTier1Emoji:
+        typeof body.comboTier1Emoji === "string"
+          ? body.comboTier1Emoji.slice(0, 10)
+          : DEFAULT_SETTINGS.comboTier1Emoji,
+      comboTier2Count:
+        body.comboTier2Count !== undefined && !isNaN(Number(body.comboTier2Count))
+          ? Math.max(1, Math.min(20, Math.round(Number(body.comboTier2Count))))
+          : DEFAULT_SETTINGS.comboTier2Count,
+      comboTier2Discount:
+        body.comboTier2Discount !== undefined && !isNaN(Number(body.comboTier2Discount))
+          ? Math.max(1, Math.min(99, Math.round(Number(body.comboTier2Discount))))
+          : DEFAULT_SETTINGS.comboTier2Discount,
+      comboTier2Label:
+        typeof body.comboTier2Label === "string"
+          ? body.comboTier2Label.slice(0, 50)
+          : DEFAULT_SETTINGS.comboTier2Label,
+      comboTier2Tagline:
+        typeof body.comboTier2Tagline === "string"
+          ? body.comboTier2Tagline.slice(0, 120)
+          : DEFAULT_SETTINGS.comboTier2Tagline,
+      comboTier2Badge:
+        typeof body.comboTier2Badge === "string"
+          ? body.comboTier2Badge.slice(0, 40)
+          : DEFAULT_SETTINGS.comboTier2Badge,
+      comboTier2Emoji:
+        typeof body.comboTier2Emoji === "string"
+          ? body.comboTier2Emoji.slice(0, 10)
+          : DEFAULT_SETTINGS.comboTier2Emoji,
+      comboButtonText:
+        typeof body.comboButtonText === "string"
+          ? body.comboButtonText.slice(0, 60)
+          : DEFAULT_SETTINGS.comboButtonText,
+      comboFooterNote:
+        typeof body.comboFooterNote === "string"
+          ? body.comboFooterNote.slice(0, 200)
+          : DEFAULT_SETTINGS.comboFooterNote,
+      comboProductIds:
+        Array.isArray(body.comboProductIds) && body.comboProductIds.every((id) => typeof id === "string")
+          ? body.comboProductIds.slice(0, 50)
+          : DEFAULT_SETTINGS.comboProductIds,
+      storeCategories:
+        Array.isArray(body.storeCategories) && body.storeCategories.every((cat) => typeof cat === "string")
+          ? body.storeCategories.map((c) => c.trim()).filter(Boolean).slice(0, 30)
+          : DEFAULT_SETTINGS.storeCategories,
     };
 
     let saved = null;
@@ -161,6 +266,7 @@ export async function POST(request: Request) {
       revalidatePath("/");
       revalidatePath("/about");
       revalidatePath("/products");
+      revalidatePath("/combo");
       revalidatePath("/admin/settings");
     } catch {
       // Revalidation may throw outside request contexts in tests

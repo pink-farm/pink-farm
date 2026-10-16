@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Sparkles, ShoppingCart, X, ChevronRight, Plus, Minus, Check } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
+import { useSettingsStore } from "@/store/settingsStore";
 
 type Product = {
   id: string;
@@ -18,26 +19,28 @@ type Product = {
   variants?: { packSize?: string | null }[];
 };
 
-const COMBO_TIERS = [
-  {
-    count: 3,
-    discount: 11,
-    label: "Trio Combo",
-    tagline: "Pick any 3 — save 11% on MRP",
-    badge: "✦ 11% OFF",
-    emoji: "🌿",
-  },
-  {
-    count: 5,
-    discount: 15,
-    label: "Penta Combo",
-    tagline: "Pick any 5 — save 15% on MRP",
-    badge: "✦ 15% OFF",
-    emoji: "🌸",
-  },
-] as const;
-
 export default function ComboBuilder({ products }: { products: Product[] }) {
+  const settings = useSettingsStore();
+
+  const comboTiers = [
+    {
+      count: settings.comboTier1Count || 3,
+      discount: settings.comboTier1Discount || 11,
+      label: settings.comboTier1Label || "Trio Combo",
+      tagline: settings.comboTier1Tagline || "Pick any 3 — save 11% on MRP",
+      badge: settings.comboTier1Badge || "✦ 11% OFF",
+      emoji: settings.comboTier1Emoji || "🌿",
+    },
+    {
+      count: settings.comboTier2Count || 5,
+      discount: settings.comboTier2Discount || 15,
+      label: settings.comboTier2Label || "Penta Combo",
+      tagline: settings.comboTier2Tagline || "Pick any 5 — save 15% on MRP",
+      badge: settings.comboTier2Badge || "✦ 15% OFF",
+      emoji: settings.comboTier2Emoji || "🌸",
+    },
+  ];
+
   const [activeTier, setActiveTier] = useState<0 | 1>(0);
   // Store quantities selected per tier: { 0: { [productId]: count }, 1: { [productId]: count } }
   const [selectedCounts, setSelectedCounts] = useState<{
@@ -51,15 +54,28 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
 
-  const tier = COMBO_TIERS[activeTier];
+  // If combo feature is disabled in store settings, don't display
+  if (settings.comboEnabled === false) {
+    return null;
+  }
+
+  const tier = comboTiers[activeTier] || comboTiers[0];
   const currentCounts = selectedCounts[activeTier] || {};
 
-  // Exclude Raw Makhana (as requested: only flavoured makhanas are in combos)
-  const comboProducts = products.filter(
-    (p) =>
-      !p.slug.toLowerCase().includes("raw") &&
-      !p.name.toLowerCase().includes("raw")
-  );
+  // Filter products for combo builder:
+  // 1. If admin explicitly configured comboProductIds in Store Settings, use exactly those products.
+  // 2. Otherwise default to all flavoured makhanas (exclude raw).
+  const comboProducts = (() => {
+    if (Array.isArray(settings.comboProductIds) && settings.comboProductIds.length > 0) {
+      const selected = products.filter((p) => settings.comboProductIds.includes(p.id));
+      if (selected.length > 0) return selected;
+    }
+    return products.filter(
+      (p) =>
+        !p.slug.toLowerCase().includes("raw") &&
+        !p.name.toLowerCase().includes("raw")
+    );
+  })();
 
   // Total items chosen so far in the active tier
   const totalSelectedCount = Object.values(currentCounts).reduce(
@@ -171,25 +187,25 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
         <div className="text-center mb-12 space-y-4">
           <p className="text-brand-pink-accent text-xs font-bold tracking-[0.3em] uppercase flex items-center justify-center gap-2">
             <Sparkles className="w-3.5 h-3.5" />
-            Make Your Own Combo
+            {settings.comboEyebrow || "Make Your Own Combo"}
             <Sparkles className="w-3.5 h-3.5" />
           </p>
           <h2 className="font-serif text-4xl md:text-6xl text-white leading-tight">
-            Curate Your{" "}
+            {settings.comboTitlePrefix || "Curate Your"}{" "}
             <span
               className="italic font-light bg-[linear-gradient(110deg,#E6B8C0,45%,#FDF2F4,55%,#E6B8C0)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient"
             >
-              Pink Farm Combo
+              {settings.comboTitleHighlight || "Pink Farm Combo"}
             </span>
           </h2>
           <p className="text-white/60 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-            Mix &amp; match your favourite flavoured makhanas. Add multiple packs of any flavour — combo discounts apply directly on the original MRP!
+            {settings.comboSubtitle || "Mix & match your favourite flavoured makhanas. Add multiple packs of any flavour — combo discounts apply directly on the original MRP!"}
           </p>
         </div>
 
         {/* Tier Switcher - BOTH buttons turn stylish pink when active */}
         <div className="flex items-center justify-center gap-4 mb-10 flex-wrap">
-          {COMBO_TIERS.map((t, i) => (
+          {comboTiers.map((t, i) => (
             <button
               key={i}
               onClick={() => setActiveTier(i as 0 | 1)}
@@ -442,7 +458,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
                   className="flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-sm tracking-wide bg-gradient-to-r from-[#E6B8C0] to-[#F7D4DC] text-brand-green shadow-[0_0_30px_rgba(230,184,192,0.4)] hover:shadow-[0_0_50px_rgba(230,184,192,0.6)] hover:scale-105 transition-all duration-300"
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  Shop My Combo
+                  {settings.comboButtonText || "Shop My Combo"}
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 <button
@@ -479,7 +495,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
 
         {/* Bottom trust notes */}
         <p className="text-center text-white/30 text-xs mt-6 tracking-wider">
-          ✦ Combo discount applies to total MRP ✦ Multiples allowed ✦
+          {settings.comboFooterNote || "✦ Combo discount applies to total MRP ✦ Multiples allowed ✦"}
         </p>
       </div>
     </section>

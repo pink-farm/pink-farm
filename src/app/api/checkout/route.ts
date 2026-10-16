@@ -100,7 +100,11 @@ export async function POST(request: Request) {
         const mrp = (product.originalPrice && product.originalPrice > product.basePrice)
           ? product.originalPrice
           : product.basePrice;
-        if (item.variantName.includes("11%")) {
+        const discountMatch = item.variantName.match(/(\d+)%/);
+        if (discountMatch) {
+          const discountPct = Math.min(95, Math.max(1, parseInt(discountMatch[1], 10)));
+          price = Math.round(mrp * (1 - discountPct / 100));
+        } else if (item.variantName.includes("11%")) {
           price = Math.round(mrp * 0.89);
         } else if (item.variantName.includes("15%")) {
           price = Math.round(mrp * 0.85);

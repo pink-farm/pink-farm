@@ -25,6 +25,7 @@ model Product {
   isAvailable      Boolean          @default(true)
   isFeatured       Boolean          @default(false)
   tags             String           @default("[]")
+  highlights       String?
   ingredients      String?
   nutritionalInfo  String?
   storage          String?
@@ -212,6 +213,28 @@ model StoreSettings {
   deliveryFee         Int      @default(5000) // 50 INR in paise
   freeDeliveryThreshold Int?   @default(50000) // 500 INR
   isAcceptingOrders   Boolean  @default(true)
+  // Combo Builder Settings
+  comboEnabled        Boolean  @default(true)
+  comboEyebrow        String   @default("Make Your Own Combo")
+  comboTitlePrefix    String   @default("Curate Your")
+  comboTitleHighlight String   @default("Pink Farm Combo")
+  comboSubtitle       String   @default("Mix & match your favourite flavoured makhanas. Add multiple packs of any flavour — combo discounts apply directly on the original MRP!")
+  comboTier1Count     Int      @default(3)
+  comboTier1Discount  Int      @default(11) // percentage
+  comboTier1Label     String   @default("Trio Combo")
+  comboTier1Tagline   String   @default("Pick any 3 — save 11% on MRP")
+  comboTier1Badge     String   @default("✦ 11% OFF")
+  comboTier1Emoji     String   @default("🌿")
+  comboTier2Count     Int      @default(5)
+  comboTier2Discount  Int      @default(15) // percentage
+  comboTier2Label     String   @default("Penta Combo")
+  comboTier2Tagline   String   @default("Pick any 5 — save 15% on MRP")
+  comboTier2Badge     String   @default("✦ 15% OFF")
+  comboTier2Emoji     String   @default("🌸")
+  comboButtonText     String   @default("Shop My Combo")
+  comboFooterNote     String   @default("✦ Combo discount applies to total MRP ✦ Multiples allowed ✦")
+  comboProductIds     String[] @default([])
+  storeCategories     String[] @default(["Makhana", "Nuts", "Pantry"])
   updatedAt           DateTime @updatedAt
 }
 

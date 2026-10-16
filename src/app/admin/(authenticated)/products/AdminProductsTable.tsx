@@ -10,9 +10,11 @@ import {
   ExternalLink, 
   Search, 
   Package, 
-  Check
+  Check,
+  LayoutGrid
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { ProductFormModal, type EditableProduct } from "./ProductFormModal";
 
 interface ProductVariant {
@@ -29,9 +31,11 @@ type Product = EditableProduct & { variants: ProductVariant[] };
 
 export function AdminProductsTable({ initialProducts }: { initialProducts: Product[] }) {
   const router = useRouter();
+  const { storeCategories } = useSettingsStore();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "instock" | "outofstock">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -93,6 +97,13 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
     finally { setLoadingId(null); }
   };
 
+  const allCategories = Array.from(
+    new Set([
+      ...(storeCategories || []),
+      ...products.map((p) => p.category).filter(Boolean),
+    ])
+  );
+
   const quantity = (p: Product) => p.variants?.[0]?.stockQuantity ?? p.stockQuantity;
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
@@ -101,6 +112,10 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
       p.category.toLowerCase().includes(search.toLowerCase());
 
     if (!matchesSearch) return false;
+
+    if (categoryFilter !== "all" && p.category.toLowerCase() !== categoryFilter.toLowerCase()) {
+      return false;
+    }
 
     if (statusFilter === "instock") return p.isAvailable && quantity(p) > 0;
     if (statusFilter === "outofstock") return !p.isAvailable || quantity(p) <= 0;
@@ -155,8 +170,33 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
       </div>
 
       {/* Controls Bar */}
-      <div className="flex justify-end"><button onClick={() => { setEditingProduct(null); setShowProductForm(true); }} className="inline-flex items-center gap-2 rounded-xl bg-brand-green px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-95"><span className="text-lg leading-none">+</span> Add New Product</button></div>
-      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/settings?tab=categories"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-700 shadow-xs hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer"
+            title="Manage Storefront Category Filter Bar"
+          >
+            <LayoutGrid size={16} className="text-brand-green" />
+            <span>Manage Categories</span>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100">
+              {storeCategories.length} active
+            </span>
+          </Link>
+        </div>
+
+        <button
+          onClick={() => {
+            setEditingProduct(null);
+            setShowProductForm(true);
+          }}
+          className="inline-flex items-center gap-2 rounded-xl bg-brand-green px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-95 cursor-pointer"
+        >
+          <span className="text-lg leading-none">+</span> Add New Product
+        </button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-xs">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -169,32 +209,52 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
           />
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl self-start sm:self-auto text-xs font-semibold">
-          <button
-            onClick={() => setStatusFilter("all")}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === "all" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-800"
-            }`}
-          >
-            All ({products.length})
-          </button>
-          <button
-            onClick={() => setStatusFilter("instock")}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === "instock" ? "bg-white text-emerald-700 shadow-xs" : "text-gray-500 hover:text-gray-800"
-            }`}
-          >
-            In Stock ({inStockCount})
-          </button>
-          <button
-            onClick={() => setStatusFilter("outofstock")}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === "outofstock" ? "bg-white text-rose-700 shadow-xs" : "text-gray-500 hover:text-gray-800"
-            }`}
-          >
-            Out of Stock ({outOfStockCount})
-          </button>
+        {/* Category & Status Filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Category Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-gray-500">Category:</span>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 bg-white focus:outline-hidden focus:border-brand-green cursor-pointer"
+            >
+              <option value="all">All Categories ({products.length})</option>
+              {allCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat} ({products.filter((p) => p.category.toLowerCase() === cat.toLowerCase()).length})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status Pills */}
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-semibold">
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                statusFilter === "all" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-800"
+              }`}
+            >
+              All ({products.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter("instock")}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                statusFilter === "instock" ? "bg-white text-emerald-700 shadow-xs" : "text-gray-500 hover:text-gray-800"
+              }`}
+            >
+              In Stock ({inStockCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter("outofstock")}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                statusFilter === "outofstock" ? "bg-white text-rose-700 shadow-xs" : "text-gray-500 hover:text-gray-800"
+              }`}
+            >
+              Out of Stock ({outOfStockCount})
+            </button>
+          </div>
         </div>
       </div>
 
