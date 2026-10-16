@@ -191,16 +191,17 @@ export function AdminSidebarNav() {
       </AnimatePresence>
 
       {/* ============================================================== */}
-      {/* DESKTOP SIDEBAR (Visible only on md: and larger screens)        */}
+      {/* DESKTOP SIDEBAR (Permanently fixed/sticky to viewport height)   */}
       {/* ============================================================== */}
-      <aside className="hidden md:flex w-56 lg:w-60 bg-white border-r border-gray-200 flex-col shrink-0 min-h-screen print:hidden">
-        <div className="p-4 lg:p-5 border-b border-gray-100 flex items-center justify-between">
-          <Link href="/admin" className="font-serif text-xl font-bold text-brand-green tracking-tight">
-            Pink Farm Admin
+      <aside className="hidden md:flex w-56 lg:w-64 bg-white border-r border-gray-200/80 flex-col shrink-0 sticky top-0 h-screen max-h-screen z-30 print:hidden justify-between">
+        <div className="p-4 lg:p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+          <Link href="/admin" className="font-serif text-xl font-bold text-brand-green tracking-tight flex items-center gap-2">
+            <span className="w-8 h-8 rounded-lg bg-brand-green text-white flex items-center justify-center text-xs font-bold shadow-xs">PF</span>
+            <span>Pink Farm Admin</span>
           </Link>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === pathname ||
@@ -211,7 +212,7 @@ export function AdminSidebarNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   isActive
                     ? "bg-brand-pink/60 text-brand-green font-bold shadow-2xs border border-brand-pink-accent/40"
                     : "text-gray-700 hover:bg-brand-pink/30 hover:text-brand-green"
@@ -227,19 +228,26 @@ export function AdminSidebarNav() {
             <div className="border-t border-gray-100 my-2" />
             <Link
               href="/"
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-brand-green bg-brand-pink/30 hover:bg-brand-pink/60 border border-brand-pink-accent/40 text-sm font-bold transition-all group"
+              target="_blank"
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-brand-green bg-brand-pink/30 hover:bg-brand-pink/60 border border-brand-pink-accent/40 text-xs font-bold transition-all group"
             >
-              <Store size={18} className="text-brand-green group-hover:scale-105 transition-transform" />
+              <Store size={16} className="text-brand-green group-hover:scale-105 transition-transform" />
               <span>Go to Storefront</span>
-              <ArrowUpRight size={15} className="ml-auto text-brand-green/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              <ArrowUpRight size={14} className="ml-auto text-brand-green/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </Link>
           </div>
         </nav>
 
-        <div className="p-3 border-t border-gray-100">
+        {/* Pinned Fixed Bottom-Left Logout Section */}
+        <div className="p-3.5 border-t border-gray-100/90 bg-white/95 backdrop-blur-xs shrink-0 mt-auto">
           <LogoutButton />
         </div>
       </aside>
+
+      {/* Mobile Floating Quick Sign-Out Button (always fixed at bottom-left, zero scroll) */}
+      <div className="md:hidden fixed bottom-4 left-4 z-40 print:hidden">
+        <LogoutButton compact />
+      </div>
     </>
   );
 }

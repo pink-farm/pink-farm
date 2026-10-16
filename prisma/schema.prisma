@@ -186,12 +186,19 @@ model StoreSettings {
   heroMainImage       String?
   heroGheeImage       String?
   heroAlmondsImage    String?
+  heartProductId      String?
   heartProductTitle   String   @default("Premium Phool Makhana")
   heartProductTagline String   @default("Why not? You deserve the best.")
   heartProductFeatures String[] @default(["Plant-Based", "Gluten-Free", "Low Calorie", "High Calcium", "No Frying", "No Preservatives", "Farm to Table", "Hygienically Packed"])
+  heartProductButtonText String @default("Shop Now")
+  heartProductButtonUrl  String?
+  heartProductSubtitle   String @default("Our Heart Product")
+  heartProductImage      String?
+  featuredProductId   String?
   featuredProductHeading String @default("Meet Your New Favourite Snack.")
   featuredProductDescription String @default("Handpicked, light & wholesome")
   featuredProductImage String?
+  featuredProductButtonText String @default("View Details & Add to Cart")
   founderName String @default("Anjali")
   founderImage String?
   founderRole String @default("Founder & Dietitian")

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma, queryDatabase } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
 
@@ -9,12 +10,19 @@ const DEFAULT_SETTINGS = {
   heroMainImage: "/images/makhana_sig.jpg",
   heroGheeImage: "/images/ghee.jpg",
   heroAlmondsImage: "/images/almonds.jpg",
+  heartProductId: "",
   heartProductTitle: "Premium Phool Makhana",
   heartProductTagline: "Why not? You deserve the best.",
   heartProductFeatures: ["Plant-Based", "Gluten-Free", "Low Calorie", "High Calcium", "No Frying", "No Preservatives", "Farm to Table", "Hygienically Packed"],
+  heartProductButtonText: "Shop Now",
+  heartProductButtonUrl: "",
+  heartProductSubtitle: "Our Heart Product",
+  heartProductImage: "",
+  featuredProductId: "",
   featuredProductHeading: "Meet Your New Favourite Snack.",
   featuredProductDescription: "Handpicked, light & wholesome",
   featuredProductImage: "",
+  featuredProductButtonText: "View Details & Add to Cart",
   founderName: "Anjali",
   founderImage: "",
   founderRole: "Founder & Dietitian",
@@ -78,6 +86,7 @@ export async function POST(request: Request) {
       ["heroGheeImage", body.heroGheeImage],
       ["heroAlmondsImage", body.heroAlmondsImage],
       ["featuredProductImage", body.featuredProductImage],
+      ["heartProductImage", body.heartProductImage],
       ["founderImage", body.founderImage],
     ] as const;
     for (const [field, value] of heroImages) {
@@ -92,14 +101,21 @@ export async function POST(request: Request) {
       heroMainImage: typeof body.heroMainImage === "string" ? body.heroMainImage : DEFAULT_SETTINGS.heroMainImage,
       heroGheeImage: typeof body.heroGheeImage === "string" ? body.heroGheeImage : DEFAULT_SETTINGS.heroGheeImage,
       heroAlmondsImage: typeof body.heroAlmondsImage === "string" ? body.heroAlmondsImage : DEFAULT_SETTINGS.heroAlmondsImage,
+      heartProductId: typeof body.heartProductId === "string" ? body.heartProductId : DEFAULT_SETTINGS.heartProductId,
       heartProductTitle: typeof body.heartProductTitle === "string" ? body.heartProductTitle : DEFAULT_SETTINGS.heartProductTitle,
       heartProductTagline: typeof body.heartProductTagline === "string" ? body.heartProductTagline : DEFAULT_SETTINGS.heartProductTagline,
       heartProductFeatures: Array.isArray(body.heartProductFeatures) && body.heartProductFeatures.every((feature) => typeof feature === "string")
         ? body.heartProductFeatures.slice(0, 12).map((feature) => feature.trim()).filter(Boolean)
         : DEFAULT_SETTINGS.heartProductFeatures,
+      heartProductButtonText: typeof body.heartProductButtonText === "string" ? body.heartProductButtonText.slice(0, 60) : DEFAULT_SETTINGS.heartProductButtonText,
+      heartProductButtonUrl: typeof body.heartProductButtonUrl === "string" ? body.heartProductButtonUrl.slice(0, 200) : DEFAULT_SETTINGS.heartProductButtonUrl,
+      heartProductSubtitle: typeof body.heartProductSubtitle === "string" ? body.heartProductSubtitle.slice(0, 80) : DEFAULT_SETTINGS.heartProductSubtitle,
+      heartProductImage: typeof body.heartProductImage === "string" ? body.heartProductImage : DEFAULT_SETTINGS.heartProductImage,
+      featuredProductId: typeof body.featuredProductId === "string" ? body.featuredProductId : DEFAULT_SETTINGS.featuredProductId,
       featuredProductHeading: typeof body.featuredProductHeading === "string" ? body.featuredProductHeading : DEFAULT_SETTINGS.featuredProductHeading,
       featuredProductDescription: typeof body.featuredProductDescription === "string" ? body.featuredProductDescription : DEFAULT_SETTINGS.featuredProductDescription,
       featuredProductImage: typeof body.featuredProductImage === "string" ? body.featuredProductImage : DEFAULT_SETTINGS.featuredProductImage,
+      featuredProductButtonText: typeof body.featuredProductButtonText === "string" ? body.featuredProductButtonText.slice(0, 60) : DEFAULT_SETTINGS.featuredProductButtonText,
       founderName: typeof body.founderName === "string" ? body.founderName.slice(0, 100) : DEFAULT_SETTINGS.founderName,
       founderImage: typeof body.founderImage === "string" ? body.founderImage : DEFAULT_SETTINGS.founderImage,
       founderRole: typeof body.founderRole === "string" ? body.founderRole.slice(0, 120) : DEFAULT_SETTINGS.founderRole,
@@ -139,6 +155,15 @@ export async function POST(request: Request) {
     } catch {
       console.warn("Database unavailable; returning the submitted settings without saving them.");
       saved = { id: "default", ...dataToSave, updatedAt: new Date().toISOString() };
+    }
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/about");
+      revalidatePath("/products");
+      revalidatePath("/admin/settings");
+    } catch {
+      // Revalidation may throw outside request contexts in tests
     }
 
     return NextResponse.json({ success: true, settings: saved });

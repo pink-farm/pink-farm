@@ -7,12 +7,19 @@ export interface StoreSettingsData {
   heroMainImage: string;
   heroGheeImage: string;
   heroAlmondsImage: string;
+  heartProductId: string;
   heartProductTitle: string;
   heartProductTagline: string;
   heartProductFeatures: string[];
+  heartProductButtonText: string;
+  heartProductButtonUrl: string;
+  heartProductSubtitle: string;
+  heartProductImage: string;
+  featuredProductId: string;
   featuredProductHeading: string;
   featuredProductDescription: string;
   featuredProductImage: string;
+  featuredProductButtonText: string;
   founderName: string;
   founderImage: string;
   founderRole: string;
@@ -34,12 +41,19 @@ export const DEFAULT_SETTINGS: StoreSettingsData = {
   heroMainImage: "/images/makhana_sig.jpg",
   heroGheeImage: "/images/ghee.jpg",
   heroAlmondsImage: "/images/almonds.jpg",
+  heartProductId: "",
   heartProductTitle: "Premium Phool Makhana",
   heartProductTagline: "Why not? You deserve the best.",
   heartProductFeatures: ["Plant-Based", "Gluten-Free", "Low Calorie", "High Calcium", "No Frying", "No Preservatives", "Farm to Table", "Hygienically Packed"],
+  heartProductButtonText: "Shop Now",
+  heartProductButtonUrl: "",
+  heartProductSubtitle: "Our Heart Product",
+  heartProductImage: "",
+  featuredProductId: "",
   featuredProductHeading: "Meet Your New Favourite Snack.",
   featuredProductDescription: "Handpicked, light & wholesome",
   featuredProductImage: "",
+  featuredProductButtonText: "View Details & Add to Cart",
   founderName: "Anjali",
   founderImage: "",
   founderRole: "Founder & Dietitian",
@@ -83,12 +97,19 @@ export const useSettingsStore = create<SettingsStore>()(
                 heroMainImage: data.heroMainImage ?? get().heroMainImage,
                 heroGheeImage: data.heroGheeImage ?? get().heroGheeImage,
                 heroAlmondsImage: data.heroAlmondsImage ?? get().heroAlmondsImage,
+                heartProductId: data.heartProductId ?? get().heartProductId,
                 heartProductTitle: data.heartProductTitle ?? get().heartProductTitle,
                 heartProductTagline: data.heartProductTagline ?? get().heartProductTagline,
                 heartProductFeatures: Array.isArray(data.heartProductFeatures) ? data.heartProductFeatures : get().heartProductFeatures,
+                heartProductButtonText: data.heartProductButtonText ?? get().heartProductButtonText,
+                heartProductButtonUrl: data.heartProductButtonUrl ?? get().heartProductButtonUrl,
+                heartProductSubtitle: data.heartProductSubtitle ?? get().heartProductSubtitle,
+                heartProductImage: data.heartProductImage ?? get().heartProductImage,
+                featuredProductId: data.featuredProductId ?? get().featuredProductId,
                 featuredProductHeading: data.featuredProductHeading ?? get().featuredProductHeading,
                 featuredProductDescription: data.featuredProductDescription ?? get().featuredProductDescription,
                 featuredProductImage: data.featuredProductImage ?? get().featuredProductImage,
+                featuredProductButtonText: data.featuredProductButtonText ?? get().featuredProductButtonText,
                 founderName: data.founderName ?? get().founderName,
                 founderImage: data.founderImage ?? get().founderImage,
                 founderRole: data.founderRole ?? get().founderRole,

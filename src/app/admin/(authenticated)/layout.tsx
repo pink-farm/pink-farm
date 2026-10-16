@@ -11,7 +11,7 @@ export default async function AdminLayout({
 }) {
   if (!(await requireAdminSession())) redirect("/login");
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans print:bg-white print:block">
+    <div className="min-h-screen bg-[#FBF9F6] flex flex-col md:flex-row font-sans text-gray-800 print:bg-white print:block selection:bg-brand-pink selection:text-brand-green">
       {/* Navigation (Responsive Mobile Burger Bar + Desktop Sidebar) */}
       <AdminSidebarNav />
 

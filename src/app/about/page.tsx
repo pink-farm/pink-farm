@@ -2,15 +2,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleOnTap, SpotlightCard, GlowPulse, ShimmerSheen } from "@/components/ui/MotionWrappers";
-import { getStoreSettings } from "@/lib/defaultProducts";
+import { getStoreSettings, getStoreProducts } from "@/lib/defaultProducts";
 
 export const metadata = {
   title: "About Us — Pink Farm",
   description: "Meet Anjali, the dietitian-turned-food-entrepreneur behind Pink Farm. Learn our story, our mission, and our uncompromising promise on quality.",
 };
 
+export const instant = false;
+
 export default async function AboutPage() {
-  const storeSettings = await getStoreSettings();
+  const [storeSettings, products] = await Promise.all([getStoreSettings(), getStoreProducts()]);
+  const heartProduct = storeSettings.heartProductId
+    ? products.find((p) => p.id === storeSettings.heartProductId || p.slug === storeSettings.heartProductId)
+    : null;
   const founderName = storeSettings.founderName || "Anjali";
   const founderRole = storeSettings.founderRole || "Founder & Dietitian";
   const founderStoryFirst = storeSettings.founderStoryFirst || "Anjali started her journey as a trained dietitian — someone who spent years understanding the deep connection between what we eat and how we feel. She knew that truly good food doesn't need artificial anything. It just needs care, intention, and the right source.";
@@ -144,10 +149,14 @@ export default async function AboutPage() {
       <section className="bg-brand-green text-brand-ivory py-20 md:py-28">
         <div className="container mx-auto px-4 max-w-5xl text-center space-y-8">
           <FadeIn>
-            <p className="text-brand-champagne text-sm font-medium tracking-widest uppercase">Our Heart Product</p>
+            <p className="text-brand-champagne text-sm font-medium tracking-widest uppercase">
+              {storeSettings.heartProductSubtitle || "Our Heart Product"}
+            </p>
             <h2 className="font-serif text-4xl md:text-5xl font-bold leading-tight">
-              {storeSettings.heartProductTitle || "Premium Phool Makhana"}<br />
-              <span className="italic font-light text-brand-pink text-3xl md:text-4xl">{storeSettings.heartProductTagline || "Why not? You deserve the best."}</span>
+              {storeSettings.heartProductTitle || (heartProduct ? heartProduct.name : "Premium Phool Makhana")}<br />
+              <span className="italic font-light text-brand-pink text-3xl md:text-4xl">
+                {storeSettings.heartProductTagline || (heartProduct?.shortDescription || "Why not? You deserve the best.")}
+              </span>
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 max-w-3xl mx-auto">
               {(storeSettings.heartProductFeatures?.length ? storeSettings.heartProductFeatures : ["Plant-Based", "Gluten-Free", "Low Calorie", "High Calcium", "No Frying", "No Preservatives", "Farm to Table", "Hygienically Packed"]).map((feat: string) => (
@@ -159,7 +168,9 @@ export default async function AboutPage() {
             <div className="pt-4">
               <ScaleOnTap>
                 <Button asChild size="lg" className="rounded-full px-10 py-6 text-base bg-brand-pink text-brand-green font-bold hover:scale-105 transition-all duration-300 border-0">
-                  <Link href="/products">Shop Now</Link>
+                  <Link href={storeSettings.heartProductButtonUrl || (heartProduct ? `/products/${heartProduct.slug}` : "/products")}>
+                    {storeSettings.heartProductButtonText || "Shop Now"}
+                  </Link>
                 </Button>
               </ScaleOnTap>
             </div>

@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
+import { getStoreProducts } from "@/lib/defaultProducts";
+
+export async function GET() {
+  if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const products = await getStoreProducts({ includeUnavailable: true });
+  return NextResponse.json(products);
+}
 
 function parseProduct(body: Record<string, unknown>) {
   const name = String(body.name ?? "").trim();

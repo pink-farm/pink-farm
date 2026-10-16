@@ -21,7 +21,9 @@ export const instant = false;
 
 export default async function Home() {
   const [products, storeSettings] = await Promise.all([getStoreProducts(), getStoreSettings()]);
-  const makhanaProduct = products.find(p => p.category.toLowerCase() === 'makhana') || products[0];
+  const featuredProduct = (storeSettings.featuredProductId
+    ? products.find((p) => p.id === storeSettings.featuredProductId || p.slug === storeSettings.featuredProductId)
+    : null) || products.find((p) => p.category.toLowerCase() === 'makhana') || products[0];
 
   return (
     <div className="flex flex-col gap-8 md:gap-12 pb-20 overflow-x-hidden">
@@ -238,18 +240,18 @@ export default async function Home() {
         )}
       </section>
 
-      {/* F. FEATURED MAKHANA SECTION */}
-      {makhanaProduct && (
+      {/* F. FEATURED PRODUCT SECTION */}
+      {featuredProduct && (
         <section className="container mx-auto px-4">
           <FadeIn>
             <div className="bg-brand-pink rounded-3xl p-8 md:p-12 lg:p-16 flex flex-col lg:flex-row items-center gap-12 shadow-soft">
               <div className="flex-1 relative w-full aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden">
                 <HoverCard lift={-4}>
                   <div className="relative w-full aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden">
-                    {storeSettings.featuredProductImage || makhanaProduct.imageUrl ? (
+                    {storeSettings.featuredProductImage || featuredProduct.imageUrl ? (
                       <Image
-                        src={storeSettings.featuredProductImage || makhanaProduct.imageUrl}
-                        alt={makhanaProduct.name}
+                        src={storeSettings.featuredProductImage || featuredProduct.imageUrl}
+                        alt={storeSettings.featuredProductHeading || featuredProduct.name}
                         fill
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         unoptimized={Boolean(storeSettings.featuredProductImage)}
@@ -257,28 +259,32 @@ export default async function Home() {
                       />
                     ) : (
                       <div className="absolute inset-0 bg-brand-cream flex items-center justify-center">
-                        <span className="text-brand-green/30 font-serif">Makhana Highlight Image</span>
+                        <span className="text-brand-green/30 font-serif">Featured Product Image</span>
                       </div>
                     )}
                   </div>
                 </HoverCard>
               </div>
               <div className="flex-1 space-y-6">
-                <h2 className="font-serif text-3xl md:text-5xl text-brand-green">{storeSettings.featuredProductHeading || "Meet Your New Favourite Snack."}</h2>
+                <h2 className="font-serif text-3xl md:text-5xl text-brand-green">
+                  {storeSettings.featuredProductHeading || featuredProduct.name}
+                </h2>
                 <p className="text-lg opacity-90 leading-relaxed">
-                  {storeSettings.featuredProductDescription || makhanaProduct.shortDescription || "Crispy, light, and perfectly roasted. Our signature Makhana is sourced from the finest farms and packed with care to retain maximum freshness."}
+                  {storeSettings.featuredProductDescription || featuredProduct.shortDescription || featuredProduct.description}
                 </p>
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl font-bold">₹{(makhanaProduct.basePrice / 100).toFixed(2)}</span>
-                  {makhanaProduct.originalPrice && (
-                    <span className="text-lg line-through opacity-50">₹{(makhanaProduct.originalPrice / 100).toFixed(2)}</span>
+                  <span className="text-2xl font-bold">₹{(featuredProduct.basePrice / 100).toFixed(2)}</span>
+                  {featuredProduct.originalPrice && featuredProduct.originalPrice > featuredProduct.basePrice && (
+                    <span className="text-lg line-through opacity-50">₹{(featuredProduct.originalPrice / 100).toFixed(2)}</span>
                   )}
                 </div>
                 <div className="pt-4 flex flex-col sm:flex-row gap-4">
                   <ScaleOnTap>
                     <ShimmerSheen className="rounded-md">
                       <Button asChild size="lg" className="w-full sm:w-auto">
-                        <Link href={`/products/${makhanaProduct.slug}`}>View Details & Add to Cart</Link>
+                        <Link href={`/products/${featuredProduct.slug}`}>
+                          {storeSettings.featuredProductButtonText || "View Details & Add to Cart"}
+                        </Link>
                       </Button>
                     </ShimmerSheen>
                   </ScaleOnTap>
