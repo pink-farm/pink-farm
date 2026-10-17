@@ -1,11 +1,16 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCustomerSession } from "@/lib/auth";
 import { calculateCouponDiscount, getCouponFailure } from "@/lib/coupons";
+import { readBoundedJson } from "@/lib/request-security.mjs";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const parsed = await readBoundedJson(request, 4_096);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Coupon data must be a JSON object." }, { status: 400 });
+    const body = parsed.value as Record<string, unknown>;
     const code = String(body.code || "").trim().toUpperCase();
     const subtotal = Number(body.subtotal);
     const phone = String(body.phone || "").replace(/\D/g, "").slice(-10);
@@ -19,7 +24,7 @@ export async function POST(request: Request) {
     const discount = calculateCouponDiscount(coupon, subtotal);
     return NextResponse.json({ code: coupon.code, discount, message: `${coupon.code} applied successfully.` });
   } catch (error) {
-    console.error("Coupon validation failed:", error);
+    logServerError("security.coupons.validate.failed", error);
     return NextResponse.json({ error: "Could not validate this coupon. Please try again." }, { status: 500 });
   }
 }

@@ -186,7 +186,7 @@ export function ThreeLotus({
       const rimPoints2D = shape.getPoints(54);
       const rimPoints3D: THREE.Vector3[] = [];
 
-      for (let p of rimPoints2D) {
+      for (const p of rimPoints2D) {
         const v = Math.max(0, Math.min(1, p.y / height));
         const maxSpanAtY = halfW * Math.sin(Math.PI * Math.min(1, v * 1.05));
         const normX = maxSpanAtY > 0.01 ? Math.max(-1, Math.min(1, p.x / maxSpanAtY)) : 0;

@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { getCustomerSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   const session = await getCustomerSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
-    const body = await request.json();
+    const parsed = await readBoundedJson(request, 16_000);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Address data must be a JSON object." }, { status: 400 });
+    const body = parsed.value as Record<string, unknown>;
     const customerId = String(session.userId);
     const current = await prisma.customerAddress.findFirst({ where: { id, customerId } });
     if (!current) return NextResponse.json({ error: "Address not found." }, { status: 404 });
@@ -22,7 +27,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   } catch { return NextResponse.json({ error: "Could not update the address." }, { status: 400 }); }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   const session = await getCustomerSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {

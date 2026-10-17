@@ -42,7 +42,12 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
   const [showProductForm, setShowProductForm] = useState(false);
   const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
 
-  useEffect(() => { setProducts(initialProducts); setStockDrafts({}); }, [initialProducts]);
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- refreshed server data resets the editable table draft */
+    setProducts(initialProducts);
+    setStockDrafts({});
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [initialProducts]);
 
   const toggleStock = async (product: Product) => {
     const nextStatus = !product.isAvailable;
@@ -69,8 +74,8 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
         `${product.name} is now ${nextStatus ? "In Stock" : "marked Out of Stock"}`
       );
       setTimeout(() => setToastMessage(null), 3000);
-    } catch (err) {
-      console.error("Error toggling stock:", err);
+    } catch {
+      console.error("Could not toggle product stock.");
       // Revert on error
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, isAvailable: !nextStatus } : p))

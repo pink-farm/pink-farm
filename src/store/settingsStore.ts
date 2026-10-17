@@ -207,8 +207,8 @@ export const useSettingsStore = create<SettingsStore>()(
               });
             }
           }
-        } catch (error) {
-          console.warn("Could not fetch remote store settings, using cache:", error);
+        } catch {
+          console.warn("Could not fetch remote store settings; using cached values.");
         }
       },
     }),

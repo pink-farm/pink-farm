@@ -1,5 +1,7 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { getCustomerSession } from "@/lib/auth";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 import { prisma } from "@/lib/db";
 
 type RouteContext = { params: Promise<{ slug: string }> };
@@ -69,12 +71,13 @@ export async function GET(_request: Request, { params }: RouteContext) {
       myReview,
     });
   } catch (error) {
-    console.error("Could not load product feedback:", error);
+    logServerError("security.products/slug.feedback.failed", error);
     return NextResponse.json({ error: "Customer feedback is temporarily unavailable." }, { status: 503 });
   }
 }
 
 export async function POST(request: Request, { params }: RouteContext) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   try {
     const session = await getCustomerSession();
     const customerId = typeof session?.userId === "string" ? session.userId : "";
@@ -94,7 +97,10 @@ export async function POST(request: Request, { params }: RouteContext) {
     const product = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
     if (!product) return NextResponse.json({ error: "This product is no longer available." }, { status: 404 });
 
-    const body = await request.json().catch(() => ({}));
+    const parsed = await readBoundedJson(request, 8_000);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Feedback must be a JSON object." }, { status: 400 });
+    const body = parsed.value as Record<string, unknown>;
     const kind = body?.kind;
     const content = typeof body?.content === "string" ? body.content.trim() : "";
     if (content.length < 2 || content.length > 1200) {
@@ -133,7 +139,7 @@ export async function POST(request: Request, { params }: RouteContext) {
 
     return NextResponse.json({ error: "Choose whether to submit a review or comment." }, { status: 400 });
   } catch (error) {
-    console.error("Could not save product feedback:", error);
+    logServerError("security.products/slug.feedback.failed", error);
     return NextResponse.json({ error: "We couldn’t save your feedback right now. Please try again." }, { status: 500 });
   }
 }

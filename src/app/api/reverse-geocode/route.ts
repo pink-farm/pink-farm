@@ -1,25 +1,35 @@
 import { NextResponse } from "next/server";
+import { parseGeocodeCoordinates } from "@/lib/request-security.mjs";
+import { logServerError } from "@/lib/server-log.mjs";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const lat = searchParams.get("lat");
-  const lon = searchParams.get("lon");
+  const latInput = searchParams.get("lat");
+  const lonInput = searchParams.get("lon");
 
-  if (!lat || !lon) {
+  const coordinates = parseGeocodeCoordinates(latInput, lonInput);
+  if (!coordinates) {
     return NextResponse.json({ error: "Latitude and longitude required" }, { status: 400 });
   }
+  const { latitude, longitude } = coordinates;
 
   try {
+    const nominatimUrl = new URL("https://nominatim.openstreetmap.org/reverse");
+    nominatimUrl.search = new URLSearchParams({
+      lat: String(latitude),
+      lon: String(longitude),
+      format: "json",
+      addressdetails: "1",
+    }).toString();
+
     // 1. Try OpenStreetMap Nominatim reverse geocoder
-    const nominatimRes = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
-      {
-        headers: {
-          "User-Agent": "PinkFarmECommerce/1.0 (wecare@pinkfarm.in)",
-          "Accept-Language": "en",
-        },
-      }
-    );
+    const nominatimRes = await fetch(nominatimUrl, {
+      headers: {
+        "User-Agent": "PinkFarmECommerce/1.0 (wecare@pinkfarm.in)",
+        "Accept-Language": "en",
+      },
+      signal: AbortSignal.timeout(5000),
+    });
 
     if (nominatimRes.ok) {
       const data = await nominatimRes.json();
@@ -53,9 +63,9 @@ export async function GET(request: Request) {
     }
 
     // 2. Fallback to BigDataCloud client geocoder
-    const bdcRes = await fetch(
-      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
-    );
+    const bdcUrl = new URL("https://api.bigdatacloud.net/data/reverse-geocode-client");
+    bdcUrl.search = new URLSearchParams({ latitude: String(latitude), longitude: String(longitude), localityLanguage: "en" }).toString();
+    const bdcRes = await fetch(bdcUrl, { signal: AbortSignal.timeout(5000) });
     if (bdcRes.ok) {
       const bdcData = await bdcRes.json();
       return NextResponse.json({
@@ -70,7 +80,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ error: "Could not resolve address" }, { status: 404 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Geocoding failed" }, { status: 500 });
+  } catch (error) {
+    logServerError("security.geocode.provider_failed", error);
+    return NextResponse.json({ error: "Address lookup is temporarily unavailable." }, { status: 502 });
   }
 }

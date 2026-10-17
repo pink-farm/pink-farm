@@ -4,6 +4,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { CheckCircle2, Clock, Package, Truck, Home, Printer } from "lucide-react";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
+import { getCustomerSession } from "@/lib/auth";
+import { canAccessOrderReference } from "@/lib/session-policy.mjs";
+import type { Prisma } from "@prisma/client";
+import { logServerError } from "@/lib/server-log.mjs";
 
 
 
@@ -16,19 +20,21 @@ export default async function OrderPage({
 }) {
   const { orderNumber } = await params;
   
-  let order;
+  let order: Prisma.OrderGetPayload<{ include: { items: { include: { product: true } } } }> | null = null;
   try {
     order = await prisma.order.findUnique({
       where: { orderNumber: orderNumber },
       include: { items: { include: { product: true } } },
     });
   } catch (error) {
-    console.error("Failed to fetch order", error);
+    logServerError("security.customer_order.load_failed", error);
   }
 
   if (!order) {
     notFound();
   }
+  const customerSession = await getCustomerSession();
+  if (!canAccessOrderReference(orderNumber, customerSession?.userId, order.customerId)) notFound();
 
   const isSuccess = order.paymentStatus === "PAID" || order.paymentMethod === "COD";
 
@@ -114,7 +120,7 @@ export default async function OrderPage({
         </div>
 
         <div className="space-y-4 mb-8">
-          {order.items.map((item: any) => (
+          {order.items.map((item) => (
             <div key={item.id} className="flex justify-between items-center">
               <div className="flex gap-4 items-center">
                 <span className="font-bold w-6">{item.quantity}x</span>

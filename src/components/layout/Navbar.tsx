@@ -9,6 +9,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useCustomerStore } from "@/store/customerStore";
 import { motion, AnimatePresence } from "framer-motion";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -22,11 +23,10 @@ export function Navbar() {
   const storeName = useSettingsStore((state) => state.storeName);
   const customer = useCustomerStore();
 
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     let ticking = false;
 
     const updateScroll = () => {

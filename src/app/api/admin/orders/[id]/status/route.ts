@@ -1,28 +1,23 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
-    const text = await request.text();
-    let status = "";
-    try {
-      const body = JSON.parse(text);
-      status = body?.status;
-    } catch {
-      // Fallback for malformed body or string
-      const match = text.match(/"?status"?\s*:\s*"?([A-Za-z_]+)"?/);
-      if (match) {
-        status = match[1];
-      } else {
-        status = text.replace(/[^a-zA-Z_]/g, "");
-      }
-    }
+    const parsed = await readBoundedJson(request, 4096);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Order status must be a JSON object." }, { status: 400 });
+    const status = typeof (parsed.value as Record<string, unknown>).status === "string"
+      ? (parsed.value as Record<string, string>).status
+      : "";
 
     if (!status) {
       return NextResponse.json({ error: "Status is required" }, { status: 400 });
@@ -65,7 +60,7 @@ export async function PATCH(
     if (error instanceof Error && error.message === "ORDER_NOT_FOUND") return NextResponse.json({ error: "Order not found" }, { status: 404 });
     if (error instanceof Error && error.message === "CANNOT_CANCEL") return NextResponse.json({ error: "An order that has shipped cannot be cancelled here." }, { status: 409 });
     if (error instanceof Error && (error.message === "ORDER_ALREADY_CANCELLED" || error.message === "ORDER_CHANGED")) return NextResponse.json({ error: "The order has changed and this update could not be applied." }, { status: 409 });
-    console.error("Failed to update order fulfillment status:", error);
+    logServerError("security.admin/orders/id.status.failed", error);
     return NextResponse.json(
       { error: "Internal Server Error updating order status" },
       { status: 500 }

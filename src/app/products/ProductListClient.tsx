@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { HoverCard, SpotlightCard } from "@/components/ui/MotionWrappers";
+import { SpotlightCard } from "@/components/ui/MotionWrappers";
 import { formatPrice } from "@/lib/utils";
 import { useSettingsStore } from "@/store/settingsStore";
 
@@ -43,12 +43,15 @@ export function ProductListClient({
     fetchSettings();
   }, [fetchSettings]);
 
+  // Keep the interactive filter aligned with a category deep link.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (categoryParam) {
       const normalized = categoryParam.trim().toLowerCase();
       setSelectedCategory(normalized);
     }
   }, [categoryParam]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const categories = useMemo(() => {
     const configured =
@@ -73,11 +76,14 @@ export function ProductListClient({
   }, [storeCategories, initialCategories]);
 
   // If currently selected category was deleted, fallback to "all"
+  // Reset the filter when an administrator removes its selected category.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (selectedCategory !== "all" && !categories.some((c) => c.id === selectedCategory)) {
       setSelectedCategory("all");
     }
   }, [categories, selectedCategory]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const filteredProducts = useMemo(() => {
     let result = [...initialProducts];

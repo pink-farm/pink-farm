@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
+import { AdminProductInputError, classifyAdminProductError } from "@/lib/admin-product-errors.mjs";
 import { getStoreProducts } from "@/lib/defaultProducts";
 
 export async function GET() {
@@ -19,11 +21,11 @@ function parseProduct(body: Record<string, unknown>) {
   const basePrice = Number(body.basePrice);
   const stockQuantity = Number(body.stockQuantity);
   if (!name || !slug || !sku || !category || !imageUrl || !Number.isInteger(basePrice) || basePrice < 0 || !Number.isInteger(stockQuantity) || stockQuantity < 0) {
-    throw new Error("Name, slug, SKU, category, image, valid price, and non-negative inventory are required.");
+    throw new AdminProductInputError("Name, slug, SKU, category, image, valid price, and non-negative inventory are required.");
   }
-  if (imageUrl.startsWith("data:") && imageUrl.length > 3_500_000) throw new Error("Please choose an image smaller than 2.5 MB.");
+  if (imageUrl.startsWith("data:") && imageUrl.length > 3_500_000) throw new AdminProductInputError("Please choose an image smaller than 2.5 MB.");
   const original = body.originalPrice === "" || body.originalPrice == null ? null : Number(body.originalPrice);
-  if (original !== null && (!Number.isInteger(original) || original < 0)) throw new Error("Original price must be a valid amount.");
+  if (original !== null && (!Number.isInteger(original) || original < 0)) throw new AdminProductInputError("Original price must be a valid amount.");
   return {
     name, slug, sku, category, imageUrl,
     shortDescription: String(body.shortDescription ?? "").trim(),
@@ -47,9 +49,13 @@ function parseProduct(body: Record<string, unknown>) {
 }
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const product = parseProduct(await request.json());
+    const parsed = await readBoundedJson(request, 4_000_000);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Product data must be a JSON object." }, { status: 400 });
+    const product = parseProduct(parsed.value as Record<string, unknown>);
     const { packSize, ...data } = product;
     const created = await prisma.product.create({
       data: { ...data, variants: { create: [{ name: packSize, packSize, price: data.basePrice, originalPrice: data.originalPrice, stockQuantity: data.stockQuantity, isAvailable: data.isAvailable }] } },
@@ -57,21 +63,23 @@ export async function POST(request: Request) {
 
     try {
       const settings = await prisma.storeSettings.findUnique({ where: { id: "default" } });
-      const currentCats = settings?.storeCategories || ["Makhana", "Nuts", "Pantry"];
-      if (data.category && !currentCats.some((c) => c.toLowerCase() === data.category.toLowerCase())) {
+      const currentCategories = settings?.storeCategories || ["Makhana", "Nuts", "Pantry"];
+      if (!currentCategories.some((category) => category.toLowerCase() === data.category.toLowerCase())) {
         await prisma.storeSettings.upsert({
           where: { id: "default" },
-          update: { storeCategories: [...currentCats, data.category] },
-          create: { storeCategories: [...currentCats, data.category] },
+          update: { storeCategories: [...currentCategories, data.category] },
+          create: { storeCategories: [...currentCategories, data.category] },
         });
       }
-    } catch {}
+    } catch {
+      // Product creation succeeds even if optional category synchronization is temporarily unavailable.
+    }
 
     revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath("/");
     return NextResponse.json({ success: true, productId: created.id });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not create product.";
-    const duplicate = error instanceof Error && error.message.includes("Unique constraint");
-    return NextResponse.json({ error: duplicate ? "That slug or SKU is already in use." : message }, { status: duplicate ? 409 : 400 });
+    const result = classifyAdminProductError(error);
+    if (result.status === 500) console.error("security.admin_product.create_failed", { errorType: error instanceof Error ? error.name : "UnknownError" });
+    return NextResponse.json({ error: result.message }, { status: result.status });
   }
 }

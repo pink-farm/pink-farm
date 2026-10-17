@@ -2,6 +2,10 @@ import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import PrintControls from "@/app/admin/(authenticated)/orders/[id]/slip/PrintControls";
+import { getCustomerSession } from "@/lib/auth";
+import { canAccessOrderReference } from "@/lib/session-policy.mjs";
+import type { Prisma, StoreSettings } from "@prisma/client";
+import { logServerError } from "@/lib/server-log.mjs";
 
 export const instant = false;
 
@@ -12,8 +16,8 @@ export default async function CustomerReceiptPage({
 }) {
   const { orderNumber } = await params;
 
-  let order: any = null;
-  let settings: any = null;
+  let order: Prisma.OrderGetPayload<{ include: { items: { include: { product: true } } } }> | null = null;
+  let settings: StoreSettings | null = null;
 
   try {
     order = await prisma.order.findUnique({
@@ -31,12 +35,14 @@ export default async function CustomerReceiptPage({
       where: { id: "default" },
     });
   } catch (error) {
-    console.error("Failed to load customer receipt:", error);
+    logServerError("security.customer_receipt.load_failed", error);
   }
 
   if (!order) {
     notFound();
   }
+  const customerSession = await getCustomerSession();
+  if (!canAccessOrderReference(orderNumber, customerSession?.userId, order.customerId)) notFound();
 
   const orderDate = new Date(order.createdAt).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -184,7 +190,7 @@ export default async function CustomerReceiptPage({
               </tr>
             </thead>
             <tbody className="divide-y border-b-2 border-black">
-              {order.items.map((item: any, idx: number) => (
+              {order.items.map((item, idx) => (
                 <tr key={item.id} className="border-b border-gray-300">
                   <td className="py-1.5 px-2.5 text-center border-r border-black font-mono text-[10px]">
                     {idx + 1}

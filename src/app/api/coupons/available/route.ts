@@ -1,7 +1,8 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const now = new Date();
     // Allow a 24-hour buffer for startsAt to account for client/server timezone differences
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       }
     );
   } catch (error) {
-    console.error("Could not load active coupons:", error);
+    logServerError("security.coupons.available.failed", error);
     return NextResponse.json({ coupons: [] }, { status: 500 });
   }
 }

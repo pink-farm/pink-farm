@@ -1,5 +1,5 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { getCustomerSession } from "@/lib/auth";
 
@@ -15,7 +15,7 @@ export async function GET() {
     });
     return NextResponse.json({ orders });
   } catch (error) {
-    console.error("Customer orders API error:", error);
+    logServerError("security.customer.orders.failed", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

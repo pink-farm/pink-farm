@@ -6,7 +6,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { Button } from "@/components/ui/Button";
 import { Minus, Plus, Trash2, ArrowRight, Truck, CheckCircle2, AlertTriangle, LogIn } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleOnTap, FadeIn, ShimmerSheen } from "@/components/ui/MotionWrappers";
 import { formatPrice } from "@/lib/utils";
@@ -21,13 +21,9 @@ export default function CartPage() {
   const freeDeliveryThreshold = useSettingsStore((state) => state.freeDeliveryThreshold);
   const isAcceptingOrders = useSettingsStore((state) => state.isAcceptingOrders);
 
-  const [mounted, setMounted] = useState(false);
+  const hydrated = useHydrated();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
+  if (!hydrated) return null;
 
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const isFreeDelivery = freeDeliveryThreshold > 0 && subtotal >= freeDeliveryThreshold;

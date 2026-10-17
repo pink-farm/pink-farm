@@ -1,19 +1,21 @@
 import { prisma } from "@/lib/db";
-import { ShoppingBag, ArrowUpRight, Clock, CheckCircle, Printer } from "lucide-react";
+import { ShoppingBag, Clock, CheckCircle, Printer } from "lucide-react";
 import Link from "next/link";
 import { FulfillmentStatusSelect } from "./FulfillmentStatusSelect";
+import type { Prisma } from "@prisma/client";
+import { logServerError } from "@/lib/server-log.mjs";
 
 export const instant = false;
 
 export default async function AdminOrdersPage() {
-  let orders: any[] = [];
+  let orders: Prisma.OrderGetPayload<{ include: { items: true } }>[] = [];
   try {
     orders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       include: { items: true },
     });
   } catch (err) {
-    console.warn("Could not query orders:", err);
+    logServerError("security.admin_orders.load_failed", err);
   }
 
   return (

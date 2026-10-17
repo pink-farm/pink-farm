@@ -5,7 +5,6 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, KeyRound, Mail, ShieldCheck } from "lucide-react";
 import { LotusLoader } from "@/components/ui/LotusLoader";
-import { ADMIN_EMAIL } from "@/lib/auth-constants";
 
 type AccountRole = "customer" | "admin";
 type ResetStep = "request" | "verify" | "success";
@@ -30,19 +29,20 @@ export function PasswordResetForm() {
   }, [resendCountdown]);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- initialize this form from a reset-link query string */
     const params = new URLSearchParams(window.location.search);
     const requestedRole = params.get("role");
     if (requestedRole === "admin") {
       setRole("admin");
-      setEmail(ADMIN_EMAIL);
     } else if (params.get("email")) {
       setEmail(params.get("email") || "");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   const chooseRole = (nextRole: AccountRole) => {
     setRole(nextRole);
-    setEmail(nextRole === "admin" ? ADMIN_EMAIL : "");
+    setEmail("");
     setStep("request");
     setCode("");
     setPassword("");
@@ -69,7 +69,7 @@ export function PasswordResetForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           role,
-          email: role === "admin" ? ADMIN_EMAIL : email,
+          ...(role === "customer" ? { email } : {}),
           action: step === "verify" ? "verify" : "request",
           ...(step === "verify" ? { code, password } : {}),
         }),
@@ -102,7 +102,7 @@ export function PasswordResetForm() {
       const response = await fetch("/api/auth/password-reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, email: role === "admin" ? ADMIN_EMAIL : email, action: "request" }),
+        body: JSON.stringify({ role, ...(role === "customer" ? { email } : {}), action: "request" }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "We couldn’t send another code.");
@@ -135,7 +135,7 @@ export function PasswordResetForm() {
             <div className="mb-6">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-green/55">Secure password recovery</p>
               <h2 className="mt-2 font-serif text-3xl font-semibold text-brand-green">{step === "request" ? "Let’s get you back in." : "Check your email."}</h2>
-              <p className="mt-2 text-sm leading-6 text-brand-charcoal/65">{step === "request" ? "Choose the account you want to recover. We’ll send a one-time code to its email address." : `Enter the code sent to ${role === "admin" ? ADMIN_EMAIL : email} and choose a new password.`}</p>
+              <p className="mt-2 text-sm leading-6 text-brand-charcoal/65">{step === "request" ? "Choose the account you want to recover. We’ll send a one-time code to its email address." : role === "admin" ? "Enter the code sent to the configured administrator email address and choose a new password." : `Enter the code sent to ${email} and choose a new password.`}</p>
             </div>
 
             <div className="mb-5 grid grid-cols-2 rounded-xl bg-brand-cream p-1">
@@ -145,11 +145,13 @@ export function PasswordResetForm() {
 
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="reset-email" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">{role === "admin" ? "Authorized admin email" : "Email address"}</label>
-                <div className="relative">
-                  <Mail size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-green/50" />
-                  <input id="reset-email" type="email" autoComplete="email" required value={role === "admin" ? ADMIN_EMAIL : email} readOnly={role === "admin" || step === "verify"} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="w-full rounded-xl border border-brand-green-light/15 bg-brand-cream/40 py-3.5 pl-10 pr-4 text-sm font-medium text-brand-charcoal transition-colors focus:border-brand-green focus:bg-white focus:outline-none read-only:cursor-not-allowed read-only:bg-gray-50" />
-                </div>
+                {role === "admin" ? <div className="rounded-xl border border-brand-green-light/15 bg-gray-50 p-4 text-sm text-brand-charcoal/70">A verification code will be sent to the configured store administrator email address.</div> : <div>
+                  <label htmlFor="reset-email" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-brand-charcoal">Email address</label>
+                  <div className="relative">
+                    <Mail size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-green/50" />
+                    <input id="reset-email" type="email" autoComplete="email" required value={email} readOnly={step === "verify"} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="w-full rounded-xl border border-brand-green-light/15 bg-brand-cream/40 py-3.5 pl-10 pr-4 text-sm font-medium text-brand-charcoal transition-colors focus:border-brand-green focus:bg-white focus:outline-none read-only:cursor-not-allowed read-only:bg-gray-50" />
+                  </div>
+                </div>}
               </div>
 
               {step === "verify" && <>

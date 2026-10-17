@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useCartStore } from "@/store/cartStore";
@@ -15,7 +15,6 @@ import {
   MapPin, 
   CheckCircle2, 
   Loader2,
-  UserCheck,
   Navigation,
   Crosshair,
   AlertCircle,
@@ -30,6 +29,7 @@ import { SurpriseGiftCheckoutRow } from "@/components/checkout/CuteSurpriseGift"
 import { useCustomerStore, type CustomerAddress } from "@/store/customerStore";
 import { MakhanaLoader } from "@/components/ui/MakhanaLoader";
 import { CouponCodeSection } from "@/components/checkout/CouponCodeSection";
+import { useHydrated } from "@/lib/use-hydrated";
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -52,10 +52,10 @@ export function CheckoutClient() {
   const freeDeliveryThreshold = useSettingsStore((state) => state.freeDeliveryThreshold);
   const isAcceptingOrders = useSettingsStore((state) => state.isAcceptingOrders);
 
-  const paymentMethod = "ONLINE";
+  const paymentMethod = "COD";
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Automatic Location Tracking states
@@ -72,9 +72,8 @@ export function CheckoutClient() {
     register,
     handleSubmit,
     setValue,
-    getValues,
     reset,
-    watch,
+    control,
     formState: { errors },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -89,12 +88,12 @@ export function CheckoutClient() {
     },
   });
 
-  const pinCodeValue = watch("pinCode");
+  const pinCodeValue = useWatch({ control, name: "pinCode" });
+  const mobileValue = useWatch({ control, name: "mobile" });
 
   // Load the saved delivery address on mount.
   useEffect(() => {
-    setMounted(true);
-
+    /* eslint-disable react-hooks/set-state-in-effect -- restore the user's saved local address into the form after hydration */
     // Auto-fill from logged-in customer's saved address or guest address from localStorage
     try {
       const custStoreStr = localStorage.getItem("pinkfarm_customer_store_v2");
@@ -129,12 +128,12 @@ export function CheckoutClient() {
     } catch {
       // Ignore localStorage errors
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [reset]);
 
   // Real-time Postal PIN Code lookup for auto-filling City & State
   useEffect(() => {
     if (!pinCodeValue || pinCodeValue.length !== 6 || !/^[1-9][0-9]{5}$/.test(pinCodeValue)) {
-      setPinLookupSuccess(null);
       return;
     }
 
@@ -271,36 +270,13 @@ export function CheckoutClient() {
     }
   };
 
-  const handlePayOrder = async (overrideData?: Partial<CheckoutFormValues>) => {
+  const handlePayOrder = async (data: CheckoutFormValues) => {
     if (!isAcceptingOrders) {
       setError("Online orders are currently paused by the store admin. Please try again later.");
       return;
     }
     setIsProcessing(true);
     setError("");
-
-    // Read current form values or apply smart fallback defaults so 1-click pay never fails
-    const current = getValues();
-    const cleanMobile = (overrideData?.mobile || current.mobile || "").replace(/[^\d]/g, "");
-    const data: CheckoutFormValues = {
-      fullName: (overrideData?.fullName || current.fullName || "").trim() || "Pink Farm Member",
-      mobile: cleanMobile.length >= 10 ? cleanMobile.slice(-10) : "9876543210",
-      addressLine1: (overrideData?.addressLine1 || current.addressLine1 || "").trim() || "Plot 18, Phase 2, Dugri",
-      addressLine2: (overrideData?.addressLine2 || current.addressLine2 || "").trim(),
-      city: (overrideData?.city || current.city || "").trim() || "Ludhiana",
-      state: (overrideData?.state || current.state || "").trim() || "Punjab",
-      pinCode: /^[1-9]\d{5}$/.test(String(overrideData?.pinCode || current.pinCode || "").trim())
-        ? String(overrideData?.pinCode || current.pinCode).trim()
-        : "141003",
-    };
-
-    // Reflect filled values in UI fields
-    if (!current.fullName?.trim()) setValue("fullName", data.fullName, { shouldValidate: true });
-    if (!current.mobile?.trim()) setValue("mobile", data.mobile, { shouldValidate: true });
-    if (!current.addressLine1?.trim()) setValue("addressLine1", data.addressLine1, { shouldValidate: true });
-    if (!current.city?.trim()) setValue("city", data.city, { shouldValidate: true });
-    if (!current.state?.trim()) setValue("state", data.state, { shouldValidate: true });
-    if (!current.pinCode?.trim()) setValue("pinCode", data.pinCode, { shouldValidate: true });
 
     // Cache guest address in localStorage for hassle-free reordering
     try {
@@ -343,9 +319,7 @@ export function CheckoutClient() {
     }
   };
 
-  const onSubmit = async (data: CheckoutFormValues) => {
-    await handlePayOrder(data);
-  };
+  const onSubmit = async (data: CheckoutFormValues) => handlePayOrder(data);
 
   return (
     <div className="flex flex-col lg:flex-row gap-10 xl:gap-12">
@@ -576,7 +550,7 @@ export function CheckoutClient() {
             </div>
           )}
 
-          <form id="checkout-form" onSubmit={handleSubmit(onSubmit, () => handlePayOrder())} className="space-y-5" autoComplete="on">
+          <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5" autoComplete="on">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1.5">
                 <label htmlFor="fullName" className="text-xs font-bold text-brand-charcoal uppercase tracking-wider">
@@ -663,7 +637,7 @@ export function CheckoutClient() {
                 <div className="relative">
                   <input 
                     id="pinCode"
-                    {...register("pinCode")} 
+                    {...register("pinCode", { onChange: () => setPinLookupSuccess(null) })}
                     type="text"
                     name="pinCode"
                     autoComplete="postal-code"
@@ -743,7 +717,7 @@ export function CheckoutClient() {
             <SurpriseGiftCheckoutRow />
           </div>
           
-          <CouponCodeSection subtotal={subtotal} phone={watch("mobile")} />
+          <CouponCodeSection subtotal={subtotal} phone={mobileValue} />
           <div className="space-y-3 text-sm opacity-90 mb-6 pb-6 border-b border-brand-green-light/20">
             <div className="flex justify-between">
               <span>Subtotal</span>
@@ -779,7 +753,7 @@ export function CheckoutClient() {
             </div>
           )}
           
-          {/* Payment Method - 100% Secure Online Pay */}
+          {/* Payment remains cash on delivery until an online payment gateway is configured. */}
           <div className="mb-6">
             <label className="text-xs font-bold uppercase tracking-wider text-brand-charcoal block mb-2">
               Payment Method
@@ -792,13 +766,13 @@ export function CheckoutClient() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-sm text-brand-green">Pay Online (UPI / Card / NetBanking)</p>
+                    <p className="font-bold text-sm text-brand-green">Cash on Delivery</p>
                     <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                      <Zap size={10} /> Instant
+                      <Zap size={10} /> Pay on delivery
                     </span>
                   </div>
                   <p className="text-xs text-brand-charcoal/70 mt-0.5">
-                    1-Click Instant Payment • Zero extra charges
+                    Pay when your order arrives
                   </p>
                 </div>
               </div>
@@ -806,8 +780,8 @@ export function CheckoutClient() {
           </div>
           
           <Button 
-            type="button" 
-            onClick={() => handlePayOrder()}
+            type="submit"
+            form="checkout-form"
             size="lg" 
             className="w-full text-base h-14 shadow-md hover:shadow-lg transition-all font-bold cursor-pointer"
             disabled={isProcessing || !isAcceptingOrders}
@@ -822,7 +796,7 @@ export function CheckoutClient() {
             ) : (
               <span className="flex items-center justify-center gap-2">
                 <Lock size={16} />
-                <span>Pay ₹{((total) / 100).toFixed(2)} Now</span>
+                <span>Place Order · ₹{((total) / 100).toFixed(2)}</span>
               </span>
             )}
           </Button>

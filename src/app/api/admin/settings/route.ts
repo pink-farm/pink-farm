@@ -1,7 +1,9 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma, queryDatabase } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 
 const DEFAULT_SETTINGS = {
   id: "default",
@@ -86,21 +88,15 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    let body: Record<string, unknown> = {};
-    try {
-      const parsed: unknown = await request.json();
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed as Record<string, unknown>;
-    } catch {
-      const text = await request.text();
-      try {
-        const parsed: unknown = JSON.parse(text);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed as Record<string, unknown>;
-      } catch {
-        body = {};
-      }
+    const parsed = await readBoundedJson(request, 5_000_000);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
+      return NextResponse.json({ error: "Settings must be a JSON object." }, { status: 400 });
     }
+    const body = parsed.value as Record<string, unknown>;
 
     const heroImages = [
       ["heroMainImage", body.heroMainImage],
@@ -187,7 +183,7 @@ export async function POST(request: Request) {
           : DEFAULT_SETTINGS.comboTier1Count,
       comboTier1Discount:
         body.comboTier1Discount !== undefined && !isNaN(Number(body.comboTier1Discount))
-          ? Math.max(1, Math.min(99, Math.round(Number(body.comboTier1Discount))))
+          ? Math.max(1, Math.min(95, Math.round(Number(body.comboTier1Discount))))
           : DEFAULT_SETTINGS.comboTier1Discount,
       comboTier1Label:
         typeof body.comboTier1Label === "string"
@@ -211,7 +207,7 @@ export async function POST(request: Request) {
           : DEFAULT_SETTINGS.comboTier2Count,
       comboTier2Discount:
         body.comboTier2Discount !== undefined && !isNaN(Number(body.comboTier2Discount))
-          ? Math.max(1, Math.min(99, Math.round(Number(body.comboTier2Discount))))
+          ? Math.max(1, Math.min(95, Math.round(Number(body.comboTier2Discount))))
           : DEFAULT_SETTINGS.comboTier2Discount,
       comboTier2Label:
         typeof body.comboTier2Label === "string"
@@ -254,8 +250,8 @@ export async function POST(request: Request) {
         update: dataToSave,
         create: dataToSave,
       });
-    } catch (err) {
-      console.error("Error saving store settings to database:", err);
+    } catch (error) {
+      logServerError("security.admin.settings.persist_failed", error);
       saved = { id: "default", ...dataToSave, updatedAt: new Date().toISOString() };
     }
 
@@ -271,7 +267,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, settings: saved });
   } catch (error) {
-    console.error("Settings POST Error:", error);
+    logServerError("security.admin.settings.failed", error);
     return NextResponse.json(
       { error: "Failed to process settings", success: false },
       { status: 500 }

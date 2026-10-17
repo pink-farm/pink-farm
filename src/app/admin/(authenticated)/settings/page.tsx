@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Store,
@@ -25,7 +26,6 @@ import {
   Wand2,
   LayoutGrid,
   HeartHandshake,
-  Layers,
   ArrowRight,
   Sliders,
   Check,
@@ -92,7 +92,7 @@ async function compressHeroImage(file: File): Promise<string> {
 
   const sourceUrl = URL.createObjectURL(file);
   try {
-    const image = new Image();
+    const image = new globalThis.Image();
     await new Promise<void>((resolve, reject) => {
       image.onload = () => resolve();
       image.onerror = () => reject(new Error("This image could not be opened."));
@@ -372,6 +372,8 @@ export default function StoreSettingsPage() {
   const [couponMessage, setCouponMessage] = useState("");
   const [couponBusy, setCouponBusy] = useState(false);
 
+  // Hydrate editable controls from the persisted client store and settings API.
+  /* eslint-disable react-hooks/set-state-in-effect */
   // Sync state on mount
   useEffect(() => {
     fetch("/api/admin/products")
@@ -526,10 +528,13 @@ export default function StoreSettingsPage() {
           }
         }
       })
-      .catch((err) => {
-        console.warn("Could not fetch remote settings:", err);
+      .catch(() => {
+        console.warn("Could not fetch remote settings.");
       });
+  // Intentionally run once: the API fetch below is the source for later server changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     fetch("/api/admin/coupons")
@@ -1077,9 +1082,12 @@ export default function StoreSettingsPage() {
                 </p>
                 <div className="rounded-2xl bg-brand-pink/50 p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-5 border border-brand-pink-accent/40 shadow-xs">
                   <div className="h-32 w-32 sm:h-36 sm:w-36 shrink-0 overflow-hidden rounded-2xl bg-white border border-brand-pink-accent/40 shadow-sm relative">
-                    <img
+                    <Image
                       src={featuredProductImage || selectedFeaturedProduct?.imageUrl || "/images/makhana_sig.jpg"}
                       alt="Featured product preview"
+                      width={144}
+                      height={144}
+                      unoptimized
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -1309,7 +1317,7 @@ export default function StoreSettingsPage() {
                     className="flex flex-col items-center text-center gap-3 rounded-2xl border border-stone-200/80 p-4 bg-stone-50/50 hover:bg-stone-50 transition-colors"
                   >
                     <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-brand-pink-accent/40 bg-white shadow-sm">
-                      <img src={field.image} alt={`${field.label} preview`} className="h-full w-full object-cover" />
+                      <Image src={field.image} alt={`${field.label} preview`} width={80} height={80} unoptimized className="h-full w-full object-cover" />
                     </div>
                     <div className="space-y-1 w-full">
                       <p className="text-xs font-bold text-stone-800 truncate">{field.label}</p>
@@ -1772,9 +1780,12 @@ export default function StoreSettingsPage() {
                         }`}
                       >
                         <div className="w-14 h-14 rounded-lg overflow-hidden bg-stone-100 shrink-0 border border-stone-200/60 relative">
-                          <img
+                          <Image
                             src={product.imageUrl || "/images/makhana_sig.jpg"}
                             alt={product.name}
+                            width={56}
+                            height={56}
+                            unoptimized
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -1959,9 +1970,12 @@ export default function StoreSettingsPage() {
                             className="p-1.5 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2"
                           >
                             <div className="w-7 h-7 rounded-md overflow-hidden bg-white/10 shrink-0">
-                              <img
+                              <Image
                                 src={p.imageUrl || "/images/makhana_sig.jpg"}
                                 alt={p.name}
+                                width={28}
+                                height={28}
+                                unoptimized
                                 className="w-full h-full object-cover"
                               />
                             </div>
@@ -2575,7 +2589,7 @@ export default function StoreSettingsPage() {
                 <div className="flex flex-col items-center gap-3 rounded-2xl bg-stone-50/80 p-5 text-center border border-stone-200/70">
                   <div className="flex h-36 w-36 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-brand-pink to-brand-cream shadow-md">
                     {founderImage ? (
-                      <img src={founderImage} alt="Founder portrait preview" className="h-full w-full object-cover" />
+                      <Image src={founderImage} alt="Founder portrait preview" width={144} height={144} unoptimized className="h-full w-full object-cover" />
                     ) : (
                       <span className="text-6xl" aria-hidden="true">👩‍💼</span>
                     )}
@@ -2614,7 +2628,7 @@ export default function StoreSettingsPage() {
                 <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
                   <div className="mx-auto sm:mx-0 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white shadow-sm">
                     {founderImage ? (
-                      <img src={founderImage} alt="" className="h-full w-full object-cover" />
+                      <Image src={founderImage} alt="" width={96} height={96} unoptimized className="h-full w-full object-cover" />
                     ) : (
                       <span className="text-4xl" aria-hidden="true">👩‍💼</span>
                     )}

@@ -9,9 +9,10 @@ import { Minus, Plus, ShoppingCart, Check, Sparkles, Package } from "lucide-reac
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleOnTap, ShimmerSheen } from "@/components/ui/MotionWrappers";
 import { BulkOrderModal } from "@/components/products/BulkOrderModal";
+import type { StoreProduct, ProductVariant } from "@/lib/defaultProducts";
 
-type Product = any;
-type Variant = any;
+type Product = StoreProduct;
+type Variant = ProductVariant;
 
 export function AddToCart({ product, variants }: { product: Product; variants: Variant[] }) {
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
@@ -169,7 +170,7 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
       {/* Yogabar-style Product Highlights Box (Compact) */}
       <div className="bg-brand-pink/50 border border-brand-pink-accent/40 rounded-xl p-2.5 space-y-1 shadow-2xs">
         <div className="text-[11px] font-bold text-brand-green uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-brand-green" /> Why You'll Love This
+          <Sparkles className="w-3 h-3 text-brand-green" /> Why You&apos;ll Love This
         </div>
         <ul className="space-y-0.5 text-xs text-brand-charcoal/85 leading-snug">
           {highlights.map((item, idx) => (

@@ -1,13 +1,16 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/db";
 import { createSession } from "@/lib/auth";
 import { ADMIN_EMAIL } from "@/lib/auth-constants";
+import { consumeAuthRequestRateLimit, pruneAuthRateLimits } from "@/lib/rate-limit";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type OtpPurpose = "login" | "register" | "admin_login";
-const otpSecret = process.env.SESSION_SECRET || process.env.ADMIN_JWT_SECRET || (process.env.NODE_ENV === "development" ? "local-development-only-change-me-32-chars" : "");
+const otpSecret = process.env.SESSION_SECRET || (process.env.NODE_ENV === "development" ? "local-development-only-change-me-32-chars" : "");
 
 const hashCode = (email: string, code: string) =>
   createHmac("sha256", otpSecret)
@@ -15,25 +18,42 @@ const hashCode = (email: string, code: string) =>
     .digest("hex");
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   try {
-    const body: unknown = await request.json();
+    const parsed = await readBoundedJson(request, 8_192);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    const body = parsed.value;
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "Enter your email address." }, { status: 400 });
     }
 
     const values = body as Record<string, unknown>;
-    const email = typeof values.email === "string" ? values.email.trim().toLowerCase() : "";
     const name = typeof values.name === "string" ? values.name.trim().slice(0, 100) : "";
     const password = typeof values.password === "string" ? values.password : "";
     const code = typeof values.code === "string" ? values.code.trim() : "";
     const isAdminLogin = values.role === "admin";
     const purpose: OtpPurpose = values.mode === "register" ? "register" : isAdminLogin ? "admin_login" : "login";
+    const email = isAdminLogin ? ADMIN_EMAIL : (typeof values.email === "string" ? values.email.trim().toLowerCase() : "");
+
+    if (isAdminLogin && !ADMIN_EMAIL) return NextResponse.json({ error: "Administrator sign-in is not configured." }, { status: 503 });
 
     if (!emailPattern.test(email)) {
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
     }
     if (otpSecret.length < 32) {
       return NextResponse.json({ error: "Secure email verification is not configured yet." }, { status: 503 });
+    }
+
+    try {
+      const limit = await consumeAuthRequestRateLimit(request, code ? `otp-verify-${purpose}` : `otp-send-${purpose}`, email, code ? 10 : 5, 15 * 60_000, code ? 40 : 20);
+      await pruneAuthRateLimits();
+      if (!limit.allowed) {
+        console.warn("security.auth_rate_limit.activated", { scope: "otp" });
+        return NextResponse.json({ error: "Too many verification attempts. Try again later." }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } });
+      }
+    } catch {
+      console.error("security.auth_rate_limit_unavailable", { scope: "otp" });
+      return NextResponse.json({ error: "Verification is temporarily unavailable. Please try again shortly." }, { status: 503 });
     }
 
     if (!code) {
@@ -106,7 +126,7 @@ export async function POST(request: Request) {
         if (!delivery.ok) throw new Error(`Brevo returned status ${delivery.status}`);
       } catch (deliveryError) {
         await prisma.otpChallenge.deleteMany({ where: { email } });
-        console.error("Brevo OTP delivery failed:", deliveryError);
+        logServerError("security.auth.otp.failed", deliveryError);
         return NextResponse.json({ error: "We could not send your code. Please try again." }, { status: 502 });
       }
 
@@ -129,9 +149,18 @@ export async function POST(request: Request) {
     const actual = Buffer.from(hashCode(email, code), "hex");
     const valid = expected.length === actual.length && timingSafeEqual(expected, actual);
     if (!valid) {
-      await prisma.otpChallenge.update({ where: { id: challenge.id }, data: { attempts: { increment: 1 } } });
+      await prisma.otpChallenge.updateMany({
+        where: { id: challenge.id, attempts: challenge.attempts, expiresAt: { gt: new Date() } },
+        data: { attempts: { increment: 1 } },
+      });
       return NextResponse.json({ error: "That code is not correct." }, { status: 400 });
     }
+
+    const claimed = await prisma.otpChallenge.updateMany({
+      where: { id: challenge.id, attempts: challenge.attempts, expiresAt: { gt: new Date() } },
+      data: { attempts: 5 },
+    });
+    if (claimed.count !== 1) return NextResponse.json({ error: "This code has already been used. Request a new one." }, { status: 409 });
 
     if (purpose === "admin_login") {
       if (email !== ADMIN_EMAIL) return NextResponse.json({ error: "This admin code is no longer valid." }, { status: 403 });
@@ -139,6 +168,7 @@ export async function POST(request: Request) {
       if (!admin) return NextResponse.json({ error: "The authorized admin account is not set up yet." }, { status: 404 });
       await prisma.otpChallenge.deleteMany({ where: { email } });
       await createSession(admin.id, "admin");
+      console.info("security.admin_login.succeeded", { method: "otp" });
       return NextResponse.json({ success: true, admin: true });
     }
 
@@ -162,7 +192,7 @@ export async function POST(request: Request) {
       customer: { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone },
     });
   } catch (error) {
-    console.error("Customer email verification failed:", error);
+    logServerError("security.auth.otp.failed", error);
     return NextResponse.json({ error: "Unable to complete this request right now." }, { status: 500 });
   }
 }

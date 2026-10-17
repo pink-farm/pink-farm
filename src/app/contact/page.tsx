@@ -1,4 +1,4 @@
-import { FadeIn, StaggerContainer, StaggerItem, HoverCard, SpotlightCard } from "@/components/ui/MotionWrappers";
+import { FadeIn, StaggerContainer, StaggerItem, SpotlightCard } from "@/components/ui/MotionWrappers";
 import { ContactWhatsAppCard } from "./ContactWhatsAppCard";
 
 export const metadata = {

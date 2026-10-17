@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { ImagePlus, Loader2, Trash2, X, Sparkles } from "lucide-react";
 import { useSettingsStore } from "@/store/settingsStore";
 
@@ -25,11 +26,16 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
   const [error, setError] = useState("");
 
   const storeCategories = useSettingsStore((s) => s.storeCategories);
-  const activeCategories = Array.isArray(storeCategories) && storeCategories.length > 0
-    ? storeCategories
-    : ["Makhana", "Nuts", "Pantry"];
+  const activeCategories = useMemo(
+    () => Array.isArray(storeCategories) && storeCategories.length > 0
+      ? storeCategories
+      : ["Makhana", "Nuts", "Pantry"],
+    [storeCategories]
+  );
   const [isCustomCategory, setIsCustomCategory] = useState(false);
 
+  // Populate editable form state when the modal opens or the selected product changes.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!product) {
       setValues({
@@ -104,6 +110,7 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
     });
     setImageUrl(product.imageUrl ?? "");
   }, [product, activeCategories]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (product === undefined) return null;
   const set = (key: string, value: string | boolean) => setValues((prev) => ({ ...prev, [key]: value }));
@@ -114,7 +121,7 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
     if (!file.type.startsWith("image/")) { setError("Choose an image file."); return; }
     const reader = new FileReader();
     reader.onload = () => {
-      const image = new Image();
+      const image = new globalThis.Image();
       image.onload = () => {
         const scale = Math.min(1, 1400 / Math.max(image.width, image.height));
         const canvas = document.createElement("canvas"); canvas.width = Math.round(image.width * scale); canvas.height = Math.round(image.height * scale);
@@ -178,7 +185,7 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
       <form onSubmit={save} className="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-7"><div><h2 className="text-xl font-bold text-gray-900">{product ? "Edit product" : "Add new product"}</h2><p className="mt-1 text-xs text-gray-500">Add the product details and available inventory.</p></div><button type="button" onClick={onClose} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><X size={18} /></button></header>
         <div className="grid gap-5 overflow-y-auto p-5 sm:grid-cols-2 sm:p-7">
-          <label className="sm:col-span-2"><span className={labelClass}>Product image *</span><div className="flex items-center gap-4"><div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-gray-300 bg-gray-50">{imageUrl ? <img src={imageUrl} alt="Product preview" className="h-full w-full object-cover" /> : <ImagePlus className="text-gray-400" />}</div><div className="flex-1 space-y-2"><input type="file" accept="image/*" onChange={(event) => void chooseImage(event.target.files?.[0])} className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-xs file:font-semibold"/><input value={imageUrl.startsWith("data:") ? "" : imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Or paste an image URL" className={inputClass} /></div></div></label>
+          <label className="sm:col-span-2"><span className={labelClass}>Product image *</span><div className="flex items-center gap-4"><div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-gray-300 bg-gray-50">{imageUrl ? <Image src={imageUrl} alt="Product preview" width={96} height={96} unoptimized className="h-full w-full object-cover" /> : <ImagePlus className="text-gray-400" />}</div><div className="flex-1 space-y-2"><input type="file" accept="image/*" onChange={(event) => void chooseImage(event.target.files?.[0])} className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-xs file:font-semibold"/><input value={imageUrl.startsWith("data:") ? "" : imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Or paste an image URL" className={inputClass} /></div></div></label>
           <label><span className={labelClass}>Product name *</span><input required value={field("name")} onChange={(e) => { set("name", e.target.value); if (!product) set("slug", e.target.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")); }} className={inputClass}/></label>
           <label><span className={labelClass}>SKU *</span><input required value={field("sku")} onChange={(e) => set("sku", e.target.value)} className={inputClass}/></label>
           <div>
@@ -250,7 +257,7 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                    "Why You'll Love This" Highlights
+                    &quot;Why You&apos;ll Love This&quot; Highlights
                   </h4>
                   <p className="text-[11px] text-gray-500">
                     Shown directly below the product title on the product detail page. Put each bullet point on a new line.
@@ -311,7 +318,7 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
                 <span className="block text-xs font-semibold text-gray-500">Live Customer Storefront Preview</span>
                 <div className="bg-brand-pink/50 border border-brand-pink-accent/40 rounded-xl p-3 space-y-1 shadow-2xs min-h-[110px]">
                   <div className="text-[11px] font-bold text-brand-green uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3 h-3 text-brand-green" /> Why You'll Love This
+                    <Sparkles className="w-3 h-3 text-brand-green" /> Why You&apos;ll Love This
                   </div>
                   <ul className="space-y-1 text-xs text-brand-charcoal/85 leading-snug">
                     {field("highlights")

@@ -32,7 +32,9 @@ export function AdminSidebarNav() {
 
   // Close mobile drawer on route change
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- route navigation must close the mobile drawer */
     setIsOpen(false);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [pathname]);
 
   // Determine current active page label for mobile header

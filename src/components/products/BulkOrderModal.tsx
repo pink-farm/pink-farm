@@ -11,10 +11,9 @@ import {
   AlertCircle, 
   CheckCircle2, 
   Send, 
-  Sparkles,
   Info
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface BulkOrderModalProps {
   isOpen: boolean;
@@ -59,10 +58,12 @@ export function BulkOrderModal({
   // Reset or initialize state when modal opens or product changes
   useEffect(() => {
     if (isOpen) {
+      /* eslint-disable react-hooks/set-state-in-effect -- opening the modal starts a fresh quote */
       setQuantityKg(0);
       setQtyInput("");
       setErrorMsg(null);
       setIsSuccess(false);
+      /* eslint-enable react-hooks/set-state-in-effect */
 
       if (isLoggedIn && profile) {
         setCustomerName(profile.name || "");

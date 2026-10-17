@@ -36,14 +36,18 @@ async function main() {
   if (!adminPassword || adminPassword.length < 16) {
     throw new Error("Set an ADMIN_PASSWORD of at least 16 characters before seeding the authorized admin account.");
   }
+  const configuredAdminEmail = ADMIN_EMAIL;
+  if (!configuredAdminEmail) {
+    throw new Error("Set ADMIN_EMAIL before seeding the administrator outside development.");
+  }
   const existingAdmin = await prisma.adminUser.findUnique({
-    where: { email: ADMIN_EMAIL }
+    where: { email: configuredAdminEmail }
   });
 
   if (!existingAdmin) {
     await prisma.adminUser.create({
       data: {
-        email: ADMIN_EMAIL,
+        email: configuredAdminEmail,
         password: await bcrypt.hash(adminPassword, 12),
         name: "Pink Farm Admin"
       }

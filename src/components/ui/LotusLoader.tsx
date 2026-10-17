@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 export interface LotusLoaderProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
@@ -43,13 +44,14 @@ export function LotusLoader({
 
         {/* Pure Transparent Looping Lotus with Zero-Lag Tab Switching */}
         <div className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">
-          <img
+          <Image
             src="/images/lotus-loader.webp?v=4"
             alt="Pink Farm Lotus Bloom"
             width={width}
             height={height}
             loading="eager"
             decoding="async"
+            unoptimized
             className="w-full h-full object-contain pointer-events-none select-none"
           />
         </div>

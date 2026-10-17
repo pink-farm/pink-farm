@@ -9,16 +9,10 @@ import {
   Package,
   Printer,
   Calendar,
-  Filter,
   ArrowUpRight,
-  TrendingUp,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
   ChevronDown,
   Search,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 export type TimePeriod = "today" | "weekly" | "monthly" | "yearly" | "all";
 
@@ -87,6 +81,8 @@ export function DashboardOverview({ initialOrders, lowStockCount }: DashboardOve
   const [period, setPeriod] = useState<TimePeriod>("today");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Hydrate this client-only preference from URL/localStorage after mount.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     // Check URL param or saved preference
     const params = new URLSearchParams(window.location.search);
@@ -100,6 +96,7 @@ export function DashboardOverview({ initialOrders, lowStockCount }: DashboardOve
       }
     }
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handlePeriodChange = (newPeriod: TimePeriod) => {
     setPeriod(newPeriod);

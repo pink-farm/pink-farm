@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,6 @@ import {
   User,
   MapPin,
   Package,
-  Wallet,
   ShieldCheck,
   CheckCircle2,
   Plus,
@@ -17,22 +16,17 @@ import {
   Save,
   Phone,
   Mail,
-  Calendar,
   ChevronRight,
   Sparkles,
   Clock,
-  ArrowRight,
   LogOut,
   ExternalLink,
-  Copy,
   Check,
   RotateCcw,
   Truck,
-  Heart,
   AlertCircle,
   Home,
   Briefcase,
-  Gift,
   HelpCircle,
   X,
   XCircle
@@ -40,33 +34,68 @@ import {
 import { useCustomerStore, CustomerAddress } from "@/store/customerStore";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
+import { useHydrated } from "@/lib/use-hydrated";
 
 type AccountTab = "profile" | "addresses" | "orders" | "security";
+type CustomerProfileResponse = {
+  profile: { name: string; email: string; phone: string; dob?: string; gender?: string; dietaryPreferences?: string[] };
+  addresses: CustomerAddress[];
+  preferences: { whatsappAlerts: boolean; smsUpdates: boolean; emailNewsletter: boolean; preferredDeliverySlot: "morning" | "evening" | "any"; deliveryNotes: string };
+};
+
+async function fetchCustomerProfile(): Promise<CustomerProfileResponse | null> {
+  const response = await fetch("/api/customer/profile");
+  if (!response.ok) return null;
+  return await response.json() as CustomerProfileResponse;
+}
+
+type AccountOrder = {
+  id: string;
+  orderNumber: string;
+  createdAt: string;
+  totalAmount: number;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  city: string;
+  state: string;
+  items: {
+    id: string;
+    productId: string;
+    variantName: string | null;
+    quantity: number;
+    unitPrice: number;
+    subtotal: number;
+    product: { id: string; name: string; slug: string; imageUrl: string } | null;
+  }[];
+};
 
 export function CustomerAccountClient() {
   const router = useRouter();
   const customer = useCustomerStore();
+  const hydrateCustomer = useCustomerStore((state) => state.hydrateCustomer);
+  const logoutCustomer = useCustomerStore((state) => state.logoutCustomer);
   const { addItem } = useCartStore();
 
   const [activeTab, setActiveTab] = useState<AccountTab>("profile");
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const refreshCustomer = async () => {
-    const response = await fetch("/api/customer/profile");
-    if (!response.ok) return false;
-    const data = await response.json();
-    customer.hydrateCustomer({ profile: data.profile, addresses: data.addresses, preferences: data.preferences });
+  const refreshCustomer = useCallback(async () => {
+    const data = await fetchCustomerProfile();
+    if (!data) return false;
+    hydrateCustomer({ profile: data.profile, addresses: data.addresses, preferences: data.preferences });
     return true;
-  };
+  }, [hydrateCustomer]);
 
   useEffect(() => {
-    refreshCustomer().then((ok) => { if (!ok) customer.logoutCustomer(); }).catch(() => customer.logoutCustomer());
-  }, []);
+    let active = true;
+    fetchCustomerProfile().then((data) => {
+      if (!active) return;
+      if (!data) { logoutCustomer(); return; }
+      hydrateCustomer({ profile: data.profile, addresses: data.addresses, preferences: data.preferences });
+    }).catch(() => { if (active) logoutCustomer(); });
+    return () => { active = false; };
+  }, [hydrateCustomer, logoutCustomer]);
 
   // Profile Form States
   const [profileName, setProfileName] = useState(customer.profile.name);
@@ -74,7 +103,6 @@ export function CustomerAccountClient() {
   const [profilePhone, setProfilePhone] = useState(customer.profile.phone);
   const [profileDob, setProfileDob] = useState(customer.profile.dob || "");
   const [profileGender, setProfileGender] = useState(customer.profile.gender || "");
-  const [dietaryPrefs, setDietaryPrefs] = useState<string[]>(customer.profile.dietaryPreferences || []);
 
   // Address Form / Modal States
   const [isAddingAddress, setIsAddingAddress] = useState(false);
@@ -91,29 +119,26 @@ export function CustomerAccountClient() {
   const [pinLookupStatus, setPinLookupStatus] = useState<string | null>(null);
 
   // Orders State
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<AccountOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [reorderSuccessMsg, setReorderSuccessMsg] = useState<string | null>(null);
-  const [cancellingOrder, setCancellingOrder] = useState<any | null>(null);
+  const [cancellingOrder, setCancellingOrder] = useState<AccountOrder | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelModalError, setCancelModalError] = useState<string | null>(null);
 
-  // Referral / Wallet state
-  const [copiedReferral, setCopiedReferral] = useState(false);
-
-
-
   // Synchronize initial state from customer store
+  // This is an intentional form-state sync when the authenticated profile changes.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setProfileName(customer.profile.name);
     setProfileEmail(customer.profile.email);
     setProfilePhone(customer.profile.phone);
     setProfileDob(customer.profile.dob || "");
     setProfileGender(customer.profile.gender || "");
-    setDietaryPrefs(customer.profile.dietaryPreferences || []);
     
 
   }, [customer.profile, customer.preferences]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Fetch Orders
   useEffect(() => {
@@ -127,8 +152,8 @@ export function CustomerAccountClient() {
             setOrders(data.orders);
           }
         }
-      } catch (err) {
-        console.warn("Could not load customer orders:", err);
+      } catch {
+        console.warn("Could not load customer orders.");
       } finally {
         setOrdersLoading(false);
       }
@@ -140,7 +165,6 @@ export function CustomerAccountClient() {
   // Pincode auto-lookup for address
   useEffect(() => {
     if (!newAddrPin || newAddrPin.length !== 6 || !/^[1-9][0-9]{5}$/.test(newAddrPin)) {
-      setPinLookupStatus(null);
       return;
     }
 
@@ -266,10 +290,10 @@ export function CustomerAccountClient() {
     setIsAddingAddress(true);
   };
 
-  const handleReorder = (order: any) => {
+  const handleReorder = (order: AccountOrder) => {
     if (!order.items || order.items.length === 0) return;
     let addedCount = 0;
-    order.items.forEach((item: any) => {
+    order.items.forEach((item) => {
       if (item.product) {
         addItem(
           {
@@ -289,20 +313,6 @@ export function CustomerAccountClient() {
 
     setReorderSuccessMsg(`Added ${addedCount} items from order #${order.orderNumber} to your cart!`);
     setTimeout(() => setReorderSuccessMsg(null), 4000);
-  };
-
-  const copyReferralCode = () => {
-    navigator.clipboard?.writeText("PINKSHIVANI100");
-    setCopiedReferral(true);
-    setTimeout(() => setCopiedReferral(false), 3000);
-  };
-
-  const toggleDietary = (item: string) => {
-    if (dietaryPrefs.includes(item)) {
-      setDietaryPrefs(dietaryPrefs.filter((p) => p !== item));
-    } else {
-      setDietaryPrefs([...dietaryPrefs, item]);
-    }
   };
 
   const handleLogout = async () => {
@@ -790,7 +800,7 @@ export function CustomerAccountClient() {
                               maxLength={6}
                               placeholder="e.g. 141003"
                               value={newAddrPin}
-                              onChange={(e) => setNewAddrPin(e.target.value)}
+                              onChange={(e) => { setNewAddrPin(e.target.value); setPinLookupStatus(null); }}
                               className="w-full border border-brand-green/15 rounded-xl p-3 bg-white text-sm focus:outline-none focus:border-brand-green font-mono"
                             />
                             {pinLookupStatus && (
@@ -1089,7 +1099,7 @@ export function CustomerAccountClient() {
 
                           {/* Ordered items list */}
                           <div className="py-4 space-y-3">
-                            {order.items?.map((item: any) => (
+                            {order.items.map((item) => (
                               <div key={item.id} className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-3">
                                   {item.product?.imageUrl ? (

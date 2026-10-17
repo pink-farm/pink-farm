@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   orderId: string;
@@ -62,8 +62,8 @@ export function FulfillmentStatusSelect({ orderId, initialStatus }: Props) {
       } else {
         console.error("Failed to update status on server");
       }
-    } catch (err) {
-      console.error("Network error updating order status:", err);
+    } catch {
+      console.error("Network error updating order status.");
     } finally {
       setIsUpdating(false);
     }

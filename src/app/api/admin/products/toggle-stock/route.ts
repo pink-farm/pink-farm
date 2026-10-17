@@ -1,15 +1,20 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const body = await request.json();
-    const { productId, isAvailable } = body;
+    const parsed = await readBoundedJson(request, 4_096);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Stock data must be a JSON object." }, { status: 400 });
+    const { productId, isAvailable } = parsed.value as Record<string, unknown>;
 
-    if (!productId || typeof isAvailable !== "boolean") {
+    if (typeof productId !== "string" || !productId || typeof isAvailable !== "boolean") {
       return NextResponse.json(
         { error: "productId and isAvailable boolean are required" },
         { status: 400 }
@@ -66,7 +71,7 @@ export async function POST(request: Request) {
       message: `Product marked as ${isAvailable ? "In Stock" : "Out of Stock"}`,
     });
   } catch (error) {
-    console.error("Failed to toggle product stock:", error);
+    logServerError("security.admin/products.toggle-stock.failed", error);
     return NextResponse.json(
       { error: "Internal server error while updating product status" },
       { status: 500 }

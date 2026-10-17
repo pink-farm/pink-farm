@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- standalone CommonJS maintenance script
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 

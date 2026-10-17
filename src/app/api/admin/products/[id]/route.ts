@@ -1,7 +1,10 @@
+import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
+import { AdminProductInputError, classifyAdminProductError } from "@/lib/admin-product-errors.mjs";
 
 function parseProduct(body: Record<string, unknown>) {
   const name = String(body.name ?? "").trim();
@@ -11,10 +14,10 @@ function parseProduct(body: Record<string, unknown>) {
   const imageUrl = String(body.imageUrl ?? "").trim();
   const basePrice = Number(body.basePrice);
   const stockQuantity = Number(body.stockQuantity);
-  if (!name || !slug || !sku || !category || !imageUrl || !Number.isInteger(basePrice) || basePrice < 0 || !Number.isInteger(stockQuantity) || stockQuantity < 0) throw new Error("Name, slug, SKU, category, image, valid price, and non-negative inventory are required.");
-  if (imageUrl.startsWith("data:") && imageUrl.length > 3_500_000) throw new Error("Please choose an image smaller than 2.5 MB.");
+  if (!name || !slug || !sku || !category || !imageUrl || !Number.isInteger(basePrice) || basePrice < 0 || !Number.isInteger(stockQuantity) || stockQuantity < 0) throw new AdminProductInputError("Name, slug, SKU, category, image, valid price, and non-negative inventory are required.");
+  if (imageUrl.startsWith("data:") && imageUrl.length > 3_500_000) throw new AdminProductInputError("Please choose an image smaller than 2.5 MB.");
   const original = body.originalPrice === "" || body.originalPrice == null ? null : Number(body.originalPrice);
-  if (original !== null && (!Number.isInteger(original) || original < 0)) throw new Error("Original price must be a valid amount.");
+  if (original !== null && (!Number.isInteger(original) || original < 0)) throw new AdminProductInputError("Original price must be a valid amount.");
   return {
     name, slug, sku, category, imageUrl,
     shortDescription: String(body.shortDescription ?? "").trim(), description: String(body.description ?? "").trim(),
@@ -32,10 +35,14 @@ function parseProduct(body: Record<string, unknown>) {
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
-    const { packSize, ...data } = parseProduct(await request.json());
+    const parsed = await readBoundedJson(request, 4_000_000);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Product data must be a JSON object." }, { status: 400 });
+    const { packSize, ...data } = parseProduct(parsed.value as Record<string, unknown>);
     const updated = await prisma.$transaction(async (tx) => {
       const product = await tx.product.update({ where: { id }, data });
       const variant = await tx.productVariant.findFirst({ where: { productId: id } });
@@ -59,13 +66,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath(`/products/${updated.slug}`); revalidatePath("/");
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not update product.";
-    const duplicate = error instanceof Error && error.message.includes("Unique constraint");
-    return NextResponse.json({ error: duplicate ? "That slug or SKU is already in use." : message }, { status: duplicate ? 409 : 400 });
+    const result = classifyAdminProductError(error);
+    if (result.status === 500) console.error("security.admin_product.update_failed", { errorType: error instanceof Error ? error.name : "UnknownError" });
+    return NextResponse.json({ error: result.message }, { status: result.status });
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
@@ -82,7 +90,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   } catch (error) {
     if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") return NextResponse.json({ error: "Product not found." }, { status: 404 });
     if (error instanceof Error && error.message === "PRODUCT_HAS_ORDER_HISTORY") return NextResponse.json({ error: "This product has order history and can’t be deleted. Mark it out of stock to remove it from the storefront." }, { status: 409 });
-    console.error("Failed to delete product:", error);
-    return NextResponse.json({ error: "Could not delete product. Refresh and try again." }, { status: 400 });
+    logServerError("security.admin/products.id.failed", error);
+    return NextResponse.json({ error: "Could not delete product. Refresh and try again." }, { status: 500 });
   }
 }

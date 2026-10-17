@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,11 +16,9 @@ import {
   Sparkles,
   Tag,
   AlertTriangle,
-  ArrowRight,
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  Check,
   CheckCircle2,
   X,
   Search,
@@ -113,25 +111,7 @@ export function AdminCategoriesClient({
     }, 4000);
   };
 
-  useEffect(() => {
-    fetch("/api/admin/categories")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && Array.isArray(data.storeCategories) && data.storeCategories.length > 0) {
-          refreshLocalGroups(data.storeCategories, data.allProducts || allProducts);
-        }
-      })
-      .catch((err) => {
-        console.warn("Could not fetch categories on mount:", err);
-      });
-  }, []);
-
-  const toggleExpand = (cat: string) => {
-    setExpandedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
-  };
-
-  // Re-sync local state groups when categories change
-  const refreshLocalGroups = (newCatList: string[], updatedProducts: CategoryProduct[]) => {
+  const refreshLocalGroups = useCallback((newCatList: string[], updatedProducts: CategoryProduct[]) => {
     setCategories(newCatList);
     setProductsList(updatedProducts);
     setStoreSettings({ storeCategories: newCatList });
@@ -140,15 +120,10 @@ export function AdminCategoriesClient({
       const matching = updatedProducts.filter(
         (p) => p.category?.toLowerCase() === catName.toLowerCase()
       );
-      return {
-        name: catName,
-        count: matching.length,
-        products: matching,
-      };
+      return { name: catName, count: matching.length, products: matching };
     });
     setCategoriesWithProducts(newGroups);
 
-    // Recompute orphaned
     const configuredLower = new Set(newCatList.map((c) => c.toLowerCase()));
     const productCategoriesSet = new Set<string>();
     updatedProducts.forEach((p) => {
@@ -165,6 +140,23 @@ export function AdminCategoriesClient({
       }
     });
     setOrphanedCategories(newOrphaned);
+  }, [setStoreSettings]);
+
+  useEffect(() => {
+    fetch("/api/admin/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.storeCategories) && data.storeCategories.length > 0) {
+          refreshLocalGroups(data.storeCategories, data.allProducts || allProducts);
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not fetch categories on mount:", err);
+      });
+  }, [allProducts, refreshLocalGroups]);
+
+  const toggleExpand = (cat: string) => {
+    setExpandedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
   };
 
   // -------------------------------------------------------------

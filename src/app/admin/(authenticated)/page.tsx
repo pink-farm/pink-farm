@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { DashboardOverview, SerializedOrder } from "./DashboardOverview";
+import { logServerError } from "@/lib/server-log.mjs";
 
 export const instant = false;
 
@@ -36,7 +37,7 @@ export default async function AdminDashboard() {
       }
     });
   } catch (error) {
-    console.error("Dashboard error:", error);
+    logServerError("security.admin_dashboard.load_failed", error);
   }
 
   return (
