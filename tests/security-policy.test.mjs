@@ -147,14 +147,14 @@ test("coupon APIs expose only exact known validation messages", () => {
   assert.equal(getCouponInputErrorMessage(new Error("Unexpected database failure")), null);
 });
 
-test("administrator identity uses explicit configuration outside development", () => {
+test("administrator identity defaults to the store owner when configuration is omitted", () => {
   assert.equal(resolveAdminEmail(" Owner@Example.com ", "production"), "owner@example.com");
   assert.equal(resolveAdminEmail("not-an-email", "production"), "");
   assert.equal(resolveAdminEmail("x".repeat(255) + "@example.com", "production"), "");
   assert.equal(resolveAdminEmail(undefined, "development"), "pinkfarmofficial@gmail.com");
   assert.equal(resolveAdminEmail(undefined, undefined), "pinkfarmofficial@gmail.com");
-  assert.equal(resolveAdminEmail(undefined, "production"), "");
-  assert.equal(resolveAdminEmail(undefined, "test"), "");
+  assert.equal(resolveAdminEmail(undefined, "production"), "pinkfarmofficial@gmail.com");
+  assert.equal(resolveAdminEmail(undefined, "test"), "pinkfarmofficial@gmail.com");
 });
 
 test("public order references require at least 128 bits of random identifier", () => {

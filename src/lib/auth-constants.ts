@@ -1,5 +1,4 @@
 import { resolveAdminEmail } from "@/lib/admin-identity.mjs";
 
-// Keep the legacy owner convenience in development only. Preview and production
-// fail closed until the intended administrator is explicitly configured.
+// Use the store owner's address by default; deployments can override it with ADMIN_EMAIL.
 export const ADMIN_EMAIL = resolveAdminEmail(process.env.ADMIN_EMAIL, process.env.NODE_ENV);

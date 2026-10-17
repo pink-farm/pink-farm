@@ -6,7 +6,7 @@ Pink Farm is a Next.js storefront for packaged foods. Its server uses MongoDB th
 
 1. Install Node.js and run `npm install`.
 2. Create a MongoDB Atlas database (or a local MongoDB replica set). Add its connection string to `DATABASE_URL`. MongoDB transactions require a replica set, including for local development.
-3. Copy `.env.example` to `.env` and set `DATABASE_URL`, a random `SESSION_SECRET` of at least 32 characters, `BREVO_API_KEY`, `BREVO_FROM_EMAIL` on a verified sender domain, `ADMIN_EMAIL`, and a strong unique `ADMIN_PASSWORD` (at least 16 characters). `ADMIN_JWT_SECRET` is deprecated; sessions and OTPs use `SESSION_SECRET`.
+3. Copy `.env.example` to `.env` and set `DATABASE_URL`, a random `SESSION_SECRET` of at least 32 characters, `BREVO_API_KEY`, `BREVO_FROM_EMAIL` on a verified sender domain, and a strong unique `ADMIN_PASSWORD` (at least 16 characters). The admin email defaults to `pinkfarmofficial@gmail.com`; set `ADMIN_EMAIL` to override it. `ADMIN_JWT_SECRET` is deprecated; sessions and OTPs use `SESSION_SECRET`.
 4. Run `npm run db:generate`, then `npm run db:push`, then `npm run db:seed`.
 5. Start the store with `npm run dev`.
 
@@ -22,6 +22,6 @@ The seed command creates the admin using the supplied email and a bcrypt passwor
 
 ## Production deployment
 
-Provision MongoDB with network access restricted to the deployed application, set `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and Brevo sender credentials in the deployment platform, run Prisma generation and schema push against the intended database, seed the initial admin securely, and verify the deployed domain uses HTTPS. Configure Razorpay only as part of a separately reviewed online-payment implementation; setting Razorpay secrets alone does not enable online payments.
+Provision MongoDB with network access restricted to the deployed application, set `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_PASSWORD`, and Brevo sender credentials in the deployment platform, optionally set `ADMIN_EMAIL` to override the default owner address, run Prisma generation and schema push against the intended database, seed the initial admin securely, and verify the deployed domain uses HTTPS. Configure Razorpay only as part of a separately reviewed online-payment implementation; setting Razorpay secrets alone does not enable online payments.
 
 The `AuthRateLimit` collection is a new additive schema requirement. Back up the intended database, review Prisma's proposed schema changes, and apply `npm run db:push` to the target environment before deployment. Do not run it against production without a current backup and an approved maintenance plan.
