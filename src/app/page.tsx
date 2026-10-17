@@ -142,7 +142,7 @@ export default async function Home() {
               { icon: Package, text: "Carefully Packed" },
               { icon: ShieldCheck, text: "Quality-Focused" },
               { icon: Truck, text: "Easy Online Ordering" },
-              { icon: Lock, text: "Secure UPI Checkout" }
+              { icon: Lock, text: "UPI, Cards & NetBanking" }
             ].map((item, i) => {
               const Icon = item.icon;
               return (
@@ -419,8 +419,8 @@ export default async function Home() {
               <HoverCard lift={-5}>
                 <div className="flex flex-col items-center text-center gap-6 relative z-10 group">
                   <div className="w-16 h-16 rounded-full bg-brand-pink text-brand-green flex items-center justify-center text-2xl font-bold transition-transform duration-300 group-hover:scale-110 shadow-lg">2</div>
-                  <h3 className="font-serif text-xl">Pay Securely Using UPI</h3>
-                  <p className="opacity-80">Fast, familiar, and 100% secure checkout exclusively with UPI.</p>
+                  <h3 className="font-serif text-xl">Pay Securely Online</h3>
+                  <p className="opacity-80">Fast, 100% secure checkout via UPI, Cards, and NetBanking.</p>
                 </div>
               </HoverCard>
             </StaggerItem>
@@ -445,7 +445,7 @@ export default async function Home() {
             <HoverCard lift={-3}>
               <div className="border border-brand-green-light/20 p-6 rounded-xl bg-white/70 shadow-sm transition-shadow hover:shadow-md">
                 <h3 className="font-bold text-lg mb-2">How do I pay for my order?</h3>
-                <p className="opacity-80">We currently accept payments exclusively through UPI to ensure a seamless, secure, and familiar checkout experience.</p>
+                <p className="opacity-80">We accept payments securely via UPI, Credit &amp; Debit Cards, and NetBanking to ensure a smooth, fast checkout experience.</p>
               </div>
             </HoverCard>
             <HoverCard lift={-3}>

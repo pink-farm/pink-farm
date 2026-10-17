@@ -197,7 +197,12 @@ export const useSettingsStore = create<SettingsStore>()(
                 comboButtonText: data.comboButtonText ?? get().comboButtonText,
                 comboFooterNote: data.comboFooterNote ?? get().comboFooterNote,
                 comboProductIds: Array.isArray(data.comboProductIds) ? data.comboProductIds : get().comboProductIds,
-                storeCategories: Array.isArray(data.storeCategories) ? data.storeCategories : get().storeCategories,
+                storeCategories:
+                  Array.isArray(data.storeCategories) && data.storeCategories.length > 0
+                    ? data.storeCategories
+                    : get().storeCategories?.length > 0
+                    ? get().storeCategories
+                    : DEFAULT_SETTINGS.storeCategories,
                 isLoading: false,
               });
             }

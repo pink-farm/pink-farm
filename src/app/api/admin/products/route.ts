@@ -62,7 +62,7 @@ export async function POST(request: Request) {
         await prisma.storeSettings.upsert({
           where: { id: "default" },
           update: { storeCategories: [...currentCats, data.category] },
-          create: { id: "default", storeCategories: [...currentCats, data.category] },
+          create: { storeCategories: [...currentCats, data.category] },
         });
       }
     } catch {}

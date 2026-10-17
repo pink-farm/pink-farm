@@ -51,7 +51,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         await prisma.storeSettings.upsert({
           where: { id: "default" },
           update: { storeCategories: [...currentCats, data.category] },
-          create: { id: "default", storeCategories: [...currentCats, data.category] },
+          create: { storeCategories: [...currentCats, data.category] },
         });
       }
     } catch {}

@@ -239,7 +239,7 @@ export default function CartPage() {
               )}
               
               <div className="mt-5 text-center text-xs opacity-80 flex flex-col gap-1">
-                <p className="font-semibold text-brand-green">🔒 100% Secure Checkout • UPI &amp; Cards</p>
+                <p className="font-semibold text-brand-green">🔒 100% Secure Checkout • UPI, Cards &amp; NetBanking</p>
                 <p className="text-[11px] text-brand-charcoal/70">
                   {isLoggedIn 
                     ? "✓ Logged in • Your order will be linked to your account for live tracking" 

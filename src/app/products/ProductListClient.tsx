@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { HoverCard, SpotlightCard } from "@/components/ui/MotionWrappers";
 import { formatPrice } from "@/lib/utils";
@@ -29,6 +30,8 @@ export function ProductListClient({
   initialProducts: Product[];
   initialCategories?: string[];
 }) {
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams ? searchParams.get("category") : null;
   const comboEnabled = useSettingsStore((s) => s.comboEnabled);
   const storeCategories = useSettingsStore((s) => s.storeCategories);
   const fetchSettings = useSettingsStore((s) => s.fetchSettings);
@@ -39,6 +42,13 @@ export function ProductListClient({
   useEffect(() => {
     fetchSettings();
   }, [fetchSettings]);
+
+  useEffect(() => {
+    if (categoryParam) {
+      const normalized = categoryParam.trim().toLowerCase();
+      setSelectedCategory(normalized);
+    }
+  }, [categoryParam]);
 
   const categories = useMemo(() => {
     const configured =

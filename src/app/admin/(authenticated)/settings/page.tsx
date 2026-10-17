@@ -211,18 +211,35 @@ export default function StoreSettingsPage() {
   const [previewCategoryTab, setPreviewCategoryTab] = useState("all");
   const [previewTierTab, setPreviewTierTab] = useState<0 | 1>(0);
 
-  const handleAddCategory = (rawName?: string) => {
+  const handleAddCategory = async (rawName?: string) => {
     const nameToAdd = (rawName || newCategoryInput).trim();
     if (!nameToAdd) return;
     if (storeCategories.some((c) => c.toLowerCase() === nameToAdd.toLowerCase())) {
       alert(`Category "${nameToAdd}" is already in your categories list.`);
       return;
     }
-    setStoreCategories([...storeCategories, nameToAdd]);
+    const updated = [...storeCategories, nameToAdd];
+    setStoreCategories(updated);
     setNewCategoryInput("");
+    useSettingsStore.getState().setSettings({ storeCategories: updated });
+
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: nameToAdd }),
+      });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.storeCategories)) {
+        setStoreCategories(data.storeCategories);
+        useSettingsStore.getState().setSettings({ storeCategories: data.storeCategories });
+      }
+    } catch (err) {
+      console.warn("Could not immediately sync category:", err);
+    }
   };
 
-  const handleDeleteCategory = (catToDelete: string) => {
+  const handleDeleteCategory = async (catToDelete: string) => {
     const prodCount = products.filter(
       (p) => p.category?.toLowerCase() === catToDelete.toLowerCase()
     ).length;
@@ -233,12 +250,44 @@ export default function StoreSettingsPage() {
         : `Delete category "${catToDelete}" from the storefront filter bar?`;
 
     if (!window.confirm(message)) return;
-    setStoreCategories(storeCategories.filter((c) => c !== catToDelete));
+    const updated = storeCategories.filter((c) => c.toLowerCase() !== catToDelete.toLowerCase());
+    setStoreCategories(updated);
+    useSettingsStore.getState().setSettings({ storeCategories: updated });
+
+    try {
+      const res = await fetch(`/api/admin/categories?name=${encodeURIComponent(catToDelete)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.storeCategories)) {
+        setStoreCategories(data.storeCategories);
+        useSettingsStore.getState().setSettings({ storeCategories: data.storeCategories });
+      }
+    } catch (err) {
+      console.warn("Could not immediately delete category:", err);
+    }
   };
 
-  const handleResetCategories = () => {
+  const handleResetCategories = async () => {
     if (window.confirm("Reset categories back to defaults (Makhana, Nuts, Pantry)?")) {
-      setStoreCategories(["Makhana", "Nuts", "Pantry"]);
+      const defaultCats = ["Makhana", "Nuts", "Pantry"];
+      setStoreCategories(defaultCats);
+      useSettingsStore.getState().setSettings({ storeCategories: defaultCats });
+
+      try {
+        const res = await fetch("/api/admin/categories", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "reset" }),
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.storeCategories)) {
+          setStoreCategories(data.storeCategories);
+          useSettingsStore.getState().setSettings({ storeCategories: data.storeCategories });
+        }
+      } catch (err) {
+        console.warn("Could not immediately reset categories:", err);
+      }
     }
   };
 
@@ -386,7 +435,9 @@ export default function StoreSettingsPage() {
       if (typeof storeSettings.comboButtonText === "string") setComboButtonText(storeSettings.comboButtonText);
       if (typeof storeSettings.comboFooterNote === "string") setComboFooterNote(storeSettings.comboFooterNote);
       if (Array.isArray(storeSettings.comboProductIds)) setComboProductIds(storeSettings.comboProductIds);
-      if (Array.isArray(storeSettings.storeCategories)) setStoreCategories(storeSettings.storeCategories);
+      if (Array.isArray(storeSettings.storeCategories) && storeSettings.storeCategories.length > 0) {
+        setStoreCategories(storeSettings.storeCategories);
+      }
     }
 
     if (typeof window !== "undefined") {
@@ -470,7 +521,9 @@ export default function StoreSettingsPage() {
           if (typeof data.comboButtonText === "string") setComboButtonText(data.comboButtonText);
           if (typeof data.comboFooterNote === "string") setComboFooterNote(data.comboFooterNote);
           if (Array.isArray(data.comboProductIds)) setComboProductIds(data.comboProductIds);
-          if (Array.isArray(data.storeCategories)) setStoreCategories(data.storeCategories);
+          if (Array.isArray(data.storeCategories) && data.storeCategories.length > 0) {
+            setStoreCategories(data.storeCategories);
+          }
         }
       })
       .catch((err) => {
@@ -1974,6 +2027,13 @@ export default function StoreSettingsPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <Link
+                    href="/admin/categories"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-green text-white hover:brightness-95 transition-all shadow-xs cursor-pointer"
+                  >
+                    <span>Open Category Manager</span>
+                    <ArrowRight size={13} />
+                  </Link>
                   <button
                     type="button"
                     onClick={handleResetCategories}

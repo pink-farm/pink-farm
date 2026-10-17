@@ -112,7 +112,7 @@ export function Footer() {
       <div className="container mx-auto px-4 mt-8 pt-8 border-t border-brand-green-light/30 flex flex-col md:flex-row items-center justify-between opacity-80 text-xs">
         <p>&copy; 2026 {storeName || "Pink Farm"}. All rights reserved.</p>
         <div className="mt-4 md:mt-0 flex gap-4">
-          <span>Secure checkout with UPI</span>
+          <span>Secure checkout with UPI, Cards &amp; NetBanking</span>
         </div>
       </div>
     </footer>

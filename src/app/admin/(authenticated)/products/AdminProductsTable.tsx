@@ -173,7 +173,7 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Link
-            href="/admin/settings?tab=categories"
+            href="/admin/categories"
             className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-700 shadow-xs hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer"
             title="Manage Storefront Category Filter Bar"
           >

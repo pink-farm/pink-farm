@@ -275,7 +275,7 @@ export default async function OrderSlipPage({
               </div>
 
               <div className="text-[9px] text-gray-500 pt-0.5 text-right">
-                Payment: <span className="font-bold text-black">{order.paymentStatus} via Online/UPI</span>
+                Payment: <span className="font-bold text-black">{order.paymentStatus} via Online (UPI / Card / NetBanking)</span>
               </div>
             </div>
           </div>

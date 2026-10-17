@@ -12,7 +12,8 @@ import {
   ArrowUpRight, 
   Menu, 
   X, 
-  ShieldCheck 
+  ShieldCheck,
+  LayoutGrid
 } from "lucide-react";
 import { LogoutButton } from "./LogoutButton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/products", label: "Products", icon: PackageOpen },
+  { href: "/admin/categories", label: "Categories", icon: LayoutGrid },
   { href: "/admin/settings", label: "Store Settings", icon: Settings },
 ];
 

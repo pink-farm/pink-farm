@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ProductListClient } from "./ProductListClient";
 import { FadeIn } from "@/components/ui/MotionWrappers";
 import ComboBuilder from "@/components/products/ComboBuilder";
@@ -35,10 +36,12 @@ export default async function ProductsPage() {
           </div>
         </FadeIn>
 
-        <ProductListClient
-          initialProducts={products}
-          initialCategories={settings.storeCategories}
-        />
+        <Suspense fallback={<div className="py-12 text-center text-sm font-semibold text-brand-green">Loading products...</div>}>
+          <ProductListClient
+            initialProducts={products}
+            initialCategories={settings.storeCategories}
+          />
+        </Suspense>
       </div>
 
       {/* MAKE YOUR OWN COMBO SECTION */}

@@ -252,13 +252,10 @@ export async function POST(request: Request) {
       saved = await prisma.storeSettings.upsert({
         where: { id: "default" },
         update: dataToSave,
-        create: {
-          id: "default",
-          ...dataToSave,
-        },
+        create: dataToSave,
       });
-    } catch {
-      console.warn("Database unavailable; returning the submitted settings without saving them.");
+    } catch (err) {
+      console.error("Error saving store settings to database:", err);
       saved = { id: "default", ...dataToSave, updatedAt: new Date().toISOString() };
     }
 
