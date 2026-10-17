@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, KeyRound, Mail, ShieldCheck } from "lucide-react";
 import { LotusLoader } from "@/components/ui/LotusLoader";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 type AccountRole = "customer" | "admin";
 type ResetStep = "request" | "verify" | "success";
@@ -168,11 +169,11 @@ export function PasswordResetForm() {
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="new-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">New password</label>
-                  <input id="new-password" type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 8 characters" className="w-full rounded-xl border border-brand-green-light/15 bg-brand-cream/40 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+                  <PasswordInput id="new-password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 8 characters" className="border-brand-green-light/15 bg-brand-cream/40" />
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="confirm-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Confirm new password</label>
-                  <input id="confirm-password" type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Enter it once more" className="w-full rounded-xl border border-brand-green-light/15 bg-brand-cream/40 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+                  <PasswordInput id="confirm-password" autoComplete="new-password" required minLength={8} maxLength={128} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Enter it once more" className="border-brand-green-light/15 bg-brand-cream/40" />
                 </div>
               </>}
 
@@ -191,7 +192,17 @@ export function PasswordResetForm() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {busy && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-ivory/90 px-5 backdrop-blur-md"><div className="rounded-[2rem] border border-brand-green/10 bg-white/95 px-9 py-8 shadow-2xl shadow-brand-green/10"><LotusLoader size="md" text={loadingText} subtext="A moment of Pink Farm care" /></div></motion.div>}
+        {busy && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.28, ease: "easeInOut" }}
+            className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] pointer-events-auto select-none"
+          >
+            <LotusLoader size="xl" text={loadingText} subtext="A moment of Pink Farm care" />
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

@@ -7,7 +7,7 @@ import { useCustomerStore } from "@/store/customerStore";
 import { Mail, ShieldAlert, Settings, User, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { LotusLoader } from "@/components/ui/LotusLoader";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 type CustomerMethod = "password" | "otp";
 type AdminMethod = "password" | "otp";
@@ -49,6 +49,24 @@ export function LoginForm() {
     return () => window.clearTimeout(registrationTimer);
   }, []);
 
+  useEffect(() => {
+    const handleRouteMounted = () => {
+      setIsLoading(false);
+    };
+    window.addEventListener("pinkfarm:route:mounted", handleRouteMounted);
+    return () => {
+      window.removeEventListener("pinkfarm:route:mounted", handleRouteMounted);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading) return;
+    const safetyTimer = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 12000);
+    return () => window.clearTimeout(safetyTimer);
+  }, [isLoading]);
+
   const finishCustomerSignIn = (customer: { name: string; email: string; phone?: string | null }) => {
     loginCustomer({ name: customer.name, email: customer.email, phone: customer.phone || "" });
     let destination = "/account";
@@ -58,6 +76,7 @@ export function LoginForm() {
       if (redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//") && !redirectParam.startsWith("/\\")) {
         destination = redirectParam;
       }
+      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
     }
     router.push(destination);
     router.refresh();
@@ -67,6 +86,9 @@ export function LoginForm() {
     event.preventDefault();
     setIsLoading(true);
     setError("");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+    }
 
     try {
       const response = await fetch("/api/admin/login", {
@@ -75,14 +97,21 @@ export function LoginForm() {
         body: JSON.stringify({ password: adminPassword }),
       });
       const data = await response.json();
-      if (!response.ok) setError(data.error || "Invalid credentials.");
-      else {
+      if (!response.ok) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+        }
+        setError(data.error || "Invalid credentials.");
+        setIsLoading(false);
+      } else {
         router.push("/admin");
         router.refresh();
       }
     } catch {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+      }
       setError("Unable to sign in right now. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -91,6 +120,9 @@ export function LoginForm() {
     event.preventDefault();
     setIsLoading(true);
     setError("");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+    }
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -99,11 +131,20 @@ export function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-      if (!response.ok) setError(data.error || "Unable to sign in.");
-      else finishCustomerSignIn(data.customer);
+      if (!response.ok) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+        }
+        setError(data.error || "Unable to sign in.");
+        setIsLoading(false);
+      } else {
+        finishCustomerSignIn(data.customer);
+      }
     } catch {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+      }
       setError("Unable to sign in right now. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -112,6 +153,9 @@ export function LoginForm() {
     event.preventDefault();
     setIsLoading(true);
     setError("");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+    }
     try {
       const response = await fetch("/api/auth/otp", {
         method: "POST",
@@ -119,15 +163,27 @@ export function LoginForm() {
         body: JSON.stringify({ role: "admin", ...(adminOtpSent ? { code: adminOtp } : {}) }),
       });
       const data = await response.json();
-      if (!response.ok) setError(data.error || "Unable to verify your admin email.");
-      else if (!adminOtpSent) setAdminOtpSent(true);
-      else {
+      if (!response.ok) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+        }
+        setError(data.error || "Unable to verify your admin email.");
+        setIsLoading(false);
+      } else if (!adminOtpSent) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+        }
+        setAdminOtpSent(true);
+        setIsLoading(false);
+      } else {
         router.push("/admin");
         router.refresh();
       }
     } catch {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+      }
       setError("Unable to verify your admin email right now. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -136,6 +192,9 @@ export function LoginForm() {
     event.preventDefault();
     setIsLoading(true);
     setError("");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+    }
 
     try {
       const registering = isRegistering;
@@ -150,12 +209,26 @@ export function LoginForm() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) setError(data.error || "Unable to verify your email.");
-      else if (!otpSent) setOtpSent(true);
-      else finishCustomerSignIn(data.customer);
+      if (!response.ok) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+        }
+        setError(data.error || "Unable to verify your email.");
+        setIsLoading(false);
+      } else if (!otpSent) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+        }
+        setOtpSent(true);
+        setIsLoading(false);
+      } else {
+        finishCustomerSignIn(data.customer);
+      }
     } catch {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+      }
       setError("Unable to verify your email right now. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -238,7 +311,7 @@ export function LoginForm() {
                   </div>
                   <div className="space-y-1.5">
                     <label htmlFor="register-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Create password</label>
-                    <input id="register-password" type="password" autoComplete="new-password" required minLength={8} maxLength={128} placeholder="At least 8 characters" value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+                    <PasswordInput id="register-password" autoComplete="new-password" required minLength={8} maxLength={128} placeholder="At least 8 characters" value={password} onChange={(event) => setPassword(event.target.value)} />
                   </div>
                 </>
               ) : (
@@ -262,7 +335,7 @@ export function LoginForm() {
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="customer-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Password</label>
-                <input id="customer-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+                <PasswordInput id="customer-password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
               </div>
               <Button type="submit" size="lg" className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign in"}
@@ -305,7 +378,13 @@ export function LoginForm() {
               </div>
               <Button
                 type="button"
-                onClick={() => router.push("/admin")}
+                onClick={() => {
+                  setIsLoading(true);
+                  if (typeof window !== "undefined") {
+                    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+                  }
+                  router.push("/admin");
+                }}
                 size="lg"
                 className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10"
               >
@@ -339,7 +418,7 @@ export function LoginForm() {
                 <form onSubmit={handleAdminSubmit} className="space-y-4">
                   <div className="space-y-1.5">
                     <label htmlFor="admin-password" className="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Password</label>
-                    <input id="admin-password" type="password" autoComplete="current-password" required value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} className="w-full rounded-xl border border-brand-green-light/20 bg-brand-cream/30 p-3.5 text-sm font-medium transition-colors focus:border-brand-green focus:bg-white focus:outline-none" />
+                    <PasswordInput id="admin-password" autoComplete="current-password" required value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} />
                   </div>
                   <Button type="submit" size="lg" className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10" disabled={isLoading}>
                     {isLoading ? "Authenticating..." : "Access Admin Dashboard"}
@@ -367,15 +446,6 @@ export function LoginForm() {
         </div>
       )}
 
-      <AnimatePresence>
-        {isLoading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-ivory/90 px-5 backdrop-blur-md">
-            <div className="rounded-[2rem] border border-brand-green/10 bg-white/95 px-8 py-7 shadow-2xl shadow-brand-green/10">
-              <LotusLoader size="sm" text="A moment of care" subtext="Securing your Pink Farm account" />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
