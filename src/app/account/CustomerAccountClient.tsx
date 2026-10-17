@@ -103,6 +103,7 @@ export function CustomerAccountClient() {
   const [profilePhone, setProfilePhone] = useState(customer.profile.phone);
   const [profileDob, setProfileDob] = useState(customer.profile.dob || "");
   const [profileGender, setProfileGender] = useState(customer.profile.gender || "");
+  const [dietaryPrefs, setDietaryPrefs] = useState<string[]>(customer.profile.dietaryPreferences || []);
 
   // Address Form / Modal States
   const [isAddingAddress, setIsAddingAddress] = useState(false);
@@ -135,7 +136,7 @@ export function CustomerAccountClient() {
     setProfilePhone(customer.profile.phone);
     setProfileDob(customer.profile.dob || "");
     setProfileGender(customer.profile.gender || "");
-    
+    setDietaryPrefs(customer.profile.dietaryPreferences || []);
 
   }, [customer.profile, customer.preferences]);
   /* eslint-enable react-hooks/set-state-in-effect */
