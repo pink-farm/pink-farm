@@ -29,7 +29,8 @@ import {
   Briefcase,
   HelpCircle,
   X,
-  XCircle
+  XCircle,
+  Star
 } from "lucide-react";
 import { useCustomerStore, CustomerAddress } from "@/store/customerStore";
 import { useCartStore } from "@/store/cartStore";
@@ -1124,6 +1125,15 @@ export function CustomerAccountClient() {
                                     <div className="text-xs text-brand-charcoal/60">
                                       Qty: {item.quantity} {item.variantName ? `• ${item.variantName}` : ""}
                                     </div>
+                                    {item.product?.slug && (
+                                      <Link
+                                        href={`/products/${item.product.slug}?review=1#reviews`}
+                                        className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2 py-0.5 rounded-md transition shadow-2xs"
+                                      >
+                                        <Star size={11} className="fill-amber-400 text-amber-500" />
+                                        <span>Rate &amp; Review Product</span>
+                                      </Link>
+                                    )}
                                   </div>
                                 </div>
 

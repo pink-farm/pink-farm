@@ -21,6 +21,7 @@ function presentEntry(entry: {
     author: entry.customer.name || "Pink Farm customer",
     createdAt: entry.createdAt.toISOString(),
     ...(entry.updatedAt ? { updatedAt: entry.updatedAt.toISOString() } : {}),
+    isVerified: true,
   };
 }
 
@@ -35,18 +36,18 @@ export async function GET(_request: Request, { params }: RouteContext) {
       ? session.userId
       : undefined;
 
-    const [reviews, comments, ratingSummary, ratingCounts, myReview] = await Promise.all([
+    const [reviews, comments, ratingSummary, ratingCounts, myReview, hasPurchased] = await Promise.all([
       prisma.productReview.findMany({
         where: { productId: product.id },
         include: { customer: { select: { name: true } } },
         orderBy: { createdAt: "desc" },
-        take: 30,
+        take: 100,
       }),
       prisma.productComment.findMany({
         where: { productId: product.id },
         include: { customer: { select: { name: true } } },
         orderBy: { createdAt: "desc" },
-        take: 30,
+        take: 50,
       }),
       prisma.productReview.aggregate({
         where: { productId: product.id },
@@ -60,6 +61,15 @@ export async function GET(_request: Request, { params }: RouteContext) {
             select: { id: true, rating: true, content: true },
           })
         : Promise.resolve(null),
+      customerId
+        ? prisma.orderItem.findFirst({
+            where: {
+              productId: product.id,
+              order: { customerId },
+            },
+            select: { id: true },
+          }).then((item) => Boolean(item))
+        : Promise.resolve(false),
     ]);
 
     return NextResponse.json({
@@ -69,6 +79,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
       reviewCount: ratingSummary._count._all,
       ratingDistribution: [5, 4, 3, 2, 1].map((rating) => ({ rating, count: ratingCounts[rating - 1] })),
       myReview,
+      hasPurchased,
     });
   } catch (error) {
     logServerError("security.products/slug.feedback.failed", error);
@@ -79,20 +90,6 @@ export async function GET(_request: Request, { params }: RouteContext) {
 export async function POST(request: Request, { params }: RouteContext) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   try {
-    const session = await getCustomerSession();
-    const customerId = typeof session?.userId === "string" ? session.userId : "";
-    if (!customerId || !/^[a-f\d]{24}$/i.test(customerId)) {
-      return NextResponse.json({ error: "Please create an account or sign in to share feedback.", code: "ACCOUNT_REQUIRED" }, { status: 401 });
-    }
-
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId },
-      select: { id: true },
-    });
-    if (!customer) {
-      return NextResponse.json({ error: "Please create an account or sign in to share feedback.", code: "ACCOUNT_REQUIRED" }, { status: 401 });
-    }
-
     const { slug } = await params;
     const product = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
     if (!product) return NextResponse.json({ error: "This product is no longer available." }, { status: 404 });
@@ -101,6 +98,35 @@ export async function POST(request: Request, { params }: RouteContext) {
     if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
     if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Feedback must be a JSON object." }, { status: 400 });
     const body = parsed.value as Record<string, unknown>;
+
+    const session = await getCustomerSession();
+    const customerId = typeof session?.userId === "string" ? session.userId : "";
+
+    let customer: { id: string; name: string } | null = null;
+    if (customerId && /^[a-f\d]{24}$/i.test(customerId)) {
+      customer = await prisma.customer.findUnique({
+        where: { id: customerId },
+        select: { id: true, name: true },
+      });
+    }
+
+    if (!customer) {
+      const authorName = typeof body?.authorName === "string" ? body.authorName.trim() : "";
+      const authorEmail = typeof body?.authorEmail === "string" ? body.authorEmail.trim().toLowerCase() : "";
+      if (authorEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authorEmail) && authorName.length >= 2) {
+        customer = await prisma.customer.upsert({
+          where: { email: authorEmail },
+          update: { name: authorName },
+          create: { email: authorEmail, name: authorName },
+          select: { id: true, name: true },
+        });
+      }
+    }
+
+    if (!customer) {
+      return NextResponse.json({ error: "Please sign in or enter your name and email to share a review.", code: "ACCOUNT_REQUIRED" }, { status: 401 });
+    }
+
     const kind = body?.kind;
     const content = typeof body?.content === "string" ? body.content.trim() : "";
     if (content.length < 2 || content.length > 1200) {

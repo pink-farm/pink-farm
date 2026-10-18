@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { CheckCircle2, Clock, Package, Truck, Home, Printer } from "lucide-react";
+import { CheckCircle2, Clock, Package, Truck, Home, Printer, Star } from "lucide-react";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
 import { getCustomerSession } from "@/lib/auth";
 import { canAccessOrderReference } from "@/lib/session-policy.mjs";
@@ -125,8 +125,17 @@ export default async function OrderPage({
               <div className="flex gap-3 sm:gap-4 items-center min-w-0 flex-1">
                 <span className="font-bold text-xs sm:text-sm shrink-0">{item.quantity}x</span>
                 <div className="min-w-0 flex-1">
-                   <Link href={`/products`} className="font-medium text-brand-green hover:underline text-sm sm:text-base truncate block">{item.product.name}</Link>
+                   <Link href={`/products/${item.product.slug}`} className="font-medium text-brand-green hover:underline text-sm sm:text-base truncate block">{item.product.name}</Link>
                    {item.variantName && <p className="text-xs opacity-70 truncate">{item.variantName}</p>}
+                   {item.product.slug && (
+                     <Link
+                       href={`/products/${item.product.slug}?review=1#reviews`}
+                       className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 px-2.5 py-1 rounded-full transition-all shadow-2xs"
+                     >
+                       <Star size={12} className="fill-amber-400 text-amber-500" />
+                       <span>Rate &amp; Review</span>
+                     </Link>
+                   )}
                 </div>
               </div>
               <span className="font-medium shrink-0 text-sm sm:text-base">₹{(item.subtotal / 100).toFixed(2)}</span>

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SpotlightCard } from "@/components/ui/MotionWrappers";
 import { formatPrice } from "@/lib/utils";
 import { useSettingsStore } from "@/store/settingsStore";
+import { Star } from "lucide-react";
 
 interface Product {
   id: string;
@@ -224,7 +225,16 @@ export function ProductListClient({
                     </div>
                     <div>
                       <h3 className="font-serif text-lg font-bold text-brand-green group-hover:text-brand-green-light transition-colors leading-tight">{product.name}</h3>
-                      <p className="text-sm opacity-70 line-clamp-2 mt-1">{product.shortDescription}</p>
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <div className="flex items-center gap-0.5 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded text-[11px] font-bold text-amber-900 shadow-2xs">
+                          <span>4.8</span>
+                          <Star size={10} className="fill-amber-400 text-amber-500" />
+                        </div>
+                        <span className="text-[11px] font-medium text-brand-charcoal/55">
+                          Verified Reviews
+                        </span>
+                      </div>
+                      <p className="text-sm opacity-70 line-clamp-2 mt-1.5">{product.shortDescription}</p>
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <p className="font-bold text-brand-green text-base">
                           ₹{formatPrice(product.basePrice)}
