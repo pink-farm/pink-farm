@@ -11,7 +11,7 @@ export function MakhanaNavigationLoader() {
   // Render the branded cover in the initial HTML too, so a slow first visit
   // does not flash an unstyled page before the client router hydrates.
   const [isNavigating, setIsNavigating] = useState(true);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(18);
 
   const startTimestampRef = useRef<number>(0);
   const currentPathnameRef = useRef<string>(pathname);
@@ -21,7 +21,6 @@ export function MakhanaNavigationLoader() {
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    setProgress(18);
     initialProgressTimerRef.current = setTimeout(() => setProgress(100), 700);
     dismissTimerRef.current = setTimeout(() => {
       setIsNavigating(false);
