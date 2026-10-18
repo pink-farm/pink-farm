@@ -21,11 +21,11 @@ export function MakhanaNavigationLoader() {
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    initialProgressTimerRef.current = setTimeout(() => setProgress(100), 700);
+    initialProgressTimerRef.current = setTimeout(() => setProgress(100), 220);
     dismissTimerRef.current = setTimeout(() => {
       setIsNavigating(false);
       setProgress(0);
-    }, 1000);
+    }, 350);
 
     return () => {
       if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
