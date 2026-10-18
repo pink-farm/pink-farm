@@ -45,6 +45,7 @@ export function FulfillmentStatusSelect({ orderId, initialStatus }: Props) {
   const [justUpdated, setJustUpdated] = useState(false);
 
   const handleChange = async (newStatus: string) => {
+    const prevStatus = status;
     setStatus(newStatus);
     setIsUpdating(true);
     setJustUpdated(false);
@@ -60,10 +61,13 @@ export function FulfillmentStatusSelect({ orderId, initialStatus }: Props) {
         setJustUpdated(true);
         setTimeout(() => setJustUpdated(false), 2000);
       } else {
-        console.error("Failed to update status on server");
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.error || "Failed to update order status on server.");
+        setStatus(prevStatus);
       }
     } catch {
-      console.error("Network error updating order status.");
+      alert("Network error updating order status. Please check your connection.");
+      setStatus(prevStatus);
     } finally {
       setIsUpdating(false);
     }

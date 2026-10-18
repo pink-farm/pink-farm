@@ -53,7 +53,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 md:py-16">
+    <div className="container mx-auto px-4 py-8 md:py-16 pb-28 sm:pb-16 min-w-0">
       <FadeIn direction="down">
         <h1 className="font-serif text-3xl md:text-4xl text-brand-green mb-10">Your Shopping Cart</h1>
       </FadeIn>
@@ -64,7 +64,7 @@ export default function CartPage() {
           <AnimatePresence mode="popLayout">
             {items.map((item) => (
               <motion.div 
-                key={`${item.id}-${item.variantId}`}
+                key={`${item.id}-${item.variantId || ""}-${item.variantName || ""}`}
                 layout
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -86,7 +86,7 @@ export default function CartPage() {
                       <Link href={`/products/${item.slug}`} className="font-serif text-lg md:text-xl text-brand-green hover:text-brand-green-light hover:underline font-bold">
                         {item.name}
                       </Link>
-                      <button onClick={() => removeItem(item.id, item.variantId)} className="text-red-400 hover:text-red-600 p-1">
+                      <button onClick={() => removeItem(item.id, item.variantId, item.variantName)} className="text-red-400 hover:text-red-600 p-1 cursor-pointer transition-colors" title="Remove item">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -99,20 +99,22 @@ export default function CartPage() {
                   <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center border border-brand-green-light/30 rounded-lg overflow-hidden h-10 bg-brand-cream">
                       <button 
-                        onClick={() => updateQuantity(item.id, item.variantId, item.quantity - 1)}
-                        className="px-3 h-full flex items-center justify-center hover:bg-white active:scale-95 transition-transform"
+                        onClick={() => updateQuantity(item.id, item.variantId, item.quantity - 1, item.variantName)}
+                        className="px-3 h-full flex items-center justify-center hover:bg-white active:scale-95 transition-transform cursor-pointer"
+                        aria-label="Decrease quantity"
                       >
                         <Minus size={14} />
                       </button>
                       <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.id, item.variantId, item.quantity + 1)}
-                        className="px-3 h-full flex items-center justify-center hover:bg-white active:scale-95 transition-transform"
+                        onClick={() => updateQuantity(item.id, item.variantId, item.quantity + 1, item.variantName)}
+                        className="px-3 h-full flex items-center justify-center hover:bg-white active:scale-95 transition-transform cursor-pointer"
+                        aria-label="Increase quantity"
                       >
                         <Plus size={14} />
                       </button>
                     </div>
-                    <p className="font-bold">₹{((item.price * item.quantity) / 100).toFixed(2)}</p>
+                    <p className="font-bold">₹{formatPrice(item.price * item.quantity)}</p>
                   </div>
                 </div>
               </motion.div>
@@ -144,9 +146,9 @@ export default function CartPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <FadeIn direction="left">
-            <div className="bg-brand-cream p-6 md:p-8 rounded-3xl sticky top-24">
+            <div className="bg-brand-cream p-4 sm:p-6 md:p-8 rounded-3xl sticky top-24 min-w-0">
               <h2 className="font-serif text-2xl text-brand-green mb-4">Order Summary</h2>
 
               {freeDeliveryThreshold > 0 && (

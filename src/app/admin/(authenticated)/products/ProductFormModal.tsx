@@ -137,13 +137,41 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError("");
+
+    if (!imageUrl.trim()) {
+      setError("Please select or paste an image for the product.");
+      setSaving(false);
+      return;
+    }
+
+    const basePriceNum = Number(values.basePrice);
+    if (isNaN(basePriceNum) || basePriceNum <= 0) {
+      setError("Selling price must be greater than ₹0.");
+      setSaving(false);
+      return;
+    }
+
+    if (field("originalPrice")) {
+      const origPriceNum = Number(values.originalPrice);
+      if (isNaN(origPriceNum) || origPriceNum <= 0) {
+        setError("Original MRP must be greater than ₹0.");
+        setSaving(false);
+        return;
+      }
+      if (origPriceNum < basePriceNum) {
+        setError("Original MRP cannot be less than selling price.");
+        setSaving(false);
+        return;
+      }
+    }
+
     const payload = {
       ...values,
       imageUrl,
       basePrice: Math.round(Number(values.basePrice) * 100),
       originalPrice: field("originalPrice") ? Math.round(Number(values.originalPrice) * 100) : null,
-      stockQuantity: Number(values.stockQuantity),
-      lowStockThreshold: Number(values.lowStockThreshold),
+      stockQuantity: Math.max(0, Math.floor(Number(values.stockQuantity) || 0)),
+      lowStockThreshold: Math.max(0, Math.floor(Number(values.lowStockThreshold) || 0)),
       slug: field("slug") || field("name").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
     };
     try {
@@ -184,6 +212,12 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-950/50 p-3 sm:p-6" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <form onSubmit={save} className="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-7"><div><h2 className="text-xl font-bold text-gray-900">{product ? "Edit product" : "Add new product"}</h2><p className="mt-1 text-xs text-gray-500">Add the product details and available inventory.</p></div><button type="button" onClick={onClose} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><X size={18} /></button></header>
+        {error && (
+          <div role="alert" className="mx-5 sm:mx-7 mt-4 p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs font-semibold flex items-center justify-between gap-2 animate-in fade-in duration-150">
+            <span>{error}</span>
+            <button type="button" onClick={() => setError("")} className="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 rounded">✕</button>
+          </div>
+        )}
         <div className="grid gap-5 overflow-y-auto p-5 sm:grid-cols-2 sm:p-7">
           <label className="sm:col-span-2"><span className={labelClass}>Product image *</span><div className="flex items-center gap-4"><div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-gray-300 bg-gray-50">{imageUrl ? <Image src={imageUrl} alt="Product preview" width={96} height={96} unoptimized className="h-full w-full object-cover" /> : <ImagePlus className="text-gray-400" />}</div><div className="flex-1 space-y-2"><input type="file" accept="image/*" onChange={(event) => void chooseImage(event.target.files?.[0])} className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-xs file:font-semibold"/><input value={imageUrl.startsWith("data:") ? "" : imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Or paste an image URL" className={inputClass} /></div></div></label>
           <label><span className={labelClass}>Product name *</span><input required value={field("name")} onChange={(e) => { set("name", e.target.value); if (!product) set("slug", e.target.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")); }} className={inputClass}/></label>
@@ -356,7 +390,38 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
           <label><span className={labelClass}>SEO description</span><input value={field("seoDesc")} onChange={(e) => set("seoDesc", e.target.value)} className={inputClass}/></label>
           <div className="flex flex-wrap gap-5 sm:col-span-2"><label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={Boolean(values.isFeatured)} onChange={(e) => set("isFeatured", e.target.checked)} className="accent-emerald-700"/> Feature on storefront</label><label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={Boolean(values.isAvailable)} onChange={(e) => set("isAvailable", e.target.checked)} className="accent-emerald-700"/> Available to purchase</label></div>
         </div>
-        <footer className="flex items-center justify-between gap-4 border-t border-gray-100 px-5 py-4 sm:px-7"><div className="min-w-0">{error ? <p className="text-sm text-rose-700">{error}</p> : product ? <button type="button" onClick={() => void deleteProduct()} disabled={deleting || saving} className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50">{deleting ? <Loader2 size={15} className="animate-spin"/> : <Trash2 size={15}/>} Delete product</button> : <span/>}</div><div className="flex shrink-0 gap-2"><button type="button" onClick={onClose} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700">Cancel</button><button disabled={saving || deleting || !imageUrl} className="inline-flex items-center gap-2 rounded-xl bg-brand-green px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{saving && <Loader2 size={15} className="animate-spin"/>}{product ? "Save changes" : "Create product"}</button></div></footer>
+        <footer className="flex items-center justify-between gap-4 border-t border-gray-100 px-5 py-4 sm:px-7">
+          <div>
+            {product && (
+              <button
+                type="button"
+                onClick={() => void deleteProduct()}
+                disabled={deleting || saving}
+                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3.5 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50 cursor-pointer transition-colors"
+              >
+                {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                <span>Delete product</span>
+              </button>
+            )}
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || deleting || !imageUrl}
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-green px-5 py-2 text-sm font-semibold text-white hover:bg-brand-green/90 disabled:opacity-50 cursor-pointer transition-colors shadow-sm"
+            >
+              {saving && <Loader2 size={15} className="animate-spin" />}
+              {product ? "Save changes" : "Create product"}
+            </button>
+          </div>
+        </footer>
       </form>
     </div>
   );

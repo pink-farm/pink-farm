@@ -132,7 +132,39 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
 
   return (
     <div className="space-y-6">
-      {(showProductForm || editingProduct) && <ProductFormModal product={editingProduct} onClose={() => { setShowProductForm(false); setEditingProduct(null); }} onSaved={() => { setShowProductForm(false); setEditingProduct(null); router.refresh(); setToastMessage("Product saved successfully."); setTimeout(() => setToastMessage(null), 3000); }} onDeleted={() => { setShowProductForm(false); setEditingProduct(null); setProducts((items) => items.filter((item) => item.id !== editingProduct?.id)); router.refresh(); setToastMessage("Product deleted."); setTimeout(() => setToastMessage(null), 3000); }} />}
+      {(showProductForm || editingProduct) && (
+        <ProductFormModal
+          product={editingProduct}
+          onClose={() => {
+            setShowProductForm(false);
+            setEditingProduct(null);
+          }}
+          onSaved={() => {
+            setShowProductForm(false);
+            setEditingProduct(null);
+            router.refresh();
+            fetch("/api/admin/products")
+              .then((r) => r.json())
+              .then((data) => {
+                if (Array.isArray(data)) setProducts(data);
+              })
+              .catch(() => {});
+            setToastMessage("Product saved successfully.");
+            setTimeout(() => setToastMessage(null), 3000);
+          }}
+          onDeleted={() => {
+            const deletedId = editingProduct?.id;
+            setShowProductForm(false);
+            setEditingProduct(null);
+            if (deletedId) {
+              setProducts((items) => items.filter((item) => item.id !== deletedId));
+            }
+            router.refresh();
+            setToastMessage("Product deleted.");
+            setTimeout(() => setToastMessage(null), 3000);
+          }}
+        />
+      )}
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-bottom-3 duration-200">

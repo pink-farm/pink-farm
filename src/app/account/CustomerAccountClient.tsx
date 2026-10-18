@@ -354,8 +354,8 @@ export function CustomerAccountClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf7f2] py-8 md:py-12">
-      <div className="container mx-auto px-4 max-w-6xl">
+    <div className="min-h-screen bg-[#faf7f2] py-8 md:py-12 pb-28 sm:pb-16">
+      <div className="container mx-auto px-4 max-w-6xl min-w-0">
         
         <nav className="flex items-center gap-2 text-xs md:text-sm text-brand-charcoal/60 mb-4 font-medium">
           <Link href="/" className="hover:text-brand-green transition-colors">Home</Link>
@@ -947,7 +947,7 @@ export function CustomerAccountClient() {
 
             {/* TAB 3: ORDERS */}
             {activeTab === "orders" && (
-              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-green/10 animate-fade-in-up">
+              <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-brand-green/10 animate-fade-in-up min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-green/10 pb-5 mb-6">
                   <div>
                     <h2 className="font-serif text-2xl font-bold text-brand-green">My Orders</h2>
@@ -1003,14 +1003,14 @@ export function CustomerAccountClient() {
                       return (
                         <div
                           key={order.id}
-                          className="border border-brand-green/15 rounded-2xl p-5 hover:border-brand-green/40 transition-colors"
+                          className="border border-brand-green/15 rounded-2xl p-4 sm:p-5 hover:border-brand-green/40 transition-colors min-w-0"
                         >
-                          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-brand-green/10">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-brand-green text-base">#{order.orderNumber}</span>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-green/10 min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                <span className="font-bold text-brand-green text-sm sm:text-base break-all">#{order.orderNumber}</span>
                                 <span
-                                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${fulfillment.badgeClass}`}
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${fulfillment.badgeClass}`}
                                 >
                                   <span>{fulfillment.icon}</span>
                                   <span>{fulfillment.label}</span>
@@ -1025,9 +1025,9 @@ export function CustomerAccountClient() {
                               </p>
                             </div>
 
-                            <div className="text-right">
-                              <div className="font-bold text-brand-green text-lg">
-                                {formatPrice(order.totalAmount)}
+                            <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-1 shrink-0 pt-1 sm:pt-0">
+                              <div className="font-bold text-brand-green text-base sm:text-lg">
+                                ₹{formatPrice(order.totalAmount)}
                               </div>
                               <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
                                 {order.paymentStatus}
@@ -1037,11 +1037,11 @@ export function CustomerAccountClient() {
 
                           {/* Live Order Timeline Progress */}
                           {isCancelled ? (
-                            <div className="py-3 px-3.5 my-3 bg-red-50/70 rounded-xl border border-red-200 text-xs text-red-800 flex items-center justify-between">
+                            <div className="py-2.5 px-3.5 my-3 bg-red-50/70 rounded-xl border border-red-200 text-xs text-red-800 flex flex-wrap items-center justify-between gap-2">
                               <span className="font-semibold flex items-center gap-1.5">
                                 <span>❌</span> This order was cancelled and will not be dispatched.
                               </span>
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-red-700 bg-red-100 px-2 py-0.5 rounded">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-red-700 bg-red-100 px-2 py-0.5 rounded shrink-0">
                                 Cancelled
                               </span>
                             </div>
@@ -1127,8 +1127,8 @@ export function CustomerAccountClient() {
                                   </div>
                                 </div>
 
-                                <div className="font-semibold text-brand-charcoal">
-                                  {formatPrice(item.subtotal || item.unitPrice * item.quantity)}
+                                <div className="font-semibold text-brand-charcoal shrink-0 ml-2">
+                                  ₹{formatPrice(item.subtotal || item.unitPrice * item.quantity)}
                                 </div>
                               </div>
                             ))}
@@ -1272,7 +1272,7 @@ export function CustomerAccountClient() {
               <AlertCircle size={28} />
             </div>
 
-            <h3 className="font-serif text-xl font-bold text-brand-green text-center mb-2">
+            <h3 className="font-serif text-lg sm:text-xl font-bold text-brand-green text-center mb-2 break-all">
               Cancel Order #{cancellingOrder.orderNumber}?
             </h3>
 

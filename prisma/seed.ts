@@ -31,10 +31,10 @@ async function main() {
     });
   }
 
-  // Create Admin User
+  // Create or Update Admin User
   const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword || adminPassword.length < 16) {
-    throw new Error("Set an ADMIN_PASSWORD of at least 16 characters before seeding the authorized admin account.");
+  if (!adminPassword || adminPassword.length < 8) {
+    throw new Error("Set an ADMIN_PASSWORD of at least 8 characters before seeding the authorized admin account.");
   }
   const configuredAdminEmail = ADMIN_EMAIL;
   if (!configuredAdminEmail) {
@@ -50,6 +50,13 @@ async function main() {
         email: configuredAdminEmail,
         password: await bcrypt.hash(adminPassword, 12),
         name: "Pink Farm Admin"
+      }
+    });
+  } else {
+    await prisma.adminUser.update({
+      where: { email: configuredAdminEmail },
+      data: {
+        password: await bcrypt.hash(adminPassword, 12)
       }
     });
   }

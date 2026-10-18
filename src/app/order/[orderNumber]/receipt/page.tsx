@@ -58,7 +58,11 @@ export default async function CustomerReceiptPage({
   return (
     <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4 text-gray-900 print:p-0 print:m-0 print:max-w-none">
       {/* Screen controls - hidden on print */}
-      <PrintControls orderNumber={order.orderNumber} />
+      <PrintControls
+        orderNumber={order.orderNumber}
+        backUrl={`/order/${order.orderNumber}`}
+        backLabel="Back to Order Details"
+      />
 
       {/* The Printable Package Receipt (Amazon / Flipkart Style) */}
       <div className="bg-white border-2 border-black p-5 sm:p-7 rounded-none shadow-sm print:border-2 print:border-black print:p-5 print:shadow-none print:m-0 print:max-w-none print:break-inside-avoid text-black">
@@ -93,7 +97,7 @@ export default async function CustomerReceiptPage({
             </span>
             <div className="mt-1 font-mono text-xs">
               <span className="text-gray-600">Order ID: </span>
-              <span className="font-extrabold text-sm text-black">{order.orderNumber}</span>
+              <span className="font-extrabold text-sm text-black break-all">{order.orderNumber}</span>
             </div>
             <div className="text-[10px] text-gray-600">
               {orderDate} at {orderTime}

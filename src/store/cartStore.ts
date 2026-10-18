@@ -25,9 +25,23 @@ interface CartStore {
   setAppliedCoupon: (coupon: AppliedCoupon) => void;
   clearAppliedCoupon: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (id: string, variantId?: string) => void;
-  updateQuantity: (id: string, variantId: string | undefined, quantity: number) => void;
+  removeItem: (id: string, variantId?: string, variantName?: string) => void;
+  updateQuantity: (id: string, variantId: string | undefined, quantity: number, variantName?: string) => void;
   clearCart: () => void;
+}
+
+function matchCartItem(
+  item: { id: string; variantId?: string; variantName?: string },
+  targetId: string,
+  targetVariantId?: string,
+  targetVariantName?: string
+) {
+  if (item.id !== targetId) return false;
+  if ((item.variantId || "") !== (targetVariantId || "")) return false;
+  if (targetVariantName !== undefined) {
+    return (item.variantName || "") === (targetVariantName || "");
+  }
+  return true;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -39,28 +53,36 @@ export const useCartStore = create<CartStore>()(
       clearAppliedCoupon: () => set({ appliedCoupon: null }),
       addItem: (item, quantity = 1) =>
         set((state) => {
-          const existingItemIndex = state.items.findIndex(
-            (i) => i.id === item.id && i.variantId === item.variantId
+          const max = item.maxQuantity || 10;
+          const safeQty = Math.max(1, Number(quantity) || 1);
+          const existingItemIndex = state.items.findIndex((i) =>
+            matchCartItem(i, item.id, item.variantId, item.variantName)
           );
 
           if (existingItemIndex > -1) {
             const updatedItems = [...state.items];
-            const newQuantity = updatedItems[existingItemIndex].quantity + quantity;
-            updatedItems[existingItemIndex].quantity = Math.min(newQuantity, item.maxQuantity);
+            const newQuantity = updatedItems[existingItemIndex].quantity + safeQty;
+            updatedItems[existingItemIndex].quantity = Math.min(newQuantity, max);
             return { items: updatedItems };
           }
-          return { items: [...state.items, { ...item, quantity: Math.min(quantity, item.maxQuantity) }] };
+          return { items: [...state.items, { ...item, maxQuantity: max, quantity: Math.min(safeQty, max) }] };
         }),
-      removeItem: (id, variantId) =>
+      removeItem: (id, variantId, variantName) =>
         set((state) => {
-          const items = state.items.filter((i) => !(i.id === id && i.variantId === variantId));
+          const items = state.items.filter((i) => !matchCartItem(i, id, variantId, variantName));
           return { items, appliedCoupon: items.length > 0 ? state.appliedCoupon : null };
         }),
-      updateQuantity: (id, variantId, quantity) =>
+      updateQuantity: (id, variantId, quantity, variantName) =>
         set((state) => {
+          if (quantity <= 0) {
+            const items = state.items.filter((i) => !matchCartItem(i, id, variantId, variantName));
+            return { items, appliedCoupon: items.length > 0 ? state.appliedCoupon : null };
+          }
           const updatedItems = state.items.map((i) => {
-            if (i.id === id && i.variantId === variantId) {
-              return { ...i, quantity: Math.min(Math.max(1, quantity), i.maxQuantity) };
+            if (matchCartItem(i, id, variantId, variantName)) {
+              const max = i.maxQuantity || 10;
+              const safeQty = Math.max(1, Number(quantity) || 1);
+              return { ...i, quantity: Math.min(safeQty, max) };
             }
             return i;
           });

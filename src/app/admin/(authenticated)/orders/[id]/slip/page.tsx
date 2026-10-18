@@ -89,7 +89,7 @@ export default async function OrderSlipPage({
             </span>
             <div className="mt-1 font-mono text-xs">
               <span className="text-gray-600">Order ID: </span>
-              <span className="font-extrabold text-sm text-black">{order.orderNumber}</span>
+              <span className="font-extrabold text-sm text-black break-all">{order.orderNumber}</span>
             </div>
             <div className="text-[10px] text-gray-600">
               {orderDate} at {orderTime}

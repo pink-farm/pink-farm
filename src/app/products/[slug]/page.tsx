@@ -23,7 +23,7 @@ export default async function ProductDetailPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-2 md:py-4">
+    <div className="container mx-auto px-4 py-2 md:py-4 pb-28 sm:pb-16 min-w-0">
       {/* Breadcrumb */}
       <FadeIn direction="down">
         <nav className="flex items-center gap-2 text-xs md:text-sm text-brand-charcoal opacity-70 mb-2">

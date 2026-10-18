@@ -23,7 +23,7 @@ export default async function ComboPage() {
   const [products] = await Promise.all([getStoreProducts()]);
 
   return (
-    <div className="min-h-screen bg-[#0d1a16] flex flex-col justify-center">
+    <div className="min-h-screen bg-[#0d1a16] flex flex-col justify-center pb-28 sm:pb-16 min-w-0 w-full">
       <ComboBuilder products={products} />
     </div>
   );

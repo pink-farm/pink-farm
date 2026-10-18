@@ -25,7 +25,7 @@ export default async function ProductsPage() {
               <div className="pt-2">
                 <a
                   href="#combo-builder"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold bg-brand-pink text-brand-green border border-brand-pink-accent/50 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300"
+                  className="inline-flex max-w-full text-center flex-wrap justify-center items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs md:text-sm font-bold bg-brand-pink text-brand-green border border-brand-pink-accent/50 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300"
                 >
                   <span>🌸</span>
                   <span>Want to bundle &amp; save? Build your own combo (Up to {maxDiscount}% OFF)</span>

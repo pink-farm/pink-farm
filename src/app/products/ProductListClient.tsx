@@ -124,15 +124,15 @@ export function ProductListClient({
     <div className="space-y-8">
       
       {/* Controls Bar */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-brand-cream p-4 rounded-xl">
-        <div className="flex gap-4 items-center flex-wrap">
+      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center mb-8 gap-4 bg-brand-cream p-3 sm:p-4 rounded-xl min-w-0">
+        <div className="flex gap-2.5 sm:gap-4 items-center flex-wrap">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`font-medium transition-colors relative py-1 ${
+                className={`font-medium transition-colors relative py-1 text-sm sm:text-base ${
                   isSelected ? "text-brand-green font-bold" : "text-brand-charcoal opacity-70 hover:text-brand-green"
                 }`}
               >
@@ -157,28 +157,28 @@ export function ProductListClient({
           )}
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 min-w-0">
+          <div className="flex items-center min-w-0 flex-1 sm:flex-none">
             <input 
               type="text" 
               placeholder="Search..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-brand-green-light/20 rounded-l-md px-3 py-1.5 focus:outline-none focus:border-brand-green bg-white text-sm" 
+              className="border border-brand-green-light/20 rounded-l-md px-3 py-1.5 focus:outline-none focus:border-brand-green bg-white text-sm flex-1 sm:w-44 min-w-0" 
             />
             <button 
               type="button" 
-              className="bg-brand-green text-white px-3 py-1.5 rounded-r-md text-sm hover:bg-brand-green-light transition-colors"
+              className="bg-brand-green text-white px-3.5 py-1.5 rounded-r-md text-sm hover:bg-brand-green-light transition-colors shrink-0"
             >
               Go
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center min-w-0">
             <select 
               value={sortBy} 
               onChange={(e) => setSortBy(e.target.value)}
-              className="border border-brand-green-light/20 rounded-md px-3 py-1.5 focus:outline-none focus:border-brand-green bg-white text-sm"
+              className="border border-brand-green-light/20 rounded-md px-3 py-1.5 focus:outline-none focus:border-brand-green bg-white text-sm w-full sm:w-auto min-w-0"
             >
               <option value="">Featured</option>
               <option value="price-low">Price: Low to High</option>

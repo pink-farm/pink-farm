@@ -322,7 +322,7 @@ export function CheckoutClient() {
   const onSubmit = async (data: CheckoutFormValues) => handlePayOrder(data);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10 xl:gap-12">
+    <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12 min-w-0 pb-28 sm:pb-16">
       {/* Checkout Form */}
       <div className="flex-[2]">
         {/* Disclaimer for Login / Authenticated Status Banner */}
@@ -446,7 +446,7 @@ export function CheckoutClient() {
           </div>
         )}
 
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-green-light/15 shadow-sm">
+        <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 border border-brand-green-light/15 shadow-sm min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-brand-green-light/15 gap-3">
             <div>
               <h2 className="font-serif text-2xl text-brand-green font-bold">Delivery Address</h2>
@@ -695,30 +695,32 @@ export function CheckoutClient() {
       </div>
 
       {/* Order Summary & Payment */}
-      <div className="flex-1">
-        <div className="bg-brand-cream p-6 md:p-8 rounded-3xl sticky top-24 border border-brand-green-light/10 shadow-sm">
-          <h2 className="font-serif text-2xl text-brand-green mb-6 font-bold">Review &amp; Place Order</h2>
+      <div className="flex-1 min-w-0">
+        <div className="bg-brand-cream p-4 sm:p-6 md:p-8 rounded-3xl sticky top-24 border border-brand-green-light/10 shadow-sm min-w-0">
+          <h2 className="font-serif text-xl sm:text-2xl text-brand-green mb-5 sm:mb-6 font-bold">Review &amp; Place Order</h2>
           
-          <div className="space-y-3.5 mb-6 pb-6 border-b border-brand-green-light/20 max-h-80 overflow-y-auto pr-1">
+          <div className="space-y-3 mb-4 max-h-60 sm:max-h-72 overflow-y-auto pr-1 min-w-0">
             {items.map(item => (
-              <div key={`${item.id}-${item.variantId}`} className="flex justify-between text-sm py-0.5">
-                <div className="flex gap-3">
-                  <span className="font-bold text-brand-green">{item.quantity}x</span>
-                  <div>
-                    <p className="font-medium text-brand-green">{item.name}</p>
-                    {item.variantName && <p className="opacity-70 text-xs">{item.variantName}</p>}
+              <div key={`${item.id}-${item.variantId}`} className="flex justify-between items-start text-sm py-1 min-w-0">
+                <div className="flex gap-2.5 sm:gap-3 min-w-0 flex-1">
+                  <span className="font-bold text-brand-green shrink-0">{item.quantity}x</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-brand-green truncate">{item.name}</p>
+                    {item.variantName && <p className="opacity-70 text-xs truncate">{item.variantName}</p>}
                   </div>
                 </div>
-                <span className="font-medium">₹{formatPrice(item.price * item.quantity)}</span>
+                <span className="font-medium shrink-0 ml-2">₹{formatPrice(item.price * item.quantity)}</span>
               </div>
             ))}
+          </div>
 
-            {/* Surprise Gift automatically listed with products with cute animation */}
+          {/* Surprise Gift automatically listed cleanly with no vertical clipping */}
+          <div className="mb-6 pb-6 border-b border-brand-green-light/20 min-w-0">
             <SurpriseGiftCheckoutRow />
           </div>
           
           <CouponCodeSection subtotal={subtotal} phone={mobileValue} />
-          <div className="space-y-3 text-sm opacity-90 mb-6 pb-6 border-b border-brand-green-light/20">
+          <div className="space-y-3 text-sm opacity-90 mb-6 pb-6 border-b border-brand-green-light/20 min-w-0">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>₹{formatPrice(subtotal)}</span>
@@ -742,9 +744,9 @@ export function CheckoutClient() {
             </div>
           </div>
           
-          <div className="flex justify-between font-bold text-xl text-brand-green mb-6">
+          <div className="flex justify-between items-baseline font-bold text-lg sm:text-xl text-brand-green mb-6 min-w-0">
             <span>Total Payable</span>
-            <span>₹{formatPrice(total)}</span>
+            <span className="shrink-0 ml-2">₹{formatPrice(total)}</span>
           </div>
 
           {error && (
@@ -765,7 +767,7 @@ export function CheckoutClient() {
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <p className="font-bold text-sm text-brand-green">Cash on Delivery</p>
                     <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
                       <Zap size={10} /> Pay on delivery
@@ -796,7 +798,7 @@ export function CheckoutClient() {
             ) : (
               <span className="flex items-center justify-center gap-2">
                 <Lock size={16} />
-                <span>Place Order · ₹{((total) / 100).toFixed(2)}</span>
+                <span>Place Order · ₹{formatPrice(total)}</span>
               </span>
             )}
           </Button>

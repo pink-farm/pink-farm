@@ -49,7 +49,7 @@ export default async function AdminOrdersPage() {
             <tbody className="divide-y divide-gray-100 text-sm">
               {orders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50/70 transition-colors">
-                  <td className="py-4 px-6 font-bold text-brand-green">{order.orderNumber}</td>
+                  <td className="py-4 px-6 font-bold text-brand-green break-all">{order.orderNumber}</td>
                   <td className="py-4 px-6">
                     <div className="font-semibold text-gray-800">{order.customerName}</div>
                     <div className="text-xs text-gray-400">{order.customerPhone}</div>

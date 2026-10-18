@@ -256,7 +256,7 @@ export function BulkOrderModal({
 
               {/* Direct Typable Input */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="relative flex-1 min-w-[220px]">
+                <div className="relative flex-1 w-full min-w-0">
                   <input
                     type="text"
                     inputMode="numeric"

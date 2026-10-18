@@ -32,7 +32,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <Navbar />
         </Suspense>
-        <main className="flex-grow">
+        <main className="flex-grow min-w-0 w-full overflow-x-clip">
           {children}
         </main>
         <Footer />

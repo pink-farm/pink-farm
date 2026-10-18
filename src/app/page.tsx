@@ -26,7 +26,7 @@ export default async function Home() {
     : null) || products.find((p) => p.category.toLowerCase() === 'makhana') || products[0];
 
   return (
-    <div className="flex flex-col gap-8 md:gap-12 pb-20 overflow-x-hidden">
+    <div className="flex flex-col gap-8 md:gap-12 pb-28 sm:pb-20 overflow-x-hidden min-w-0">
       
       {/* C. HERO SECTION */}
       <section className="relative w-full overflow-hidden bg-brand-ivory pt-24 pb-16 md:pt-28 md:pb-20">
@@ -46,7 +46,7 @@ export default async function Home() {
           <div className="flex-1 space-y-8 max-w-2xl relative z-20">
             
             <FadeIn direction="up" delay={0.1}>
-              <h1 className="font-serif text-5xl md:text-7xl leading-[1.1] tracking-tight">
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl leading-[1.1] tracking-tight">
                 <span className="bg-[linear-gradient(110deg,#1A4031,45%,#88E2B0,55%,#1A4031)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block drop-shadow-sm">
                   Goodness That <br/><span className="italic font-light">Feels Like Home.</span>
                 </span>
@@ -273,9 +273,9 @@ export default async function Home() {
                   {storeSettings.featuredProductDescription || featuredProduct.shortDescription || featuredProduct.description}
                 </p>
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl font-bold">₹{(featuredProduct.basePrice / 100).toFixed(2)}</span>
+                  <span className="text-2xl font-bold">₹{formatPrice(featuredProduct.basePrice)}</span>
                   {featuredProduct.originalPrice && featuredProduct.originalPrice > featuredProduct.basePrice && (
-                    <span className="text-lg line-through opacity-50">₹{(featuredProduct.originalPrice / 100).toFixed(2)}</span>
+                    <span className="text-lg line-through opacity-50">₹{formatPrice(featuredProduct.originalPrice)}</span>
                   )}
                 </div>
                 <div className="pt-4 flex flex-col sm:flex-row gap-4">

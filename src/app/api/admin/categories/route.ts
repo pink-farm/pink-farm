@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
+import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 
 const DEFAULT_CATEGORIES = ["Makhana", "Nuts", "Pantry"];
 
@@ -107,12 +108,20 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) {
+    return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
+  }
   if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
+    const parsed = await readBoundedJson(request, 16_000);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
+      return NextResponse.json({ error: "Invalid category payload." }, { status: 400 });
+    }
+    const body = parsed.value as Record<string, unknown>;
     const rawName = typeof body.name === "string" ? body.name.trim() : "";
 
     if (!rawName) {
@@ -183,12 +192,20 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  if (!isSameOriginMutation(request)) {
+    return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
+  }
   if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
+    const parsed = await readBoundedJson(request, 32_000);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
+      return NextResponse.json({ error: "Invalid category update payload." }, { status: 400 });
+    }
+    const body = parsed.value as Record<string, unknown>;
     const action = body.action || "update";
 
     const settings = await prisma.storeSettings.findUnique({
@@ -383,6 +400,9 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isSameOriginMutation(request)) {
+    return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
+  }
   if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -394,9 +414,12 @@ export async function DELETE(request: Request) {
 
     if (!categoryName) {
       try {
-        const body = await request.json();
-        categoryName = typeof body.name === "string" ? body.name.trim() : "";
-        reassignTo = typeof body.reassignTo === "string" ? body.reassignTo.trim() : null;
+        const parsed = await readBoundedJson(request, 4_096);
+        if (parsed.ok && parsed.value && typeof parsed.value === "object" && !Array.isArray(parsed.value)) {
+          const body = parsed.value as Record<string, unknown>;
+          categoryName = typeof body.name === "string" ? body.name.trim() : "";
+          reassignTo = typeof body.reassignTo === "string" ? body.reassignTo.trim() : null;
+        }
       } catch {}
     }
 

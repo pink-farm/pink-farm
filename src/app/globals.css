@@ -176,19 +176,28 @@
   }
 }
 
+html {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+html:has(:target) {
+  scroll-behavior: smooth;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  max-width: 100%;
+  width: 100%;
+  position: relative;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-playfair), serif;
-}
-
-html:has(:target) {
-  scroll-behavior: smooth;
 }
 
 ::selection {

@@ -258,7 +258,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-10">
           {comboProducts.map((product) => {
             const count = currentCounts[product.id] || 0;
             const isFull = totalSelectedCount >= tier.count;
@@ -316,7 +316,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
                 </div>
 
                 {/* Details */}
-                <div className="p-3.5 flex flex-col justify-between flex-1 gap-2">
+                <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1 gap-2">
                   <div>
                     <h3 className="font-serif text-sm text-white leading-snug font-semibold line-clamp-2">
                       {product.name}
@@ -326,7 +326,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
                       <span className="text-white/40 line-through text-[11px]">
                         MRP ₹{formatPrice(mrp)}
                       </span>
-                      <span className="text-[#E6B8C0] font-bold text-xs bg-white/10 px-2 py-0.5 rounded-full">
+                      <span className="text-[#E6B8C0] font-bold text-[11px] sm:text-xs bg-white/10 px-2 py-0.5 rounded-full">
                         ₹{formatPrice(comboUnitPrice)} in combo
                       </span>
                     </div>
@@ -382,7 +382,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
 
         {/* Summary Panel */}
         <div
-          className={`rounded-3xl border p-6 md:p-8 transition-all duration-500 ${
+          className={`rounded-3xl border p-4 sm:p-6 md:p-8 transition-all duration-500 ${
             isComplete
               ? "border-[#E6B8C0]/50 shadow-[0_0_50px_rgba(230,184,192,0.2)] bg-[#E6B8C0]/10"
               : "border-white/10 bg-white/[0.03]"
@@ -392,8 +392,8 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
           {isComplete ? (
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               {/* Selected items list & avatars */}
-              <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                <div className="flex -space-x-3 shrink-0">
+              <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left min-w-0">
+                <div className="flex -space-x-3 shrink-0 max-w-full overflow-x-auto py-1">
                   {selectedItemsDetails.map((item) => (
                     <div
                       key={item.product.id}

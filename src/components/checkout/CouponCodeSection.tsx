@@ -138,8 +138,8 @@ export function CouponCodeSection({ subtotal, phone = "" }: CouponCodeSectionPro
         </label>
         {appliedCoupon ? (
           <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-3 text-xs">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2 flex-wrap">
                 <span className="font-mono font-bold text-emerald-800 bg-white px-2 py-0.5 rounded border border-emerald-200">{appliedCoupon.code}</span>
                 <span className="text-emerald-700 font-semibold">You save ₹{formatPrice(appliedCoupon.discount)}!</span>
               </div>
@@ -216,7 +216,7 @@ export function CouponCodeSection({ subtotal, phone = "" }: CouponCodeSectionPro
                         {shortfall > 0 && <p className="mt-1.5 text-[11px] font-medium text-amber-800">Add ₹{formatPrice(shortfall)} more to use this offer.</p>}
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center justify-end gap-2 sm:pl-2">
+                    <div className="flex flex-wrap items-center justify-end gap-2 sm:pl-2 shrink-0">
                       <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(coupon.code); setCopiedCoupon(coupon.code); window.setTimeout(() => setCopiedCoupon(null), 1800); } catch { setCouponError("Could not copy the coupon code. You can select it and copy manually."); } }} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs transition-colors hover:bg-gray-50">
                         {copiedCoupon === coupon.code ? <Check size={14} /> : <Copy size={14} />}{copiedCoupon === coupon.code ? "Copied" : "Copy"}
                       </button>

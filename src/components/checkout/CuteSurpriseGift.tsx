@@ -271,19 +271,19 @@ export function SurpriseGiftCheckoutRow({
       {/* Decorative subtle background sparkle pattern */}
       <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-full bg-pink-200/30 blur-xl pointer-events-none" />
 
-      <div className="flex items-center justify-between gap-3 relative z-10">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 relative z-10 min-w-0">
         {/* Left: Cute Animated Gift & Details */}
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <div className="shrink-0 flex items-center justify-center p-0.5 rounded-xl bg-white/90 border border-pink-200/80 shadow-xs">
             <CuteAnimatedGiftIcon size="md" />
           </div>
 
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <span className="font-bold text-xs bg-rose-600 text-white px-2 py-0.5 rounded-md shrink-0 shadow-xs">
                 1x
               </span>
-              <h4 className="font-serif font-bold text-sm text-brand-green flex items-center gap-1.5 leading-snug">
+              <h4 className="font-serif font-bold text-xs sm:text-sm text-brand-green flex items-center gap-1.5 leading-snug">
                 <span>Surprise Gift</span>
                 <span className="inline-flex items-center gap-1 text-[10px] font-sans font-extrabold uppercase tracking-wider bg-gradient-to-r from-rose-500 to-pink-500 text-white px-2 py-0.5 rounded-full shadow-xs">
                   <Sparkles className="w-2.5 h-2.5" /> FREE
@@ -291,8 +291,8 @@ export function SurpriseGiftCheckoutRow({
               </h4>
             </div>
 
-            <p className="text-xs text-brand-charcoal/75 mt-0.5 truncate flex items-center gap-1">
-              <span>Handpicked treat packed with love in your parcel</span>
+            <p className="text-[11px] sm:text-xs text-brand-charcoal/75 mt-0.5 truncate flex items-center gap-1">
+              <span className="truncate">Handpicked treat packed with love in your parcel</span>
               <button
                 type="button"
                 onClick={() => setShowDetails(!showDetails)}
@@ -306,7 +306,7 @@ export function SurpriseGiftCheckoutRow({
         </div>
 
         {/* Right: Crossed-Out Price + 100% Free Badge */}
-        <div className="flex flex-col items-end shrink-0 pl-2 text-right">
+        <div className="flex flex-col items-end shrink-0 sm:pl-2 text-right self-end sm:self-auto">
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-brand-charcoal/40 line-through">
               ₹149

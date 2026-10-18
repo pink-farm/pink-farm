@@ -3,7 +3,15 @@
 import { Printer, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function PrintControls({ orderNumber }: { orderNumber: string }) {
+export default function PrintControls({
+  orderNumber,
+  backUrl = "/admin/orders",
+  backLabel = "Back to Orders",
+}: {
+  orderNumber: string;
+  backUrl?: string;
+  backLabel?: string;
+}) {
   const handlePrint = () => {
     if (typeof window !== "undefined") {
       window.print();
@@ -14,14 +22,14 @@ export default function PrintControls({ orderNumber }: { orderNumber: string }) 
     <div className="print:hidden bg-white border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
       <div className="flex items-center gap-3">
         <Link
-          href="/admin/orders"
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-brand-green bg-gray-100 hover:bg-brand-pink/40 px-3 py-2 rounded-xl transition-colors"
+          href={backUrl}
+          className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-brand-green bg-gray-100 hover:bg-brand-pink/40 px-3 py-2 rounded-xl transition-colors cursor-pointer"
         >
           <ArrowLeft size={14} />
-          <span>Back to Orders</span>
+          <span>{backLabel}</span>
         </Link>
         <div>
-          <h2 className="text-sm font-bold text-gray-800">
+          <h2 className="text-sm font-bold text-gray-800 break-all">
             Dispatch Receipt for Order #{orderNumber}
           </h2>
           <p className="text-xs text-gray-500">

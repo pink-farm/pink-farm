@@ -425,7 +425,7 @@ export function DashboardOverview({ initialOrders, lowStockCount }: DashboardOve
             <tbody className="divide-y divide-stone-100 text-sm">
               {displayedOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-stone-50/80 transition-colors">
-                  <td className="py-3.5 px-5 font-mono font-bold text-brand-green text-xs">
+                  <td className="py-3.5 px-5 font-mono font-bold text-brand-green text-xs break-all">
                     {order.orderNumber}
                   </td>
                   <td className="py-3.5 px-5">

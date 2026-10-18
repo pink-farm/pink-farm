@@ -20,7 +20,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-brand-green text-brand-ivory pt-16 pb-8 border-t border-brand-green-light print:hidden">
+    <footer className="bg-brand-green text-brand-ivory pt-16 pb-28 sm:pb-8 border-t border-brand-green-light print:hidden min-w-0">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-sm">
         <div>
           <div className="flex items-center gap-1 mb-6">
@@ -32,9 +32,9 @@ export function Footer() {
               quality={100}
               className="w-[80px] h-[80px] md:w-[95px] md:h-[95px] object-contain -translate-y-[5%] drop-shadow-md -mr-1 md:-mr-2"
             />
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <h3 
-                className="font-serif text-3xl md:text-4xl font-extrabold text-brand-ivory tracking-tight leading-none"
+                className="font-serif text-3xl md:text-4xl font-extrabold text-brand-ivory tracking-tight leading-none break-words"
                 style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
               >
                 {storeName || "Pink Farm"}

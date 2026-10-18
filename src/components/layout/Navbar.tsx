@@ -103,23 +103,24 @@ export function Navbar() {
             : "bg-brand-ivory/85 border-brand-pink-accent/30 shadow-[0_4px_20px_rgba(0,0,0,0.02)] h-20"
         }`}
       >
-        <div className="container mx-auto px-4 lg:px-8 h-full flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-8 h-full flex items-center justify-between min-w-0">
           
           {/* Mobile Menu Toggle */}
           <motion.button
             whileTap={{ scale: 0.9 }}
-            className="md:hidden p-2 text-brand-green hover:bg-brand-pink-accent/20 rounded-full transition-colors"
+            className="md:hidden p-1.5 sm:p-2 text-brand-green hover:bg-brand-pink-accent/20 rounded-full transition-colors shrink-0"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle Menu"
           >
-            {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </motion.button>
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1 md:gap-2 group">
+          <Link href="/" className="flex items-center gap-1 sm:gap-2 group min-w-0">
             <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.3 }}
+              className="shrink-0"
             >
               <Image 
                 src="/lotus-logo-gold.png" 
@@ -129,12 +130,12 @@ export function Navbar() {
                 quality={100}
                 priority
                 className={`object-contain -translate-y-[5%] group-hover:scale-110 transition-transform duration-300 drop-shadow-sm -mr-1 md:-mr-2 ${
-                  scrolled ? "w-[65px] h-[65px] md:w-[75px] md:h-[75px]" : "w-[80px] h-[80px] md:w-[95px] md:h-[95px]"
+                  scrolled ? "w-[48px] h-[48px] sm:w-[65px] sm:h-[65px] md:w-[75px] md:h-[75px]" : "w-[56px] h-[56px] sm:w-[75px] sm:h-[75px] md:w-[95px] md:h-[95px]"
                 }`}
               />
             </motion.div>
             <span 
-              className="font-serif text-3xl md:text-4xl font-extrabold text-brand-green tracking-tight group-hover:scale-105 transition-transform duration-300"
+              className="font-serif text-2xl sm:text-3xl md:text-4xl font-extrabold text-brand-green tracking-tight group-hover:scale-105 transition-transform duration-300 truncate"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
             >
               {storeName || "Pink Farm"}
@@ -167,7 +168,7 @@ export function Navbar() {
           </nav>
 
           {/* Icons */}
-          <div className="flex items-center gap-3.5 md:gap-5 text-brand-green">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 md:gap-5 text-brand-green shrink-0">
             {mounted && isAdmin && (
               <Link 
                 href="/admin/settings" 
