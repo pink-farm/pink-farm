@@ -17,7 +17,7 @@ export function MakhanaNavigationLoader() {
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startNavigation = useCallback(() => {
+  const startNavigation = useCallback((waitForRoute = false) => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
@@ -37,11 +37,14 @@ export function MakhanaNavigationLoader() {
       });
     }, 120);
 
-    // Safety timeout: auto dismiss after 6s in case navigation hangs
-    safetyTimeoutRef.current = setTimeout(() => {
-      setIsNavigating(false);
-      setProgress(0);
-    }, 6000);
+    // Authentication transitions stay covered until the destination template
+    // reports that its route has mounted. Ordinary navigation keeps a fallback.
+    if (!waitForRoute) {
+      safetyTimeoutRef.current = setTimeout(() => {
+        setIsNavigating(false);
+        setProgress(0);
+      }, 6000);
+    }
   }, []);
 
   const completeNavigation = useCallback(() => {
@@ -128,7 +131,10 @@ export function MakhanaNavigationLoader() {
     };
 
     // Custom events for manual triggers
-    const handleCustomStart = () => startNavigation();
+    const handleCustomStart = (event: Event) => {
+      const waitForRoute = (event as CustomEvent<{ waitForRoute?: boolean }>).detail?.waitForRoute === true;
+      startNavigation(waitForRoute);
+    };
     const handleCustomStop = () => completeNavigation();
 
     // Listen to browser Back / Forward buttons

@@ -325,9 +325,13 @@ export function CustomerAccountClient() {
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    customer.logoutCustomer();
-    router.push("/login");
+    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      customer.logoutCustomer();
+      router.push("/login");
+    }
   };
 
   // If client is hydrated and customer is not logged in, show access barrier / login prompt

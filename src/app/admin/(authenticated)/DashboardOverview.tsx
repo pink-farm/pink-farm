@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Search,
 } from "lucide-react";
+import { OrderHistoryClearControl } from "./OrderHistoryClearControl";
 
 export type TimePeriod = "today" | "weekly" | "monthly" | "yearly" | "all";
 
@@ -365,6 +366,8 @@ export function DashboardOverview({ initialOrders, lowStockCount }: DashboardOve
           </div>
         </Link>
       </div>
+
+      <OrderHistoryClearControl />
 
       {/* ============================================================== */}
       {/* RECENT ORDERS SECTION WITH INSTANT SEARCH & PERIOD DATA        */}

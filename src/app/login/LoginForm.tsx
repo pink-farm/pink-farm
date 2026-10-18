@@ -75,14 +75,14 @@ export function LoginForm() {
       if (redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//") && !redirectParam.startsWith("/\\")) {
         destination = redirectParam;
       }
-      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
     }
     router.push(destination);
     router.refresh();
   };
 
   const enterAdminWorkspace = async () => {
-    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
     await new Promise((resolve) => window.setTimeout(resolve, 2200));
     router.push("/admin");
     router.refresh();
@@ -116,7 +116,7 @@ export function LoginForm() {
     setIsLoading(true);
     setError("");
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
     }
 
     try {
@@ -175,7 +175,7 @@ export function LoginForm() {
     setIsLoading(true);
     setError("");
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
     }
 
     try {
@@ -373,9 +373,14 @@ export function LoginForm() {
                 <button
                   type="button"
                   onClick={async () => {
-                    await fetch("/api/admin/logout", { method: "POST" });
-                    setIsAdminLoggedIn(false);
-                    router.refresh();
+                    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+                    try {
+                      await fetch("/api/admin/logout", { method: "POST" });
+                      setIsAdminLoggedIn(false);
+                      router.refresh();
+                    } finally {
+                      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
+                    }
                   }}
                   className="text-xs text-rose-600 hover:text-rose-800 font-semibold underline underline-offset-2 cursor-pointer transition-colors"
                 >
