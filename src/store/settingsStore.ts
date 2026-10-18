@@ -30,6 +30,7 @@ export interface StoreSettingsData {
   supportPhone: string;
   supportEmail: string;
   businessAddress: string;
+  fssaiNumber: string;
   deliveryFee: number; // in paise
   freeDeliveryThreshold: number; // in paise
   isAcceptingOrders: boolean;
@@ -86,6 +87,7 @@ export const DEFAULT_SETTINGS: StoreSettingsData = {
   supportPhone: "+91 8437504040",
   supportEmail: "wecare@pinkfarm.in",
   businessAddress: "Dugri, Ludhiana, Punjab - 141003",
+  fssaiNumber: "22126026000144",
   deliveryFee: 5000, // ₹50
   freeDeliveryThreshold: 50000, // ₹500
   isAcceptingOrders: true,
@@ -163,6 +165,7 @@ export const useSettingsStore = create<SettingsStore>()(
                 supportPhone: data.supportPhone ?? get().supportPhone,
                 supportEmail: data.supportEmail ?? get().supportEmail,
                 businessAddress: data.businessAddress ?? get().businessAddress,
+                fssaiNumber: data.fssaiNumber ?? get().fssaiNumber ?? "22126026000144",
                 deliveryFee: typeof data.deliveryFee === "number" ? data.deliveryFee : get().deliveryFee,
                 freeDeliveryThreshold:
                   typeof data.freeDeliveryThreshold === "number"
@@ -220,6 +223,7 @@ export const useSettingsStore = create<SettingsStore>()(
         supportPhone: state.supportPhone,
         supportEmail: state.supportEmail,
         businessAddress: state.businessAddress,
+        fssaiNumber: state.fssaiNumber,
         deliveryFee: state.deliveryFee,
         freeDeliveryThreshold: state.freeDeliveryThreshold,
         isAcceptingOrders: state.isAcceptingOrders,

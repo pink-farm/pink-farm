@@ -215,6 +215,7 @@ model StoreSettings {
   supportPhone        String   @default("+91 8437504040")
   supportEmail        String   @default("wecare@pinkfarm.in")
   businessAddress     String   @default("Dugri, Ludhiana, Punjab - 141003")
+  fssaiNumber         String   @default("22126026000144")
   deliveryFee         Int      @default(5000) // 50 INR in paise
   freeDeliveryThreshold Int?   @default(50000) // 500 INR
   isAcceptingOrders   Boolean  @default(true)

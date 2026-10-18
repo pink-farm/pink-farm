@@ -11,6 +11,7 @@ export function Footer() {
   const supportPhone = useSettingsStore((state) => state.supportPhone);
   const supportEmail = useSettingsStore((state) => state.supportEmail);
   const businessAddress = useSettingsStore((state) => state.businessAddress);
+  const fssaiNumber = useSettingsStore((state) => state.fssaiNumber);
 
   const cleanPhone = (supportPhone || "8437504040").replace(/[^0-9]/g, "");
 
@@ -52,6 +53,9 @@ export function Footer() {
               📍 {businessAddress}
             </p>
           )}
+          <p className="text-xs opacity-75 leading-relaxed mt-1">
+            FSSAI NUMBER - {fssaiNumber || "22126026000144"}
+          </p>
         </div>
 
         <div>

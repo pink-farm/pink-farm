@@ -314,6 +314,7 @@ export const DEFAULT_SETTINGS = {
   supportPhone: "+91 8437504040",
   supportEmail: "wecare@pinkfarm.in",
   businessAddress: "Dugri, Ludhiana, Punjab - 141003",
+  fssaiNumber: "22126026000144",
   deliveryFee: 5000,
   freeDeliveryThreshold: 50000,
   isAcceptingOrders: true,

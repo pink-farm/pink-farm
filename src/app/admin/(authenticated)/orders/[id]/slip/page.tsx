@@ -154,6 +154,9 @@ export default async function OrderSlipPage({
               <div className="text-[11px] text-gray-700 leading-relaxed mt-0.5">
                 {settings?.businessAddress || "Dugri, Ludhiana, Punjab - 141003"}
               </div>
+              <div className="text-[10px] text-gray-700 font-medium mt-0.5">
+                FSSAI NUMBER - {settings?.fssaiNumber || "22126026000144"}
+              </div>
               <div className="mt-1.5 text-[10px] text-gray-800">
                 <div>✉️ {settings?.supportEmail || "wecare@pinkfarm.in"}</div>
                 <div>📞 {settings?.supportPhone || "+91 8437504040"}</div>

@@ -35,6 +35,7 @@ const DEFAULT_SETTINGS = {
   supportPhone: "+91 8437504040",
   supportEmail: "wecare@pinkfarm.in",
   businessAddress: "Dugri, Ludhiana, Punjab - 141003",
+  fssaiNumber: "22126026000144",
   deliveryFee: 5000, // in paise = ₹50
   freeDeliveryThreshold: 50000, // in paise = ₹500
   isAcceptingOrders: true,
@@ -145,6 +146,7 @@ export async function POST(request: Request) {
       supportPhone: typeof body.supportPhone === "string" ? body.supportPhone : DEFAULT_SETTINGS.supportPhone,
       supportEmail: typeof body.supportEmail === "string" ? body.supportEmail : DEFAULT_SETTINGS.supportEmail,
       businessAddress: typeof body.businessAddress === "string" ? body.businessAddress : DEFAULT_SETTINGS.businessAddress,
+      fssaiNumber: typeof body.fssaiNumber === "string" ? body.fssaiNumber.slice(0, 50) : DEFAULT_SETTINGS.fssaiNumber,
       deliveryFee:
         body.deliveryFee !== undefined && !isNaN(Number(body.deliveryFee))
           ? Number(body.deliveryFee)

@@ -181,6 +181,7 @@ export default function StoreSettingsPage() {
   const [supportPhone, setSupportPhone] = useState(DEFAULT_SETTINGS.supportPhone);
   const [supportEmail, setSupportEmail] = useState(DEFAULT_SETTINGS.supportEmail);
   const [businessAddress, setBusinessAddress] = useState(DEFAULT_SETTINGS.businessAddress);
+  const [fssaiNumber, setFssaiNumber] = useState(DEFAULT_SETTINGS.fssaiNumber || "22126026000144");
   const [deliveryFeeRupees, setDeliveryFeeRupees] = useState("50");
   const [freeThresholdRupees, setFreeThresholdRupees] = useState("500");
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
@@ -412,6 +413,7 @@ export default function StoreSettingsPage() {
       setSupportPhone(storeSettings.supportPhone);
       setSupportEmail(storeSettings.supportEmail);
       setBusinessAddress(storeSettings.businessAddress);
+      setFssaiNumber(storeSettings.fssaiNumber || "22126026000144");
       setDeliveryFeeRupees(String(Math.round((storeSettings.deliveryFee ?? 5000) / 100)));
       setFreeThresholdRupees(
         String(Math.round((storeSettings.freeDeliveryThreshold ?? 50000) / 100))
@@ -494,6 +496,7 @@ export default function StoreSettingsPage() {
           if (data.supportPhone !== undefined) setSupportPhone(data.supportPhone);
           if (data.supportEmail !== undefined) setSupportEmail(data.supportEmail);
           if (data.businessAddress !== undefined) setBusinessAddress(data.businessAddress);
+          if (data.fssaiNumber !== undefined) setFssaiNumber(data.fssaiNumber);
           if (typeof data.deliveryFee === "number") {
             setDeliveryFeeRupees(String(Math.round(data.deliveryFee / 100)));
           }
@@ -675,6 +678,7 @@ export default function StoreSettingsPage() {
       supportPhone: supportPhone.trim() || DEFAULT_SETTINGS.supportPhone,
       supportEmail: supportEmail.trim() || DEFAULT_SETTINGS.supportEmail,
       businessAddress: businessAddress.trim() || DEFAULT_SETTINGS.businessAddress,
+      fssaiNumber: fssaiNumber.trim() || DEFAULT_SETTINGS.fssaiNumber || "22126026000144",
       deliveryFee: deliveryFeePaise,
       freeDeliveryThreshold: freeThresholdPaise,
       isAcceptingOrders,
@@ -2486,6 +2490,19 @@ export default function StoreSettingsPage() {
                       onChange={(e) => setBusinessAddress(e.target.value)}
                       placeholder="Dugri, Ludhiana, Punjab - 141003"
                       className="w-full px-3.5 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm resize-none transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-stone-700 flex items-center gap-1.5">
+                      <ShieldCheck size={12} className="text-stone-400" /> FSSAI Registration / License Number
+                    </label>
+                    <input
+                      type="text"
+                      value={fssaiNumber}
+                      onChange={(e) => setFssaiNumber(e.target.value)}
+                      placeholder="22126026000144"
+                      className="w-full px-3.5 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm transition-all"
                     />
                   </div>
                 </div>
