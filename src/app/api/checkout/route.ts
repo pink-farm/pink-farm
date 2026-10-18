@@ -262,7 +262,7 @@ export async function POST(request: Request) {
           paymentStatus: isPaidOnline ? "PAID" : "PENDING",
           paymentMethod: selectedMethod,
           gatewayPaymentId: isPaidOnline ? `PAY_${randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}` : null,
-          fulfillmentStatus: "PROCESSING",
+          fulfillmentStatus: "PENDING",
           items: {
             create: validatedItems.map((vi) => ({
               productId: vi.productId,

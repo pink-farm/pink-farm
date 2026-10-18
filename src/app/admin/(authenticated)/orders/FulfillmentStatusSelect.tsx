@@ -24,8 +24,8 @@ const STATUS_CONFIG: Record<string, { label: string; badgeClass: string }> = {
     badgeClass: "bg-blue-50 text-blue-800 border-blue-300 focus:ring-blue-400",
   },
   PROCESSING: {
-    label: "📦 Packaged",
-    badgeClass: "bg-blue-50 text-blue-800 border-blue-300 focus:ring-blue-400",
+    label: "⏳ Pending",
+    badgeClass: "bg-amber-50 text-amber-800 border-amber-300 focus:ring-amber-400",
   },
   SHIPPED: {
     label: "🚚 Shipped",
@@ -168,7 +168,7 @@ export function FulfillmentStatusSelect({
     <div className="flex flex-col gap-1 items-start">
       <div className="relative inline-flex items-center gap-1.5">
         <select
-          value={status === "PROCESSING" ? "PACKED" : status === "OUT_FOR_DELIVERY" ? "SHIPPED" : status}
+          value={status === "PROCESSING" ? "PENDING" : status === "OUT_FOR_DELIVERY" ? "SHIPPED" : status}
           onChange={(e) => handleDropdownChange(e.target.value)}
           disabled={isUpdating}
           aria-label="Fulfillment status"

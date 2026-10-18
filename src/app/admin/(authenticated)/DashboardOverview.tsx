@@ -130,7 +130,7 @@ export function DashboardOverview({ initialOrders, lowStockCount }: DashboardOve
     const paidOrders = ordersInPeriod.filter((o) => o.paymentStatus === "PAID");
     const totalRevenue = paidOrders.reduce((acc, o) => acc + o.totalAmount, 0);
     const pendingOrders = ordersInPeriod.filter(
-      (o) => o.fulfillmentStatus === "PENDING" && o.paymentStatus === "PAID"
+      (o) => (o.fulfillmentStatus === "PENDING" || o.fulfillmentStatus === "PROCESSING") && o.paymentStatus === "PAID"
     ).length;
     const aov = paidOrders.length > 0 ? Math.round(totalRevenue / paidOrders.length) : 0;
 
@@ -454,7 +454,7 @@ export function DashboardOverview({ initialOrders, lowStockCount }: DashboardOve
                   </td>
                   <td className="py-3.5 px-5">
                     <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-stone-100 text-stone-700">
-                      {order.fulfillmentStatus}
+                      {order.fulfillmentStatus === "PROCESSING" ? "PENDING" : order.fulfillmentStatus}
                     </span>
                   </td>
                   <td className="py-3.5 px-5 text-right font-bold text-stone-900 text-xs sm:text-sm">

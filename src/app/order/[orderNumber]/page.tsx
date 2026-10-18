@@ -116,7 +116,7 @@ export default async function OrderPage({
             }`}>
               {order.paymentMethod === "COD" ? "COD · DUE ON DELIVERY" : order.paymentStatus}
             </span>
-            <p className="text-xs sm:text-sm opacity-70 mt-1.5 sm:mt-2 font-medium">Status: {order.fulfillmentStatus}</p>
+            <p className="text-xs sm:text-sm opacity-70 mt-1.5 sm:mt-2 font-medium">Status: {order.fulfillmentStatus === "PROCESSING" ? "PENDING" : order.fulfillmentStatus}</p>
           </div>
         </div>
 
@@ -131,7 +131,7 @@ export default async function OrderPage({
                 <div className="text-sm font-bold text-gray-900 flex items-center gap-2 flex-wrap">
                   <span>Courier: {order.carrierName || "Express Courier"}</span>
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-200/90 text-purple-900 px-2 py-0.5 rounded-full">
-                    {order.fulfillmentStatus}
+                    {order.fulfillmentStatus === "PROCESSING" ? "PENDING" : order.fulfillmentStatus}
                   </span>
                 </div>
                 <div className="text-xs text-brand-charcoal/80 mt-1 flex items-center gap-1.5 flex-wrap">

@@ -1001,7 +1001,7 @@ export function CustomerAccountClient() {
                         ? { label: "Delivered", step: 4, badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200", icon: "✅" }
                         : s === "SHIPPED" || s === "OUT_FOR_DELIVERY"
                         ? { label: "Shipped", step: 3, badgeClass: "bg-purple-100 text-purple-800 border-purple-200", icon: "🚚" }
-                        : s === "PACKED" || s === "PROCESSING"
+                        : s === "PACKED"
                         ? { label: "Packaged", step: 2, badgeClass: "bg-blue-100 text-blue-800 border-blue-200", icon: "📦" }
                         : { label: "Pending", step: 1, badgeClass: "bg-amber-100 text-amber-800 border-amber-200", icon: "⏳" };
 

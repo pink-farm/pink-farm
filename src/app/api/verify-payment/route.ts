@@ -42,7 +42,6 @@ export async function POST(request: Request) {
         where: { id: orderId, gatewayOrderId: razorpay_order_id, paymentMethod: "RAZORPAY", paymentStatus: "PENDING" },
         data: {
         paymentStatus: "PAID",
-        fulfillmentStatus: "PROCESSING",
         gatewayPaymentId: razorpay_payment_id,
         },
       });
