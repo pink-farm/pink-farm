@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { CheckCircle2, Clock, Package, Truck, Home, Printer, Star } from "lucide-react";
+import { CheckCircle2, Clock, Printer, Star } from "lucide-react";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
 import { getCustomerSession } from "@/lib/auth";
 import { canAccessOrderReference } from "@/lib/session-policy.mjs";
@@ -193,33 +193,6 @@ export default async function OrderPage({
         {order.addressLine2 && <p className="opacity-90 text-xs sm:text-sm">{order.addressLine2}</p>}
         <p className="opacity-90 text-xs sm:text-sm">{order.city}, {order.state} - {order.pinCode}</p>
         <p className="opacity-90 text-xs sm:text-sm mt-2 font-medium">Mobile: {order.customerPhone}</p>
-      </div>
-
-      <div className="bg-brand-cream/50 rounded-3xl p-5 sm:p-8 border border-brand-green-light/10 mb-8 text-center space-y-4 min-w-0">
-        <h3 className="font-serif text-lg sm:text-xl text-brand-green">What happens next?</h3>
-        <p className="text-xs sm:text-sm opacity-70 leading-relaxed max-w-lg mx-auto">
-          We are carefully packing your order with love. You will receive an email and WhatsApp message with your tracking details once your package is dispatched.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 pt-3 sm:pt-4 text-left">
-          <div className="space-y-1 bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-2 text-brand-green font-medium text-sm">
-              <Package size={16} /> Dispatch
-            </div>
-            <p className="text-xs opacity-80 pl-6">Within 24 Hours</p>
-          </div>
-          <div className="space-y-1 bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-2 text-brand-green font-medium text-sm">
-              <Truck size={16} /> Shipping
-            </div>
-            <p className="text-xs opacity-80 pl-6">PAN-India Delivery</p>
-          </div>
-          <div className="space-y-1 bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-2 text-brand-green font-medium text-sm">
-              <Home size={16} /> Surprise
-            </div>
-            <p className="text-xs opacity-80 pl-6">Free Gift Included 🎁</p>
-          </div>
-        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
