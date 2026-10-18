@@ -33,14 +33,14 @@ export default async function Home() {
       <section className="relative w-full overflow-hidden bg-brand-ivory pt-24 pb-16 md:pt-28 md:pb-20">
         {/* Dynamic Abstract CSS Mesh Background */}
         <div 
-          className="absolute inset-0 z-0 animate-mesh opacity-90"
+          className="absolute inset-0 z-0 animate-mesh opacity-65"
           style={{
             backgroundImage: 'radial-gradient(at 0% 0%, rgba(247, 225, 215, 0.95) 0px, transparent 60%), radial-gradient(at 100% 0%, rgba(157, 180, 160, 0.8) 0px, transparent 60%), radial-gradient(at 100% 100%, rgba(255, 245, 230, 0.9) 0px, transparent 60%), radial-gradient(at 0% 100%, rgba(240, 210, 220, 0.8) 0px, transparent 60%)',
             backgroundSize: '200% 200%'
           }}
         />
         {/* Grain Overlay */}
-        <div className="absolute inset-0 opacity-[0.25] mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
+        <div className="absolute inset-0 opacity-[0.1] mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
 
         <div className="container relative z-10 mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-12">
           {/* Left Text Column */}
@@ -48,15 +48,15 @@ export default async function Home() {
             
             <FadeIn direction="up" delay={0.1}>
               <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl leading-[1.1] tracking-tight">
-                <span className="bg-[linear-gradient(110deg,#1A4031,45%,#88E2B0,55%,#1A4031)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block drop-shadow-sm">
-                  Goodness That <br/><span className="italic font-light">Feels Like Home.</span>
+                <span className="inline-block text-brand-green">
+                  Goodness That <br/><span className="pf-title-underline italic font-light">Feels Like Home.</span>
                 </span>
               </h1>
             </FadeIn>
             
             <FadeIn direction="up" delay={0.25}>
               <p className="text-lg md:text-xl opacity-90 leading-relaxed">
-                <span className="bg-[linear-gradient(110deg,#2D2D2D,45%,#A0A0A0,55%,#2D2D2D)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block">
+                <span>
                   Discover thoughtfully selected everyday favourites, with premium quality at the heart of Pink Farm. Direct from farms to your family.
                 </span>
               </p>
@@ -66,7 +66,7 @@ export default async function Home() {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <ScaleOnTap>
                   <ShimmerSheen className="rounded-full">
-                    <Button asChild size="lg" className="w-full sm:w-auto text-base rounded-full px-8 py-6 shadow-md hover:shadow-xl border-0 text-white bg-[linear-gradient(110deg,#1A4031,45%,#4CA371,55%,#1A4031)] bg-[length:200%_100%] animate-text-gradient transition-transform duration-300">
+                    <Button asChild size="lg" className="w-full sm:w-auto text-base rounded-full px-8 py-6 shadow-md hover:shadow-lg border-0 text-white bg-brand-green transition-transform duration-300">
                       <Link href="/products">Shop Now</Link>
                     </Button>
                   </ShimmerSheen>
@@ -77,8 +77,9 @@ export default async function Home() {
 
           {/* Right Visual Column - FLOATING IMAGES WITH LUXURY GLOW & MOTION */}
           <div className="flex-1 hidden md:flex relative h-[500px] w-full justify-center items-center z-10 mt-8 md:mt-0">
+            <div className="pf-orbit-ring z-0" aria-hidden="true" />
             {/* Center Main Floating Image with GlowPulse */}
-            <FloatingElement amplitude={14} duration={7} delay={0} className="absolute z-30">
+            <FloatingElement amplitude={8} duration={9} delay={0} className="absolute z-30">
               <HoverCard lift={-6}>
                 <GlowPulse color="rgba(230, 184, 192, 0.45)">
                   <div className="shadow-2xl rounded-full overflow-hidden border-8 border-brand-ivory/60 w-[320px] h-[320px] relative transition-transform duration-700 hover:scale-105">
@@ -96,7 +97,7 @@ export default async function Home() {
             </FloatingElement>
             
             {/* Top Right Floating Image */}
-            <FloatingElement amplitude={18} duration={8} delay={1} className="absolute top-4 right-8 z-20">
+            <FloatingElement amplitude={10} duration={10} delay={0.8} className="absolute top-4 right-8 z-20">
               <HoverCard lift={-5}>
                 <div className="shadow-xl rounded-full overflow-hidden border-4 border-brand-ivory/50 opacity-95 w-[190px] h-[190px] relative transition-transform duration-700 hover:scale-105">
                   <Image 
@@ -111,7 +112,7 @@ export default async function Home() {
             </FloatingElement>
 
             {/* Bottom Left Floating Image */}
-            <FloatingElement amplitude={16} duration={6.5} delay={0.5} className="absolute bottom-4 left-8 z-40">
+            <FloatingElement amplitude={9} duration={8.5} delay={0.4} className="absolute bottom-4 left-8 z-40">
               <HoverCard lift={-5}>
                 <div className="shadow-2xl rounded-full overflow-hidden border-4 border-brand-ivory/50 opacity-95 w-[220px] h-[220px] relative transition-transform duration-700 hover:scale-105">
                   <Image 
@@ -173,12 +174,12 @@ export default async function Home() {
         </FadeIn>
 
         {homepageProducts.length > 0 ? (
-          <StaggerContainer staggerDelay={0.16} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
+            <StaggerContainer staggerDelay={0.09} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
             {homepageProducts.map((product, index) => (
               <StaggerItem key={product.id}>
-                <SpotlightCard className="rounded-[2rem] h-full" glowColor="rgba(42, 89, 78, 0.15)">
-                  <Link href={`/products/${product.slug}`} className="group flex flex-col gap-4 h-full p-2">
-                    <div className="relative aspect-square rounded-[2rem] overflow-hidden bg-gradient-to-br from-brand-pink-accent/40 to-brand-cream shadow-sm group-hover:shadow-xl transition-all duration-500 border border-brand-pink-accent/20 p-2 sm:p-4">
+                <SpotlightCard className="pf-home-product-card rounded-[2rem] h-full" glowColor="rgba(42, 89, 78, 0.15)">
+                  <Link href={`/products/${product.slug}`} className="pf-home-product-link group flex flex-col gap-4 h-full p-2">
+                    <div className="pf-home-product-art relative aspect-square rounded-[2rem] overflow-hidden bg-gradient-to-br from-brand-pink-accent/40 to-brand-cream shadow-sm group-hover:shadow-xl transition-all duration-500 border border-brand-pink-accent/20 p-2 sm:p-4">
                       {product.imageUrl ? (
                         <div className="relative w-full h-full rounded-2xl overflow-hidden">
                           <Image
@@ -186,7 +187,7 @@ export default async function Home() {
                             alt={product.name}
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                            className="pf-home-product-photo object-cover transition-transform duration-700 group-hover:scale-105"
                           />
                         </div>
                       ) : (
@@ -195,27 +196,27 @@ export default async function Home() {
                         </div>
                       )}
                       {product.variants?.[0]?.packSize ? (
-                        <div className="absolute top-3 left-3 bg-brand-green/90 backdrop-blur-xs text-white text-[10px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+                        <div className="pf-home-product-badge absolute top-3 left-3 bg-brand-green/90 backdrop-blur-xs text-white text-[10px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
                           {product.variants[0].packSize}
                         </div>
                       ) : index === 0 ? (
-                        <div className="absolute top-3 left-3 bg-brand-green text-white text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+                        <div className="pf-home-product-badge absolute top-3 left-3 bg-brand-green text-white text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
                           Signature
                         </div>
                       ) : null}
                       {product.originalPrice && product.originalPrice > product.basePrice && (
-                        <div className="absolute top-3 right-3 bg-brand-pink text-brand-green border border-brand-green/20 text-[10px] sm:text-xs font-extrabold px-2 py-0.5 rounded-full shadow-md">
+                        <div className="pf-home-product-badge absolute top-3 right-3 bg-brand-pink text-brand-green border border-brand-green/20 text-[10px] sm:text-xs font-extrabold px-2 py-0.5 rounded-full shadow-md">
                           {Math.round((1 - product.basePrice / product.originalPrice) * 100)}% OFF
                         </div>
                       )}
                     </div>
                     <div className="pt-2 px-1">
-                      <h3 className="font-serif text-base sm:text-lg lg:text-xl font-bold text-brand-green group-hover:text-brand-green-light transition-colors leading-tight">{product.name}</h3>
+                      <h3 className="pf-home-product-title font-serif text-base sm:text-lg lg:text-xl font-bold text-brand-green group-hover:text-brand-green-light transition-colors leading-tight">{product.name}</h3>
                       <p className="hidden sm:block text-sm text-brand-charcoal opacity-60 line-clamp-1 mt-1 mb-2">{product.shortDescription}</p>
                       
                       {/* Price & Discount */}
                       <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
-                        <div className="bg-brand-green text-brand-ivory px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-transform duration-300 group-hover:scale-105">
+                        <div className="pf-home-product-price bg-brand-green text-brand-ivory px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-transform duration-300 group-hover:scale-105">
                           ₹{formatPrice(product.basePrice)}
                         </div>
                         {product.originalPrice && product.originalPrice > product.basePrice && (
@@ -308,7 +309,7 @@ export default async function Home() {
             </h2>
           </div>
         </FadeIn>
-        <StaggerContainer staggerDelay={0.20} className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+        <StaggerContainer staggerDelay={0.11} className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
           <StaggerItem>
             <SpotlightCard className="h-full rounded-[2.5rem]" glowColor="rgba(230, 184, 192, 0.2)">
               <div className="h-full bg-white p-8 rounded-[2.5rem] shadow-sm border border-brand-pink-accent/30 hover:shadow-xl transition-all duration-300">
@@ -406,7 +407,7 @@ export default async function Home() {
             <h2 className="text-center font-serif text-3xl md:text-4xl mb-16 text-brand-champagne">Simple. Secure. Satisfying.</h2>
           </FadeIn>
           
-          <StaggerContainer staggerDelay={0.22} className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+          <StaggerContainer staggerDelay={0.12} className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
             <StaggerItem>
               <HoverCard lift={-5}>
                 <div className="flex flex-col items-center text-center gap-6 relative z-10 group">

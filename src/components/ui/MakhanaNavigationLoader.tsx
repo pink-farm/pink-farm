@@ -8,17 +8,35 @@ import { MakhanaLoader } from "./MakhanaLoader";
 export function MakhanaNavigationLoader() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isNavigating, setIsNavigating] = useState(false);
+  // Render the branded cover in the initial HTML too, so a slow first visit
+  // does not flash an unstyled page before the client router hydrates.
+  const [isNavigating, setIsNavigating] = useState(true);
   const [progress, setProgress] = useState(0);
 
   const startTimestampRef = useRef<number>(0);
   const currentPathnameRef = useRef<string>(pathname);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const initialProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  useEffect(() => {
+    setProgress(18);
+    initialProgressTimerRef.current = setTimeout(() => setProgress(100), 700);
+    dismissTimerRef.current = setTimeout(() => {
+      setIsNavigating(false);
+      setProgress(0);
+    }, 1000);
+
+    return () => {
+      if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    };
+  }, []);
+
   const startNavigation = useCallback((waitForRoute = false) => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
@@ -49,6 +67,7 @@ export function MakhanaNavigationLoader() {
 
   const completeNavigation = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
@@ -151,6 +170,7 @@ export function MakhanaNavigationLoader() {
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);
       if (timerRef.current) clearInterval(timerRef.current);
+      if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
       if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
     };

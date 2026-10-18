@@ -205,7 +205,7 @@ export function ProductListClient({
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.25 }}
               >
-                <SpotlightCard className="h-full rounded-2xl bg-white border border-brand-pink-accent/20 p-3 shadow-sm hover:shadow-lg transition-all" glowColor="rgba(42, 89, 78, 0.12)">
+                <SpotlightCard className="h-full rounded-2xl bg-white border border-brand-pink-accent/20 p-3 shadow-sm hover:shadow-md transition-all" glowColor="rgba(42, 89, 78, 0.12)">
                   <Link href={`/products/${product.slug}`} className="group flex flex-col gap-4 h-full">
                     <div className="relative aspect-square rounded-xl overflow-hidden bg-brand-pink-accent/20">
                       {product.imageUrl ? (
@@ -214,7 +214,7 @@ export function ProductListClient({
                           alt={product.name}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition-transform duration-700 group-hover:scale-108"
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-brand-green/30">
