@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -11,7 +12,8 @@ import {
   Search, 
   Package, 
   Check,
-  LayoutGrid
+  LayoutGrid,
+  Image as ImageIcon
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { useSettingsStore } from "@/store/settingsStore";
@@ -320,6 +322,37 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
                   <tr key={p.id} className="hover:bg-gray-50/70 transition-colors">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
+                        <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-gray-200 bg-gray-50 shadow-2xs">
+                          {p.imageUrl ? (
+                            <Image
+                              src={p.imageUrl}
+                              alt={p.name}
+                              fill
+                              className="object-cover"
+                              unoptimized={p.imageUrl.startsWith("data:")}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <ImageIcon size={16} />
+                            </div>
+                          )}
+                          {(() => {
+                            try {
+                              const extra = JSON.parse(p.additionalImages || "[]");
+                              if (Array.isArray(extra) && extra.length > 0) {
+                                return (
+                                  <span
+                                    title={`${extra.length} additional gallery images`}
+                                    className="absolute bottom-0.5 right-0.5 bg-black/75 text-[9px] font-bold text-white px-1 py-0.2 rounded-sm leading-none"
+                                  >
+                                    +{extra.length}
+                                  </span>
+                                );
+                              }
+                            } catch {}
+                            return null;
+                          })()}
+                        </div>
                         <div>
                           <div className="font-bold text-gray-900 flex items-center gap-2">
                             <span>{p.name}</span>

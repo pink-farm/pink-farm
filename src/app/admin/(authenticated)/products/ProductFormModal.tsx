@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { ImagePlus, Loader2, Trash2, X, Sparkles } from "lucide-react";
+import { ImagePlus, Loader2, Trash2, X, Sparkles, Plus, Star, Upload } from "lucide-react";
 import { useSettingsStore } from "@/store/settingsStore";
 
 export interface EditableProduct {
@@ -12,6 +12,7 @@ export interface EditableProduct {
   nutritionalInfo?: string | null; storage?: string | null; allergens?: string | null; deliveryNotes?: string | null;
   seoTitle?: string | null; seoDesc?: string | null; tags?: string;
   highlights?: string | null;
+  additionalImages?: string | null;
   variants: { id: string; name: string; packSize: string; price: number; originalPrice: number | null; stockQuantity: number; isAvailable: boolean }[];
 }
 
@@ -21,6 +22,10 @@ const labelClass = "mb-1.5 block text-xs font-semibold text-gray-600";
 export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { product: EditableProduct | null; onClose: () => void; onSaved: () => void; onDeleted: () => void }) {
   const [values, setValues] = useState<Record<string, string | boolean>>({});
   const [imageUrl, setImageUrl] = useState("");
+  const [additionalImages, setAdditionalImages] = useState<string[]>([]);
+  const [galleryUrlInput, setGalleryUrlInput] = useState("");
+  const [compressingGallery, setCompressingGallery] = useState(false);
+  const [compressingMain, setCompressingMain] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
@@ -64,6 +69,8 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
       });
       setIsCustomCategory(false);
       setImageUrl("");
+      setAdditionalImages([]);
+      setGalleryUrlInput("");
       return;
     }
     let tags = "";
@@ -109,6 +116,19 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
       isAvailable: product.isAvailable,
     });
     setImageUrl(product.imageUrl ?? "");
+    let existingAdditional: string[] = [];
+    if (product.additionalImages) {
+      try {
+        const parsed = JSON.parse(product.additionalImages);
+        if (Array.isArray(parsed)) {
+          existingAdditional = parsed.filter((item) => typeof item === "string" && item.trim().length > 0);
+        }
+      } catch {
+        existingAdditional = [];
+      }
+    }
+    setAdditionalImages(existingAdditional);
+    setGalleryUrlInput("");
   }, [product, activeCategories]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -116,23 +136,106 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
   const set = (key: string, value: string | boolean) => setValues((prev) => ({ ...prev, [key]: value }));
   const field = (key: string) => String(values[key] ?? "");
 
-  async function chooseImage(file?: File) {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) { setError("Choose an image file."); return; }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const image = new globalThis.Image();
-      image.onload = () => {
-        const scale = Math.min(1, 1400 / Math.max(image.width, image.height));
-        const canvas = document.createElement("canvas"); canvas.width = Math.round(image.width * scale); canvas.height = Math.round(image.height * scale);
-        canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height);
-        const compressed = canvas.toDataURL("image/jpeg", 0.78);
-        if (compressed.length > 3_500_000) { setError("This image is too large after compression. Choose a smaller image."); return; }
-        setImageUrl(compressed); setError("");
+  function compressImageFile(file: File, maxDim = 1200, quality = 0.78): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith("image/")) {
+        return reject(new Error("Selected file is not an image."));
+      }
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Failed to read image file."));
+      reader.onload = () => {
+        const img = new globalThis.Image();
+        img.onerror = () => reject(new Error("Failed to load image."));
+        img.onload = () => {
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("Canvas context unavailable."));
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressed = canvas.toDataURL("image/jpeg", quality);
+          resolve(compressed);
+        };
+        img.src = String(reader.result);
       };
-      image.src = String(reader.result);
-    };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function chooseMainImage(file?: File) {
+    if (!file) return;
+    setCompressingMain(true);
+    setError("");
+    try {
+      const compressed = await compressImageFile(file, 1400, 0.78);
+      if (compressed.length > 3_500_000) {
+        setError("This image is too large after compression. Choose a smaller image.");
+        return;
+      }
+      setImageUrl(compressed);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load image.");
+    } finally {
+      setCompressingMain(false);
+    }
+  }
+
+  async function handleAddGalleryFiles(files?: FileList | null) {
+    if (!files || files.length === 0) return;
+    setCompressingGallery(true);
+    setError("");
+    try {
+      const newImages: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith("image/")) {
+          const compressed = await compressImageFile(file, 1200, 0.78);
+          newImages.push(compressed);
+        }
+      }
+      if (newImages.length > 0) {
+        if (!imageUrl) {
+          setImageUrl(newImages[0]);
+          setAdditionalImages((prev) => [...prev, ...newImages.slice(1)]);
+        } else {
+          setAdditionalImages((prev) => [...prev, ...newImages]);
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to process gallery images.");
+    } finally {
+      setCompressingGallery(false);
+    }
+  }
+
+  function handleAddGalleryUrl() {
+    const trimmed = galleryUrlInput.trim();
+    if (!trimmed) return;
+    if (!imageUrl) {
+      setImageUrl(trimmed);
+    } else {
+      setAdditionalImages((prev) => [...prev, trimmed]);
+    }
+    setGalleryUrlInput("");
+  }
+
+  function handleRemoveGalleryImage(index: number) {
+    setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleSetAsMainImage(index: number) {
+    const chosen = additionalImages[index];
+    if (!chosen) return;
+    const currentMain = imageUrl;
+    setImageUrl(chosen);
+    setAdditionalImages((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      if (currentMain && !updated.includes(currentMain)) {
+        return [currentMain, ...updated];
+      }
+      return updated;
+    });
   }
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
@@ -168,6 +271,7 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
     const payload = {
       ...values,
       imageUrl,
+      additionalImages: JSON.stringify(additionalImages),
       basePrice: Math.round(Number(values.basePrice) * 100),
       originalPrice: field("originalPrice") ? Math.round(Number(values.originalPrice) * 100) : null,
       stockQuantity: Math.max(0, Math.floor(Number(values.stockQuantity) || 0)),
@@ -211,7 +315,7 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-950/50 p-3 sm:p-6" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <form onSubmit={save} className="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <header className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-7"><div><h2 className="text-xl font-bold text-gray-900">{product ? "Edit product" : "Add new product"}</h2><p className="mt-1 text-xs text-gray-500">Add the product details and available inventory.</p></div><button type="button" onClick={onClose} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><X size={18} /></button></header>
+        <header className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-7"><div><h2 className="text-xl font-bold text-gray-900">{product ? "Edit product" : "Add new product"}</h2><p className="mt-1 text-xs text-gray-500">Add the product details, showcase images, and available inventory.</p></div><button type="button" onClick={onClose} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><X size={18} /></button></header>
         {error && (
           <div role="alert" className="mx-5 sm:mx-7 mt-4 p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs font-semibold flex items-center justify-between gap-2 animate-in fade-in duration-150">
             <span>{error}</span>
@@ -219,7 +323,229 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
           </div>
         )}
         <div className="grid gap-5 overflow-y-auto p-5 sm:grid-cols-2 sm:p-7">
-          <label className="sm:col-span-2"><span className={labelClass}>Product image *</span><div className="flex items-center gap-4"><div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-gray-300 bg-gray-50">{imageUrl ? <Image src={imageUrl} alt="Product preview" width={96} height={96} unoptimized className="h-full w-full object-cover" /> : <ImagePlus className="text-gray-400" />}</div><div className="flex-1 space-y-2"><input type="file" accept="image/*" onChange={(event) => void chooseImage(event.target.files?.[0])} className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-xs file:font-semibold"/><input value={imageUrl.startsWith("data:") ? "" : imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Or paste an image URL" className={inputClass} /></div></div></label>
+          {/* PRODUCT IMAGES SECTION */}
+          <div className="sm:col-span-2 space-y-4 rounded-2xl border border-gray-200/90 bg-gradient-to-b from-gray-50/80 to-white p-4 sm:p-5 shadow-2xs">
+            <div className="border-b border-gray-100 pb-2">
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-brand-green" />
+                Product Imagery (Showcase &amp; Gallery)
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Set 1 main showcase image for catalog &amp; cards, plus keep uploading multiple images for the product details page (Amazon / Flipkart style gallery).
+              </p>
+            </div>
+
+            {/* 1. MAIN SHOWCASE IMAGE */}
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-3.5 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-2xs">
+                    <Star size={11} className="fill-white" /> Main Showcase Image *
+                  </span>
+                  <span className="text-[11px] text-gray-500 hidden sm:inline">
+                    (Shown on store catalog, search cards, and primary view)
+                  </span>
+                </div>
+                {imageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl("")}
+                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 hover:underline cursor-pointer"
+                  >
+                    Clear main image
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-emerald-300 bg-white shadow-xs">
+                  {compressingMain ? (
+                    <Loader2 size={22} className="animate-spin text-emerald-600" />
+                  ) : imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt="Showcase main"
+                      width={96}
+                      height={96}
+                      unoptimized
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center p-1">
+                      <ImagePlus size={22} className="text-emerald-400 mb-0.5" />
+                      <span className="text-[9px] font-medium text-gray-400">No image</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 w-full space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 cursor-pointer shadow-2xs transition-colors">
+                      <Upload size={13} className="text-emerald-600" />
+                      <span>{imageUrl ? "Replace Showcase Image" : "Upload Showcase Image"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => void chooseMainImage(e.target.files?.[0])}
+                        className="hidden"
+                      />
+                    </label>
+                    <span className="text-xs text-gray-400">or enter direct URL below</span>
+                  </div>
+                  <input
+                    value={imageUrl.startsWith("data:") ? "" : imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder={imageUrl.startsWith("data:") ? "(Uploaded from computer)" : "Paste image URL (e.g. /images/product.jpg or https://...)"}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 2. PRODUCT DETAILS GALLERY (MULTIPLE IMAGES) */}
+            <div className="rounded-xl border border-pink-100 bg-pink-50/20 p-3.5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-800">
+                      Product Details Gallery Images
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-pink-100 text-pink-700">
+                      {additionalImages.length} {additionalImages.length === 1 ? "image" : "images"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Upload numerous images to scroll through inside product details &amp; description (Flipkart / Amazon style).
+                  </p>
+                </div>
+
+                {/* Multi-upload button */}
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-green bg-brand-green text-white hover:bg-brand-green/90 text-xs font-semibold cursor-pointer shadow-2xs transition-colors self-start sm:self-auto">
+                  {compressingGallery ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Plus size={13} />
+                  )}
+                  <span>Keep Uploading Images</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    disabled={compressingGallery}
+                    onChange={(e) => void handleAddGalleryFiles(e.target.files)}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {/* Paste URL row */}
+              <div className="flex items-center gap-2">
+                <input
+                  value={galleryUrlInput}
+                  onChange={(e) => setGalleryUrlInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddGalleryUrl();
+                    }
+                  }}
+                  placeholder="Or paste an image URL to append..."
+                  className={`${inputClass} text-xs py-2`}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddGalleryUrl}
+                  disabled={!galleryUrlInput.trim()}
+                  className="shrink-0 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 disabled:opacity-40 cursor-pointer transition-colors shadow-2xs"
+                >
+                  + Add URL
+                </button>
+              </div>
+
+              {/* Gallery thumbnails grid */}
+              {compressingGallery && (
+                <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-white/80 border border-brand-green/20 text-xs font-medium text-brand-green animate-pulse">
+                  <Loader2 size={15} className="animate-spin" /> Optimizing and uploading selected images...
+                </div>
+              )}
+
+              {additionalImages.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-1">
+                  {additionalImages.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="group relative aspect-square rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs hover:shadow-md hover:border-brand-green/40 transition-all flex flex-col justify-between p-1.5"
+                    >
+                      <div className="relative w-full flex-1 overflow-hidden rounded-lg bg-gray-50">
+                        <Image
+                          src={img}
+                          alt={`Gallery ${idx + 1}`}
+                          fill
+                          unoptimized
+                          className="object-cover"
+                        />
+                        <span className="absolute top-1 left-1 bg-gray-900/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+                          #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryImage(idx)}
+                          title="Remove image"
+                          className="absolute top-1 right-1 w-6 h-6 rounded-md bg-rose-600/90 hover:bg-rose-700 text-white flex items-center justify-center opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity shadow cursor-pointer"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSetAsMainImage(idx)}
+                        title="Promote to Main Showcase Image"
+                        className="mt-1.5 w-full py-1 rounded bg-gray-100 hover:bg-emerald-100 text-[10px] font-semibold text-gray-700 hover:text-emerald-800 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <Star size={10} /> Make Main
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Dropzone card for adding more */}
+                  <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-brand-green bg-white hover:bg-emerald-50/30 transition-all flex flex-col items-center justify-center gap-1 text-center p-2 cursor-pointer group">
+                    <Plus size={20} className="text-gray-400 group-hover:text-brand-green transition-colors" />
+                    <span className="text-[11px] font-semibold text-gray-600 group-hover:text-brand-green">
+                      + Add More
+                    </span>
+                    <span className="text-[9px] text-gray-400">Multiple files</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => void handleAddGalleryFiles(e.target.files)}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-200 hover:border-brand-green/50 rounded-xl bg-white hover:bg-pink-50/20 cursor-pointer transition-colors text-center group">
+                  <div className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 mb-2 group-hover:scale-105 transition-transform">
+                    <ImagePlus size={20} />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-700">
+                    No additional details images yet
+                  </span>
+                  <span className="text-[11px] text-gray-500 mt-0.5">
+                    Click here or use the &quot;Keep Uploading Images&quot; button above to select 1 or more images for the product details slider
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => void handleAddGalleryFiles(e.target.files)}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
           <label><span className={labelClass}>Product name *</span><input required value={field("name")} onChange={(e) => { set("name", e.target.value); if (!product) set("slug", e.target.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")); }} className={inputClass}/></label>
           <label><span className={labelClass}>SKU *</span><input required value={field("sku")} onChange={(e) => set("sku", e.target.value)} className={inputClass}/></label>
           <div>

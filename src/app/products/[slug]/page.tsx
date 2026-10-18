@@ -6,6 +6,7 @@ import { ChevronRight, Star } from "lucide-react";
 import { FadeIn, HoverCard, GlowPulse } from "@/components/ui/MotionWrappers";
 import { ProductBadges } from "@/components/products/ProductHighlightBadges";
 import { ProductFeedback } from "@/components/products/ProductFeedback";
+import { ProductImageGallery, ProductDescriptionGallery } from "@/components/products/ProductImageGallery";
 import { getStoreProductBySlug } from "@/lib/defaultProducts";
 import { prisma } from "@/lib/db";
 
@@ -32,6 +33,19 @@ export default async function ProductDetailPage({
   const reviewCount = reviewStats?._count?._all || 0;
   const avgRating = reviewStats?._avg?.rating ? reviewStats._avg.rating.toFixed(1) : null;
 
+  let additionalImages: string[] = [];
+  if (product.additionalImages) {
+    try {
+      const parsed = JSON.parse(product.additionalImages);
+      if (Array.isArray(parsed)) {
+        additionalImages = parsed.filter((img) => typeof img === "string" && img.trim().length > 0);
+      }
+    } catch {
+      additionalImages = [];
+    }
+  }
+  const allImages = [product.imageUrl, ...additionalImages].filter(Boolean);
+
   return (
     <div className="container mx-auto px-4 py-2 md:py-4 pb-28 sm:pb-16 min-w-0">
       {/* Breadcrumb */}
@@ -46,30 +60,10 @@ export default async function ProductDetailPage({
       </FadeIn>
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 xl:gap-10 items-start">
-        {/* Showcase: Product Image + Yogabar-style Badges */}
-        <div className="w-full lg:w-[46%] xl:w-[44%] flex flex-col md:flex-row gap-3 items-center shrink-0">
-          {/* Main Image (properly constrained square, no massive scrolling needed) */}
+        {/* Showcase: Product Image Gallery + Yogabar-style Badges */}
+        <div className="w-full lg:w-[46%] xl:w-[44%] flex flex-col md:flex-row gap-3 items-start shrink-0">
           <div className="flex-1 w-full min-w-0">
-            <HoverCard lift={-2}>
-              <GlowPulse color="rgba(230, 184, 192, 0.25)">
-                <div className="relative aspect-square w-full max-h-[340px] md:max-h-[360px] lg:max-h-[380px] rounded-2xl overflow-hidden bg-brand-pink-accent/10 border border-brand-green-light/10 shadow-md">
-                  {product.imageUrl ? (
-                    <Image
-                      src={product.imageUrl}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-transform duration-500 hover:scale-105"
-                      priority
-                      sizes="(max-width: 768px) 100vw, 400px"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-brand-green/30">
-                      Main Image
-                    </div>
-                  )}
-                </div>
-              </GlowPulse>
-            </HoverCard>
+            <ProductImageGallery images={allImages} productName={product.name} />
           </div>
 
           {/* Yogabar-style Vertical Badges Column (Vertically centered with the image) */}
@@ -124,6 +118,7 @@ export default async function ProductDetailPage({
               <div>
                 <h3 className="font-bold text-lg text-brand-green mb-3">About this product</h3>
                 <p className="opacity-90 leading-relaxed whitespace-pre-wrap">{product.description}</p>
+                <ProductDescriptionGallery images={allImages} productName={product.name} />
               </div>
               
               {product.ingredients && (
