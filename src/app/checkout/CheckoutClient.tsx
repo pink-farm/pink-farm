@@ -286,13 +286,22 @@ export function CheckoutClient() {
     }
 
     try {
+      // Sanitize items so we don't send huge base64 images or unnecessary client fields
+      const checkoutItems = items.map((item) => ({
+        id: item.id,
+        variantId: item.variantId,
+        variantName: item.variantName,
+        name: item.name,
+        quantity: item.quantity,
+      }));
+
       // Create order on server with 1-click Pay status
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           customerDetails: data, 
-          items, 
+          items: checkoutItems, 
           couponCode: appliedCoupon?.code,
           paymentMethod 
         }),

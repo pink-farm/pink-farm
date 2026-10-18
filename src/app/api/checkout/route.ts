@@ -13,7 +13,7 @@ type StoreProduct = { id: string; isAvailable: boolean; basePrice: number; origi
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   try {
-    const parsed = await readBoundedJson(request, 32_000);
+    const parsed = await readBoundedJson(request, 10_000_000);
     if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
     if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Order details must be a JSON object." }, { status: 400 });
     const body = parsed.value;
