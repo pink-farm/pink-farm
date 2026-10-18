@@ -82,14 +82,17 @@ export function LoginForm() {
     router.refresh();
   };
 
+  const enterAdminWorkspace = async () => {
+    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
+    await new Promise((resolve) => window.setTimeout(resolve, 2200));
+    router.push("/admin");
+    router.refresh();
+  };
+
   const handleAdminSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError("");
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
-    }
-
     try {
       const response = await fetch("/api/admin/login", {
         method: "POST",
@@ -98,19 +101,12 @@ export function LoginForm() {
       });
       const data = await response.json();
       if (!response.ok) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
-        }
         setError(data.error || "Invalid credentials.");
         setIsLoading(false);
       } else {
-        router.push("/admin");
-        router.refresh();
+        await enterAdminWorkspace();
       }
     } catch {
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
-      }
       setError("Unable to sign in right now. Please try again.");
       setIsLoading(false);
     }
@@ -153,9 +149,6 @@ export function LoginForm() {
     event.preventDefault();
     setIsLoading(true);
     setError("");
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
-    }
     try {
       const response = await fetch("/api/auth/otp", {
         method: "POST",
@@ -164,25 +157,15 @@ export function LoginForm() {
       });
       const data = await response.json();
       if (!response.ok) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
-        }
         setError(data.error || "Unable to verify your admin email.");
         setIsLoading(false);
       } else if (!adminOtpSent) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
-        }
         setAdminOtpSent(true);
         setIsLoading(false);
       } else {
-        router.push("/admin");
-        router.refresh();
+        await enterAdminWorkspace();
       }
     } catch {
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
-      }
       setError("Unable to verify your admin email right now. Please try again.");
       setIsLoading(false);
     }
@@ -380,10 +363,7 @@ export function LoginForm() {
                 type="button"
                 onClick={() => {
                   setIsLoading(true);
-                  if (typeof window !== "undefined") {
-                    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
-                  }
-                  router.push("/admin");
+                  void enterAdminWorkspace();
                 }}
                 size="lg"
                 className="h-12 w-full cursor-pointer rounded-xl text-sm shadow-lg shadow-brand-green/10"
