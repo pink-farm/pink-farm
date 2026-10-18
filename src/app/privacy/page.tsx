@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { FadeIn } from "@/components/ui/MotionWrappers";
-import { Lock, ShieldCheck, EyeOff, UserCheck } from "lucide-react";
+import { ShieldCheck, Lock, CheckCircle2, Mail, ExternalLink } from "lucide-react";
 
 export const metadata = {
   title: "Privacy Policy — Pink Farm",
-  description: "Learn how Pink Farm collects, protects, and respects your personal data.",
+  description: "Learn how Pink Farm protects your privacy and handles your personal information.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
       {/* HERO */}
       <section className="relative w-full bg-brand-green text-brand-ivory pt-32 pb-20 overflow-hidden">
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-10 pointer-events-none"
           style={{
             backgroundImage:
               "radial-gradient(circle at 70% 40%, #88E2B0 0%, transparent 60%), radial-gradient(circle at 30% 80%, #F7E1D7 0%, transparent 50%)",
@@ -21,79 +21,161 @@ export default function PrivacyPolicyPage() {
         />
         <div className="container mx-auto px-4 relative z-10 text-center max-w-3xl">
           <FadeIn direction="up">
-            <p className="text-brand-champagne text-sm font-medium tracking-widest uppercase mb-4">
-              Your Trust Matters
+            <p className="text-brand-champagne text-xs md:text-sm font-semibold tracking-widest uppercase mb-3 flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-brand-champagne" />
+              Pink Farm Official Policy
             </p>
-            <h1 className="font-serif text-5xl md:text-6xl font-extrabold leading-tight mb-4">
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-4">
               Privacy <span className="italic font-light text-brand-pink">Policy.</span>
             </h1>
-            <p className="text-base md:text-lg opacity-80 leading-relaxed max-w-xl mx-auto">
-              We respect your privacy and are committed to protecting your personal information with absolute care.
+            <p className="text-sm md:text-base opacity-85 leading-relaxed max-w-xl mx-auto">
+              At Pink Farm, we respect your privacy and are committed to protecting the information you share with us when you use our website or place an order.
             </p>
           </FadeIn>
         </div>
       </section>
 
       {/* CONTENT */}
-      <section className="bg-white py-16 md:py-24">
-        <div className="container mx-auto px-4 max-w-4xl text-brand-charcoal/80 leading-relaxed space-y-10 text-sm md:text-base">
+      <section className="bg-[#FAF7F2] py-12 md:py-20">
+        <div className="container mx-auto px-4 max-w-4xl">
           <FadeIn direction="up">
-            <div className="border-b border-brand-green/10 pb-6 mb-8">
-              <p className="text-xs uppercase tracking-widest text-brand-green font-semibold">
-                Last updated: October 2026
-              </p>
-            </div>
+            <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-12 shadow-sm border border-brand-green/10 space-y-8 text-brand-charcoal text-sm md:text-base leading-relaxed">
+              
+              <div className="border-b border-brand-green/10 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-brand-charcoal/60">
+                <span className="font-semibold text-brand-green uppercase tracking-wider">suvana organics · pink farm</span>
+                <span>Effective Date: Updated for Store Customers</span>
+              </div>
 
-            <div className="space-y-8">
-              <section className="space-y-3">
-                <h2 className="font-serif text-2xl font-bold text-brand-green">1. Information We Collect</h2>
+              {/* Intro Banner */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-brand-cream/60 border border-brand-green/10 text-brand-charcoal/85">
                 <p>
-                  When you visit or place an order on <strong>Pink Farm</strong>, we collect relevant information necessary to fulfill your request:
+                  At <strong>Pink Farm</strong>, we respect your privacy and are committed to protecting the information you share with us when you use our website or place an order.
                 </p>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li><strong>Personal details:</strong> Name, phone number, and email address.</li>
-                  <li><strong>Shipping details:</strong> Delivery address, landmark, state, and pin code.</li>
-                  <li><strong>Transaction details:</strong> Order ID, payment mode (UPI, card, net banking), and status provided by our gateway partner.</li>
+              </div>
+
+              {/* 1. Information We Collect */}
+              <div className="space-y-3 pt-2">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green flex items-center gap-2">
+                  <span>1. Information We Collect</span>
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  When you place an order, contact us or use certain features of our website, we may collect information such as your name, phone number, email address, billing and shipping address and order details.
+                </p>
+              </div>
+
+              {/* 2. How We Use Your Information */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  2. How We Use Your Information
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  We may use the information collected to:
+                </p>
+                <ul className="space-y-2 pl-2">
+                  {[
+                    "Process and deliver your orders",
+                    "Provide customer support",
+                    "Communicate with you regarding your orders",
+                    "Send important updates regarding our products or services",
+                    "Improve our website, products and customer experience",
+                    "Prevent fraudulent or unauthorised transactions",
+                  ].map((point, index) => (
+                    <li key={index} className="flex items-start gap-2.5 text-brand-charcoal/85">
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-green mt-2 shrink-0" />
+                      <span>{point}</span>
+                    </li>
+                  ))}
                 </ul>
-              </section>
+              </div>
 
-              <section className="space-y-3">
-                <h2 className="font-serif text-2xl font-bold text-brand-green">2. How We Use Your Data</h2>
-                <p>
-                  We use your details strictly for customer service and fulfillment purposes:
+              {/* 3. Payment Information */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  3. Payment Information
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  Payments may be processed through third-party payment gateways. Pink Farm does not store your complete card, UPI or banking credentials on its own servers. Payment information is handled according to the policies and security practices of the respective payment service provider.
                 </p>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Processing, packing, and dispatching your orders.</li>
-                  <li>Sending real-time delivery notifications and tracking receipts via SMS or WhatsApp.</li>
-                  <li>Authenticating account access securely via password or one-time verification codes.</li>
-                  <li>Preventing fraudulent transactions and unauthorized account takeovers.</li>
-                </ul>
-              </section>
+              </div>
 
-              <section className="space-y-3">
-                <h2 className="font-serif text-2xl font-bold text-brand-green">3. Payment Security</h2>
-                <p>
-                  All online payments are handled directly by PCI-DSS certified payment processors (e.g. Razorpay). <strong>Pink Farm never stores your credit card numbers, CVVs, UPI PINs, or bank account credentials</strong> on our servers.
+              {/* 4. Sharing of Information */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  4. Sharing of Information
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  We do not sell or rent your personal information. Your information may be shared with trusted service providers such as courier companies, payment gateways and technology/service providers where necessary to process your order and provide our services.
                 </p>
-              </section>
+              </div>
 
-              <section className="space-y-3">
-                <h2 className="font-serif text-2xl font-bold text-brand-green">4. Third-Party Sharing</h2>
-                <p>
-                  We never sell, rent, or trade your personal information to third parties. We share data only with trusted service partners essential for fulfilling your purchases:
+              {/* 5. Cookies */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  5. Cookies
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  Our website may use cookies and similar technologies to improve website functionality, understand website usage and enhance your browsing experience.
                 </p>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li><strong>Logistics Partners:</strong> Couriers (such as Delhivery, Bluedart) receive your shipping address and contact number to deliver your parcel.</li>
-                  <li><strong>Communication Gateways:</strong> WhatsApp/SMS APIs to deliver order receipts and tracking links.</li>
-                </ul>
-              </section>
+              </div>
 
-              <section className="space-y-3">
-                <h2 className="font-serif text-2xl font-bold text-brand-green">5. Data Retention & Your Rights</h2>
-                <p>
-                  You have the right to request access to the personal data we hold about you, or ask for account deletion. If you wish to update your details or delete your profile, please contact our support team at <Link href="/contact" className="text-brand-green font-bold underline underline-offset-2">our contact page</Link>.
+              {/* 6. Data Security */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  6. Data Security
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  We take reasonable measures to protect your personal information from unauthorised access, misuse, alteration or disclosure. However, no online system can be guaranteed to be completely secure.
                 </p>
-              </section>
+              </div>
+
+              {/* 7. Third-Party Links */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  7. Third-Party Links
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  Our website may contain links to third-party websites or services. Pink Farm is not responsible for the privacy practices or content of those third-party websites.
+                </p>
+              </div>
+
+              {/* 8. Your Rights */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  8. Your Rights
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  You may contact us to request access to, correction of or deletion of your personal information, subject to applicable laws and legitimate business requirements.
+                </p>
+              </div>
+
+              {/* 9. Changes to This Privacy Policy */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  9. Changes to This Privacy Policy
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  We may update this Privacy Policy from time to time to reflect changes in our practices or applicable requirements. Updated versions will be published on this website.
+                </p>
+              </div>
+
+              {/* 10. Contact Us */}
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-brand-green">
+                  10. Contact Us
+                </h2>
+                <p className="text-brand-charcoal/80">
+                  If you have any questions regarding this Privacy Policy or how your information is handled, please contact Pink Farm through the contact details provided on our website.
+                </p>
+                <div className="pt-2">
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-green text-white font-bold text-xs sm:text-sm hover:bg-brand-green-light transition-all shadow-sm"
+                  >
+                    <Mail size={16} /> Contact Pink Farm Team &rarr;
+                  </Link>
+                </div>
+              </div>
+
             </div>
           </FadeIn>
         </div>
