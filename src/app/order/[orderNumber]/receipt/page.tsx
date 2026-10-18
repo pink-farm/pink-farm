@@ -280,12 +280,12 @@ export default async function CustomerReceiptPage({
               </div>
 
               <div className="border-t-2 border-black pt-1.5 mt-1 flex justify-between items-baseline font-black text-xs sm:text-sm">
-                <span>{order.paymentMethod === "COD" ? "TOTAL DUE ON DELIVERY:" : "TOTAL PAID AMOUNT:"}</span>
+                <span>{order.paymentStatus === "PAID" ? "TOTAL PAID AMOUNT:" : "TOTAL AMOUNT:"}</span>
                 <span className="font-mono text-sm sm:text-base">₹{(order.totalAmount / 100).toFixed(2)}</span>
               </div>
 
               <div className="text-[9px] text-gray-500 pt-0.5 text-right">
-                Payment: <span className="font-bold text-black">{order.paymentMethod === "COD" ? "Cash on delivery" : order.paymentStatus}</span>
+                Payment: <span className="font-bold text-black">{order.paymentMethod} · {order.paymentStatus}</span>
               </div>
             </div>
           </div>

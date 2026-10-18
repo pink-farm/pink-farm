@@ -54,13 +54,13 @@ export async function PATCH(
       const current = await tx.order.findUnique({ where: { id }, include: { items: true } });
       if (!current) throw new Error("ORDER_NOT_FOUND");
       if (current.fulfillmentStatus === "CANCELLED" && normalizedStatus !== "CANCELLED") throw new Error("ORDER_ALREADY_CANCELLED");
+      if (normalizedStatus === "CANCELLED" && current.paymentStatus === "PAID") throw new Error("PAID_ORDER_CANCELLATION_REQUIRES_REFUND");
       if (normalizedStatus === "CANCELLED" && ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"].includes(current.fulfillmentStatus)) throw new Error("CANNOT_CANCEL");
       const changed = await tx.order.updateMany({ where: { id, fulfillmentStatus: current.fulfillmentStatus }, data: {
         fulfillmentStatus: normalizedStatus,
         ...(trackingNumber !== undefined ? { trackingNumber: trackingNumber || null } : {}),
         ...(carrierName !== undefined ? { carrierName: carrierName || null } : {}),
         ...(trackingUrl !== undefined ? { trackingUrl: trackingUrl || null } : {}),
-        ...(normalizedStatus === "DELIVERED" && current.paymentMethod === "COD" ? { paymentStatus: "PAID" } : {}),
       } });
       if (changed.count !== 1) throw new Error("ORDER_CHANGED");
       if (normalizedStatus === "CANCELLED" && current.fulfillmentStatus !== "CANCELLED") {
@@ -79,6 +79,7 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof Error && error.message === "ORDER_NOT_FOUND") return NextResponse.json({ error: "Order not found" }, { status: 404 });
     if (error instanceof Error && error.message === "CANNOT_CANCEL") return NextResponse.json({ error: "An order that has shipped cannot be cancelled here." }, { status: 409 });
+    if (error instanceof Error && error.message === "PAID_ORDER_CANCELLATION_REQUIRES_REFUND") return NextResponse.json({ error: "This order is paid. Process its refund before cancelling it." }, { status: 409 });
     if (error instanceof Error && (error.message === "ORDER_ALREADY_CANCELLED" || error.message === "ORDER_CHANGED")) return NextResponse.json({ error: "The order has changed and this update could not be applied." }, { status: 409 });
     logServerError("security.admin/orders/id.status.failed", error);
     return NextResponse.json(

@@ -2343,7 +2343,7 @@ export default function StoreSettingsPage() {
                           <span>●</span> Store is Online &amp; Open
                         </p>
                         <p className="text-xs text-emerald-700">
-                          Customers can freely browse, add items to cart, and complete online payments and Cash on Delivery.
+                          Customers can browse, add items to their cart, and complete secure online payments.
                         </p>
                       </div>
                     ) : (

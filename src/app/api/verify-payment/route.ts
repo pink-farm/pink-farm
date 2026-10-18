@@ -2,6 +2,7 @@ import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import crypto from "crypto";
+import Razorpay from "razorpay";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 
 export async function POST(request: Request) {
@@ -16,9 +17,9 @@ export async function POST(request: Request) {
     }
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
-    
-    if (!secret) {
-      return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    if (!secret || !keyId) {
+      return NextResponse.json({ error: "Payment service is not configured." }, { status: 503 });
     }
 
     const shasum = crypto.createHmac("sha256", secret);
@@ -34,6 +35,17 @@ export async function POST(request: Request) {
     const existingOrder = await prisma.order.findUnique({ where: { id: orderId } });
     if (!existingOrder || existingOrder.gatewayOrderId !== razorpay_order_id || existingOrder.paymentMethod !== "RAZORPAY" || existingOrder.paymentStatus !== "PENDING") {
       return NextResponse.json({ error: "Payment does not match a pending order." }, { status: 400 });
+    }
+
+    const razorpay = new Razorpay({ key_id: keyId, key_secret: secret });
+    const payment = await razorpay.payments.fetch(razorpay_payment_id);
+    if (
+      payment.order_id !== razorpay_order_id ||
+      payment.amount !== existingOrder.totalAmount ||
+      payment.currency !== "INR" ||
+      payment.status !== "captured"
+    ) {
+      return NextResponse.json({ error: "Razorpay has not confirmed this payment yet." }, { status: 400 });
     }
 
     // Update Order to PAID

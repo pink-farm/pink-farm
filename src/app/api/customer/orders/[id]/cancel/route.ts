@@ -47,6 +47,13 @@ export async function POST(
       );
     }
 
+    if (order.paymentStatus === "PAID") {
+      return NextResponse.json(
+        { error: "This order has already been paid. Contact Pink Farm support to request a cancellation and refund." },
+        { status: 409 }
+      );
+    }
+
     // Cancel order
     const updatedOrder = await prisma.$transaction(async (tx) => {
       const changed = await tx.order.updateMany({ where: { id, customerId: String(session.userId), fulfillmentStatus: currentFulfillment }, data: { fulfillmentStatus: "CANCELLED" } });

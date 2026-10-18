@@ -21,7 +21,6 @@ import {
   AlertTriangle,
   LogIn,
   CreditCard,
-  Zap,
   Lock,
 } from "lucide-react";
 import Link from "next/link";
@@ -30,6 +29,55 @@ import { useCustomerStore, type CustomerAddress } from "@/store/customerStore";
 import { MakhanaLoader } from "@/components/ui/MakhanaLoader";
 import { CouponCodeSection } from "@/components/checkout/CouponCodeSection";
 import { useHydrated } from "@/lib/use-hydrated";
+
+type RazorpayPaymentResult = {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayCheckout = {
+  open: () => void;
+};
+
+type RazorpayCheckoutOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill: { name: string; contact: string };
+  theme: { color: string };
+  handler: (response: RazorpayPaymentResult) => void | Promise<void>;
+  modal: { ondismiss: () => void };
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayCheckoutOptions) => RazorpayCheckout;
+  }
+}
+
+async function loadRazorpayCheckout() {
+  if (window.Razorpay) return;
+  await new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+    if (existing) {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => reject(new Error("Could not load Razorpay Checkout.")), { once: true });
+      if (window.Razorpay) resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Could not load Razorpay Checkout."));
+    document.body.appendChild(script);
+  });
+  if (!window.Razorpay) throw new Error("Razorpay Checkout is unavailable. Please try again.");
+}
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -52,7 +100,6 @@ export function CheckoutClient() {
   const freeDeliveryThreshold = useSettingsStore((state) => state.freeDeliveryThreshold);
   const isAcceptingOrders = useSettingsStore((state) => state.isAcceptingOrders);
 
-  const paymentMethod = "COD";
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
   const mounted = useHydrated();
@@ -286,6 +333,8 @@ export function CheckoutClient() {
     }
 
     try {
+      await loadRazorpayCheckout();
+
       // Sanitize items so we don't send huge base64 images or unnecessary client fields
       const checkoutItems = items.map((item) => ({
         id: item.id,
@@ -295,7 +344,7 @@ export function CheckoutClient() {
         quantity: item.quantity,
       }));
 
-      // Create order on server with 1-click Pay status
+      // Create the order and Razorpay payment session using server-validated prices.
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -303,7 +352,6 @@ export function CheckoutClient() {
           customerDetails: data, 
           items: checkoutItems, 
           couponCode: appliedCoupon?.code,
-          paymentMethod 
         }),
       });
 
@@ -313,14 +361,61 @@ export function CheckoutClient() {
         throw new Error(responseData.error || "Failed to process payment");
       }
 
-      if (responseData.orderCreated) {
-        setIsSuccess(true);
-        clearCart();
-        router.push(`/order/${responseData.orderNumber}`);
-        return;
+      if (!responseData.orderCreated || !responseData.razorpayOrderId || !responseData.razorpayKeyId) {
+        throw new Error("Unable to start payment. Please try again.");
       }
 
-      throw new Error("Unable to place this order. Please try again.");
+      let paymentVerificationStarted = false;
+      const RazorpayConstructor = window.Razorpay;
+      if (!RazorpayConstructor) throw new Error("Razorpay Checkout is unavailable. Please try again.");
+      const razorpay = new RazorpayConstructor({
+        key: responseData.razorpayKeyId,
+        amount: responseData.amount,
+        currency: responseData.currency,
+        name: "Pink Farm",
+        description: `Order ${responseData.orderNumber}`,
+        order_id: responseData.razorpayOrderId,
+        prefill: { name: data.fullName, contact: data.mobile },
+        theme: { color: "#246b45" },
+        handler: async (payment) => {
+          paymentVerificationStarted = true;
+          try {
+            const verification = await fetch("/api/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ orderId: responseData.orderId, ...payment }),
+            });
+            const verificationData = await verification.json();
+            if (!verification.ok || !verificationData.success) {
+              throw new Error(verificationData.error || "Payment confirmation is still pending.");
+            }
+            setIsSuccess(true);
+            clearCart();
+            router.push(`/order/${responseData.orderNumber}`);
+          } catch (verificationError) {
+            setError(verificationError instanceof Error ? `${verificationError.message} Your order reference is ${responseData.orderNumber}.` : `Payment confirmation is pending. Your order reference is ${responseData.orderNumber}.`);
+            setIsProcessing(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            if (!paymentVerificationStarted) {
+              void fetch("/api/checkout/cancel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  orderId: responseData.orderId,
+                  razorpayOrderId: responseData.razorpayOrderId,
+                  cancelToken: responseData.cancelToken,
+                }),
+              });
+              setError("Payment was cancelled. Your cart is still here if you want to try again.");
+              setIsProcessing(false);
+            }
+          },
+        },
+      });
+      razorpay.open();
 
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -764,7 +859,6 @@ export function CheckoutClient() {
             </div>
           )}
           
-          {/* Payment remains cash on delivery until an online payment gateway is configured. */}
           <div className="mb-6">
             <label className="text-xs font-bold uppercase tracking-wider text-brand-charcoal block mb-2">
               Payment Method
@@ -777,13 +871,13 @@ export function CheckoutClient() {
                 </div>
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-bold text-sm text-brand-green">Cash on Delivery</p>
-                    <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                      <Zap size={10} /> Pay on delivery
+                    <p className="font-bold text-sm text-brand-green">Pay securely with Razorpay</p>
+                    <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      UPI · Cards · NetBanking
                     </span>
                   </div>
                   <p className="text-xs text-brand-charcoal/70 mt-0.5">
-                    Pay when your order arrives
+                    Your payment is encrypted and verified before your order is confirmed.
                   </p>
                 </div>
               </div>
@@ -800,7 +894,7 @@ export function CheckoutClient() {
             {isProcessing ? (
               <span className="flex items-center justify-center gap-2">
                 <MakhanaLoader size="xs" text="" subtext="" speedSec={1.2} />
-                <span>Completing Payment...</span>
+                <span>Opening secure checkout...</span>
               </span>
             ) : !isAcceptingOrders ? (
               "Orders Temporarily Paused"

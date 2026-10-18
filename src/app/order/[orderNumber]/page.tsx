@@ -37,7 +37,7 @@ export default async function OrderPage({
   const customerSession = await getCustomerSession();
   if (!canAccessOrderReference(orderNumber, customerSession?.userId, order.customerId)) notFound();
 
-  const isSuccess = order.paymentStatus === "PAID" || order.paymentMethod === "COD";
+  const isSuccess = order.paymentStatus === "PAID";
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-16 max-w-3xl min-w-0 w-full pb-24 sm:pb-16">
@@ -114,7 +114,7 @@ export default async function OrderPage({
               order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' : 
               order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
             }`}>
-              {order.paymentMethod === "COD" ? "COD · DUE ON DELIVERY" : order.paymentStatus}
+              {order.paymentMethod === "RAZORPAY" ? `RAZORPAY · ${order.paymentStatus}` : order.paymentStatus}
             </span>
             <p className="text-xs sm:text-sm opacity-70 mt-1.5 sm:mt-2 font-medium">Status: {order.fulfillmentStatus === "PROCESSING" ? "PENDING" : order.fulfillmentStatus}</p>
           </div>
@@ -224,7 +224,7 @@ export default async function OrderPage({
             <span>₹{(order.deliveryFee / 100).toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-bold text-base sm:text-lg text-brand-green pt-4">
-            <span>{order.paymentMethod === "COD" ? "Total due on delivery" : "Total paid"}</span>
+            <span>{order.paymentStatus === "PAID" ? "Total paid" : "Total amount"}</span>
             <span>₹{(order.totalAmount / 100).toFixed(2)}</span>
           </div>
         </div>

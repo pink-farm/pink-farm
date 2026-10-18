@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { getCustomerSession } from "@/lib/auth";
+import Razorpay from "razorpay";
 import { calculateCouponDiscount, getCouponFailure } from "@/lib/coupons";
 import { comboQuantityQualifies, getComboDiscountPercent, isSameOriginMutation, isValidCheckoutQuantity, readBoundedJson } from "@/lib/request-security.mjs";
+import { createCheckoutCancelToken } from "@/lib/payment-token";
 
 type CheckoutItem = { id: string; variantId?: string; variantName?: string; name?: string; quantity: number };
 type CheckoutCustomerDetails = { fullName?: string; mobile?: string; addressLine1?: string; addressLine2?: string; city?: string; state?: string; pinCode?: string; deliveryInstructions?: string; couponCode?: string };
@@ -186,11 +188,33 @@ export async function POST(request: Request) {
       discount = calculateCouponDiscount(coupon, subtotal);
     }
     const totalAmount = Math.max(0, subtotal - discount + finalDeliveryFee);
+    if (totalAmount < 100) {
+      return NextResponse.json({ error: "The order total must be at least ₹1 for online payment." }, { status: 400 });
+    }
 
-    // Generate Order Number
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      return NextResponse.json({ error: "Online payments are not configured yet. Please contact the store." }, { status: 503 });
+    }
+
+    // Generate the gateway order using the server-calculated total.
     const orderNumber = `PF-${new Date().getFullYear()}-${randomUUID().replace(/-/g, "").toUpperCase()}`;
-    const selectedMethod = "COD";
-    const isPaidOnline = false;
+    const selectedMethod = "RAZORPAY";
+    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+    let gatewayOrderId: string;
+    try {
+      const gatewayOrder = await razorpay.orders.create({
+        amount: totalAmount,
+        currency: "INR",
+        receipt: orderNumber,
+        notes: { orderNumber },
+      });
+      gatewayOrderId = gatewayOrder.id;
+    } catch (error) {
+      logServerError("security.checkout.razorpay_order_failed", error);
+      return NextResponse.json({ error: "Payment service is temporarily unavailable. Please try again." }, { status: 502 });
+    }
 
     // Create Order in DB
     const order = await prisma.$transaction(async (tx) => {
@@ -259,9 +283,9 @@ export async function POST(request: Request) {
           discount,
           couponCode: coupon?.code,
           totalAmount,
-          paymentStatus: isPaidOnline ? "PAID" : "PENDING",
+          paymentStatus: "PENDING",
           paymentMethod: selectedMethod,
-          gatewayPaymentId: isPaidOnline ? `PAY_${randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}` : null,
+          gatewayOrderId,
           fulfillmentStatus: "PENDING",
           items: {
             create: validatedItems.map((vi) => ({
@@ -278,11 +302,16 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ 
-      orderCreated: true, 
+      orderCreated: true,
       orderNumber, 
       orderId: order.id, 
       paymentMethod: selectedMethod,
-      paymentStatus: order.paymentStatus 
+      paymentStatus: order.paymentStatus,
+      amount: totalAmount,
+      currency: "INR",
+      razorpayOrderId: gatewayOrderId,
+      razorpayKeyId: keyId,
+      cancelToken: createCheckoutCancelToken(order.id, gatewayOrderId),
     }, { status: 201 });
 
   } catch (error: unknown) {

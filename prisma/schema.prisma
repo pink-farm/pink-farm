@@ -77,7 +77,7 @@ model Order {
   totalAmount      Int         // In paise
 
   paymentStatus    String      @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
-  paymentMethod    String      @default("COD")
+  paymentMethod    String      @default("RAZORPAY")
   fulfillmentStatus String     @default("PENDING") // PENDING, PROCESSING, PACKED, SHIPPED, OUT_FOR_DELIVERY, DELIVERED, CANCELLED
 
   trackingNumber   String?     // AWB / Consignment tracking number
