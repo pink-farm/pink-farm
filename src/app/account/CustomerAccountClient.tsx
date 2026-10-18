@@ -65,8 +65,11 @@ type AccountOrder = {
   state: string;
   items: {
     id: string;
-    productId: string;
+    productId: string | null;
     variantName: string | null;
+    productName: string | null;
+    productSlug: string | null;
+    productImageUrl: string | null;
     quantity: number;
     unitPrice: number;
     subtotal: number;

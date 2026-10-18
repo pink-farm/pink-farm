@@ -10,7 +10,7 @@ import { createCheckoutCancelToken } from "@/lib/payment-token";
 
 type CheckoutItem = { id: string; variantId?: string; variantName?: string; name?: string; quantity: number };
 type CheckoutCustomerDetails = { fullName?: string; mobile?: string; addressLine1?: string; addressLine2?: string; city?: string; state?: string; pinCode?: string; deliveryInstructions?: string; couponCode?: string };
-type StoreProduct = { id: string; isAvailable: boolean; basePrice: number; originalPrice: number | null; stockQuantity: number; variants: { id: string; name?: string; packSize?: string; isAvailable: boolean; price: number; stockQuantity: number }[] };
+type StoreProduct = { id: string; name: string; slug: string; imageUrl: string; isAvailable: boolean; basePrice: number; originalPrice: number | null; stockQuantity: number; variants: { id: string; name?: string; packSize?: string; isAvailable: boolean; price: number; stockQuantity: number }[] };
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
