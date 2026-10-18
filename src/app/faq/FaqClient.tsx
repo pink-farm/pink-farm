@@ -13,15 +13,45 @@ interface FaqItem {
 const FAQS: FaqItem[] = [
   {
     category: "product",
-    question: "What makes Pink Farm Makhana special?",
+    question: "How should I store Pink Farm Makhana?",
     answer:
-      "We hand-select only Grade-A jumbo lotus seeds directly from traditional harvesting farms in Bihar. Each batch is slow-roasted to golden crunch perfection using cold-pressed oils and clean, authentic spices without any artificial preservatives, MSG, or palm oil.",
+      "Store in a cool, dry place away from direct sunlight and moisture. Once opened, keep the pack/jar tightly sealed to retain maximum freshness and crunch.",
   },
   {
     category: "product",
-    question: "How long does the crunch stay fresh after opening?",
+    question: "What is the shelf life of the product?",
     answer:
-      "Our moisture-lock pouches keep the makhana crisp and fresh. Once opened, simply reseal the pouch tightly or transfer the contents to an airtight container. We recommend enjoying it within 10 to 14 days of opening for peak crunch.",
+      "The shelf life is mentioned on the product packaging. For the best taste, freshness and crunch, we recommend consuming the product within the mentioned period.",
+  },
+  {
+    category: "orders",
+    question: "Can I place a bulk or corporate gifting order?",
+    answer:
+      "Absolutely. Pink Farm offers bulk and corporate gifting options with premium packaging and multiple flavour choices. For customised requirements, please contact us directly.",
+  },
+  {
+    category: "orders",
+    question: "Do you accept wholesale or distributor orders?",
+    answer:
+      "Yes. We offer wholesale and distributor opportunities for selected products. Please contact our team to discuss pricing, minimum quantities and available options.",
+  },
+  {
+    category: "shipping",
+    question: "Can I return or exchange my order?",
+    answer:
+      "Since our products are food items, returns and exchanges are subject to our food safety and return policy. If your order arrives damaged, incorrect or tampered with, please contact us with your order details and photographs as soon as possible.",
+  },
+  {
+    category: "shipping",
+    question: "What should I do if I receive a damaged or incorrect product?",
+    answer:
+      "Please contact our customer support team as soon as possible after delivery and share your order number along with clear photographs/videos of the package and product. Our team will review the issue and assist you accordingly.",
+  },
+  {
+    category: "product",
+    question: "What makes Pink Farm Makhana special?",
+    answer:
+      "We hand-select only Grade-A jumbo lotus seeds directly from traditional harvesting farms in Bihar. Each batch is slow-roasted to golden crunch perfection using cold-pressed oils and clean, authentic spices without any artificial preservatives, MSG, or palm oil.",
   },
   {
     category: "product",
@@ -42,22 +72,10 @@ const FAQS: FaqItem[] = [
       "As soon as our courier partner picks up your parcel, we send an SMS and WhatsApp message with your tracking link. You can also view live delivery progress anytime in your Pink Farm Customer Account.",
   },
   {
-    category: "shipping",
-    question: "What should I do if my package is damaged on arrival?",
-    answer:
-      "Please don't worry! Contact us on WhatsApp (8437504040) within 48 hours with a quick photo of the damaged parcel. We take care of our customers immediately and will send out a free replacement.",
-  },
-  {
     category: "orders",
     question: "What payment options do you support?",
     answer:
-      "We accept all major secure payment methods via Razorpay, including UPI (GPay, PhonePe, Paytm), Debit and Credit Cards (Visa, Mastercard, RuPay), Net Banking across 50+ banks, and popular digital wallets.",
-  },
-  {
-    category: "orders",
-    question: "Do you offer corporate gifting or bulk discounts?",
-    answer:
-      "Yes! We design bespoke gift hampers and offer tiered discounts for corporate events, festive celebrations, and wellness gifting. You can click 'Bulk Orders' in the navigation bar or reach out to us on WhatsApp.",
+      "We accept all major secure payment methods via UPI (GPay, PhonePe, Paytm), Debit and Credit Cards (Visa, Mastercard, RuPay), Net Banking across 50+ banks, and popular digital wallets.",
   },
 ];
 
@@ -74,9 +92,9 @@ export function FaqClient() {
       <div className="flex flex-wrap items-center justify-center gap-2">
         {[
           { id: "all", label: "All Questions" },
-          { id: "product", label: "Makhana & Quality" },
-          { id: "shipping", label: "Shipping & Tracking" },
-          { id: "orders", label: "Orders & Payments" },
+          { id: "product", label: "Product & Storage" },
+          { id: "orders", label: "Bulk & Wholesale" },
+          { id: "shipping", label: "Returns & Shipping" },
         ].map((cat) => (
           <button
             key={cat.id}

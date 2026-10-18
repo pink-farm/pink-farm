@@ -444,14 +444,20 @@ export default async function Home() {
           <div className="space-y-6">
             <HoverCard lift={-3}>
               <div className="border border-brand-green-light/20 p-6 rounded-xl bg-white/70 shadow-sm transition-shadow hover:shadow-md">
-                <h3 className="font-bold text-lg mb-2">How do I pay for my order?</h3>
-                <p className="opacity-80">We accept payments securely via UPI, Credit &amp; Debit Cards, and NetBanking to ensure a smooth, fast checkout experience.</p>
+                <h3 className="font-bold text-lg mb-2 text-brand-green">How should I store Pink Farm Makhana?</h3>
+                <p className="opacity-80 text-sm leading-relaxed">Store in a cool, dry place away from direct sunlight and moisture. Once opened, keep the pack/jar tightly sealed to retain maximum freshness and crunch.</p>
               </div>
             </HoverCard>
             <HoverCard lift={-3}>
               <div className="border border-brand-green-light/20 p-6 rounded-xl bg-white/70 shadow-sm transition-shadow hover:shadow-md">
-                <h3 className="font-bold text-lg mb-2">When will I receive my delivery?</h3>
-                <p className="opacity-80">Orders are typically processed within 24 hours and delivered within 2-4 business days depending on your location.</p>
+                <h3 className="font-bold text-lg mb-2 text-brand-green">What is the shelf life of the product?</h3>
+                <p className="opacity-80 text-sm leading-relaxed">The shelf life is mentioned on the product packaging. For the best taste, freshness and crunch, we recommend consuming the product within the mentioned period.</p>
+              </div>
+            </HoverCard>
+            <HoverCard lift={-3}>
+              <div className="border border-brand-green-light/20 p-6 rounded-xl bg-white/70 shadow-sm transition-shadow hover:shadow-md">
+                <h3 className="font-bold text-lg mb-2 text-brand-green">Can I place a bulk or corporate gifting order?</h3>
+                <p className="opacity-80 text-sm leading-relaxed">Absolutely. Pink Farm offers bulk and corporate gifting options with premium packaging and multiple flavour choices. For customised requirements, please contact us directly.</p>
               </div>
             </HoverCard>
           </div>

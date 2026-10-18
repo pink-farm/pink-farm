@@ -5,12 +5,71 @@ import { MessageCircle, HelpCircle } from "lucide-react";
 
 export const metadata = {
   title: "Frequently Asked Questions (FAQ) — Pink Farm",
-  description: "Find answers to common questions about Pink Farm makhana sourcing, ingredients, delivery, tracking, and orders.",
+  description: "Find answers to common questions about Pink Farm makhana sourcing, storage, shelf life, bulk gifting, wholesale, and returns.",
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How should I store Pink Farm Makhana?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Store in a cool, dry place away from direct sunlight and moisture. Once opened, keep the pack/jar tightly sealed to retain maximum freshness and crunch.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is the shelf life of the product?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "The shelf life is mentioned on the product packaging. For the best taste, freshness and crunch, we recommend consuming the product within the mentioned period.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I place a bulk or corporate gifting order?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Absolutely. Pink Farm offers bulk and corporate gifting options with premium packaging and multiple flavour choices. For customised requirements, please contact us directly.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Do you accept wholesale or distributor orders?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. We offer wholesale and distributor opportunities for selected products. Please contact our team to discuss pricing, minimum quantities and available options.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I return or exchange my order?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Since our products are food items, returns and exchanges are subject to our food safety and return policy. If your order arrives damaged, incorrect or tampered with, please contact us with your order details and photographs as soon as possible.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What should I do if I receive a damaged or incorrect product?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Please contact our customer support team as soon as possible after delivery and share your order number along with clear photographs/videos of the package and product. Our team will review the issue and assist you accordingly.",
+      },
+    },
+  ],
 };
 
 export default function FaqPage() {
   return (
     <div className="flex flex-col gap-0 pb-0 overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* HERO */}
       <section className="relative w-full bg-brand-green text-brand-ivory pt-32 pb-24 overflow-hidden">
         <div
