@@ -272,25 +272,25 @@ export function ProductFeedback({ slug }: { slug: string }) {
             <div className="flex items-center gap-4 rounded-3xl border border-white/20 bg-white/12 px-5 py-4 backdrop-blur-md shadow-lg shadow-black/10">
               <div className="flex flex-col items-center border-r border-white/20 pr-4">
                 <span className="text-4xl font-extrabold tracking-tight tabular-nums text-white">
-                  {feedbackLoadError ? "—" : reviewCount ? averageRating.toFixed(1) : "5.0"}
+                  {feedbackLoadError ? "—" : reviewCount > 0 ? averageRating.toFixed(1) : "—"}
                 </span>
-                <span className="text-[11px] font-medium text-white/70">out of 5</span>
+                <span className="text-[11px] font-medium text-white/70">
+                  {reviewCount > 0 ? "out of 5" : "No ratings"}
+                </span>
               </div>
               <div>
                 <div
                   className="flex gap-1 text-amber-400"
-                  aria-label={reviewCount ? `${averageRating.toFixed(1)} out of 5 stars` : "5 out of 5 stars"}
+                  aria-label={reviewCount ? `${averageRating.toFixed(1)} out of 5 stars` : "No ratings yet"}
                 >
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
                       size={18}
                       className={
-                        reviewCount
-                          ? star <= Math.round(averageRating)
-                            ? "fill-current"
-                            : "text-white/30"
-                          : "fill-current"
+                        reviewCount > 0 && star <= Math.round(averageRating)
+                          ? "fill-current"
+                          : "text-white/30"
                       }
                     />
                   ))}
@@ -298,9 +298,13 @@ export function ProductFeedback({ slug }: { slug: string }) {
                 <p className="mt-1 text-xs font-semibold text-white/85">
                   {feedbackLoadError
                     ? "Temporarily unavailable"
-                    : `${reviewCount || 45} Verified Ratings`}
+                    : reviewCount > 0
+                    ? `${reviewCount} ${reviewCount === 1 ? "Verified Rating" : "Verified Ratings"}`
+                    : "No reviews yet"}
                 </p>
-                <p className="text-[10px] text-brand-champagne font-medium">✓ 100% Genuine Purchases</p>
+                <p className="text-[10px] text-brand-champagne font-medium">
+                  {reviewCount > 0 ? "✓ 100% Genuine Purchases" : "Be the first to rate & review"}
+                </p>
               </div>
             </div>
           </div>
@@ -339,9 +343,9 @@ export function ProductFeedback({ slug }: { slug: string }) {
               <div className="space-y-2.5">
                 {[5, 4, 3, 2, 1].map((val) => {
                   const match = ratingDistribution.find((d) => d.rating === val);
-                  const count = match ? match.count : val === 5 ? Math.round(reviewCount * 0.85) : val === 4 ? Math.round(reviewCount * 0.15) : 0;
+                  const count = match ? match.count : 0;
                   const total = reviewCount || 1;
-                  const percent = Math.min(100, Math.round((count / total) * 100));
+                  const percent = reviewCount > 0 ? Math.min(100, Math.round((count / total) * 100)) : 0;
                   const isSelected = selectedStarFilter === val;
 
                   return (
@@ -790,15 +794,31 @@ export function ProductFeedback({ slug }: { slug: string }) {
                 ) : (
                   <div className="rounded-3xl border border-dashed border-brand-green/20 bg-brand-cream/30 p-8 text-center">
                     <Star size={24} className="mx-auto text-amber-400 mb-2" />
-                    <h4 className="font-serif font-bold text-brand-green">No reviews matching this filter</h4>
-                    <p className="text-xs text-brand-charcoal/60 mt-1">Try selecting a different star rating.</p>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStarFilter(null)}
-                      className="mt-3 text-xs font-bold text-brand-green underline"
-                    >
-                      View all reviews
-                    </button>
+                    <h4 className="font-serif font-bold text-brand-green">
+                      {selectedStarFilter !== null ? "No reviews matching this filter" : "No customer reviews yet"}
+                    </h4>
+                    <p className="text-xs text-brand-charcoal/60 mt-1">
+                      {selectedStarFilter !== null
+                        ? "Try selecting a different star rating."
+                        : "Be the first to share your experience with this product!"}
+                    </p>
+                    {selectedStarFilter !== null ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStarFilter(null)}
+                        className="mt-3 text-xs font-bold text-brand-green underline"
+                      >
+                        View all reviews
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => startForm("review")}
+                        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-brand-green px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-brand-green-light transition"
+                      >
+                        <Star size={13} className="fill-current" /> Write the First Review
+                      </button>
+                    )}
                   </div>
                 )
               ) : comments.length ? (

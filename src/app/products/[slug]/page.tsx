@@ -29,8 +29,8 @@ export default async function ProductDetailPage({
     _count: { _all: true },
   }).catch(() => null);
 
-  const avgRating = reviewStats?._avg?.rating ? reviewStats._avg.rating.toFixed(1) : "4.8";
-  const reviewCount = reviewStats?._count?._all || 8;
+  const reviewCount = reviewStats?._count?._all || 0;
+  const avgRating = reviewStats?._avg?.rating ? reviewStats._avg.rating.toFixed(1) : null;
 
   return (
     <div className="container mx-auto px-4 py-2 md:py-4 pb-28 sm:pb-16 min-w-0">
@@ -86,16 +86,24 @@ export default async function ProductDetailPage({
               className="mb-2.5 inline-flex items-center gap-2 group cursor-pointer"
               title="Click to view customer ratings and reviews"
             >
-              <div className="flex items-center gap-1 rounded-md bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-xs font-bold text-amber-900 group-hover:bg-amber-500/25 transition">
-                <span>{avgRating}</span>
-                <Star size={12} className="fill-amber-400 text-amber-500" />
-              </div>
-              <span className="text-xs font-semibold text-brand-charcoal/75 group-hover:text-brand-green underline underline-offset-2 transition-colors">
-                {reviewCount} Customer Reviews
-              </span>
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                ✓ Verified Purchases
-              </span>
+              {reviewCount > 0 && avgRating ? (
+                <>
+                  <div className="flex items-center gap-1 rounded-md bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-xs font-bold text-amber-900 group-hover:bg-amber-500/25 transition">
+                    <span>{avgRating}</span>
+                    <Star size={12} className="fill-amber-400 text-amber-500" />
+                  </div>
+                  <span className="text-xs font-semibold text-brand-charcoal/75 group-hover:text-brand-green underline underline-offset-2 transition-colors">
+                    {reviewCount} {reviewCount === 1 ? "Customer Review" : "Customer Reviews"}
+                  </span>
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                    ✓ Verified Purchases
+                  </span>
+                </>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-charcoal/65 group-hover:text-brand-green underline underline-offset-2 transition-colors">
+                  <Star size={13} className="text-amber-500" /> Be the first to rate &amp; review
+                </span>
+              )}
             </a>
 
             <h1 className="font-serif text-2xl md:text-3xl lg:text-[32px] text-brand-green mb-1 leading-snug">
