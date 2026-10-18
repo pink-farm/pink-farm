@@ -125,7 +125,6 @@ export function ProductFeedback({ slug }: { slug: string }) {
   // Check URL query param `?review=1`
   useEffect(() => {
     if (searchParams && searchParams.get("review") === "1") {
-      setActiveTab("review");
       setActiveForm("review");
       if (myReview) {
         setRating(myReview.rating);
