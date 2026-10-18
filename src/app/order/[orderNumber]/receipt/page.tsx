@@ -203,7 +203,7 @@ export default async function CustomerReceiptPage({
                     {idx + 1}
                   </td>
                   <td className="py-1.5 px-2.5 border-r border-black font-semibold text-black text-[11px]">
-                    {item.product?.name || "Product"}
+                    {item.product?.name || item.productName || "Product"}
                   </td>
                   <td className="py-1.5 px-2.5 text-center border-r border-black text-gray-700 text-[10px]">
                     {item.variantName || "Standard"}

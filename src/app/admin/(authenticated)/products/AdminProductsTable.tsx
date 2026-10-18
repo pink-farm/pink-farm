@@ -53,6 +53,11 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
 
   const toggleStock = async (product: Product) => {
     const nextStatus = !product.isAvailable;
+    if (nextStatus && quantity(product) <= 0) {
+      setToastMessage("Add inventory before marking this product in stock.");
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
     setLoadingId(product.id);
 
     // Optimistic UI update
@@ -67,22 +72,20 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
         body: JSON.stringify({ productId: product.id, isAvailable: nextStatus }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to update status");
-      }
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to update status.");
 
       router.refresh();
       setToastMessage(
         `${product.name} is now ${nextStatus ? "In Stock" : "marked Out of Stock"}`
       );
       setTimeout(() => setToastMessage(null), 3000);
-    } catch {
-      console.error("Could not toggle product stock.");
+    } catch (error) {
       // Revert on error
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, isAvailable: !nextStatus } : p))
       );
-      setToastMessage("Failed to update product status. Please try again.");
+      setToastMessage(error instanceof Error ? error.message : "Failed to update product status. Please try again.");
       setTimeout(() => setToastMessage(null), 3000);
     } finally {
       setLoadingId(null);
@@ -328,6 +331,7 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
                               src={p.imageUrl}
                               alt={p.name}
                               fill
+                              sizes="44px"
                               className="object-cover"
                               unoptimized={p.imageUrl.startsWith("data:")}
                             />

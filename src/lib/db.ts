@@ -9,15 +9,28 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// During development a hot reload can retain a client generated from an older
-// Prisma schema. Recreate it when the generated client lacks the current models.
-const cachedPrisma = globalForPrisma.prisma as (PrismaClient & {
+type CachedPrismaSchema = PrismaClient & {
   coupon?: unknown;
   productReview?: unknown;
   productComment?: unknown;
-}) | undefined;
+  _runtimeDataModel?: {
+    models?: Record<string, { fields?: Array<{ name: string; isRequired: boolean }> }>;
+  };
+};
+
+// During development a hot reload can retain a client generated from an older
+// Prisma schema. Recreate it when the generated client lacks current models or
+// the nullable product snapshot fields used to preserve order history on delete.
+const cachedPrisma = globalForPrisma.prisma as CachedPrismaSchema | undefined;
+const cachedOrderItemFields = cachedPrisma?._runtimeDataModel?.models?.OrderItem?.fields;
+const cachedOrderItemSchemaIsCurrent = Boolean(
+  cachedOrderItemFields?.some((field) => field.name === "productName") &&
+    cachedOrderItemFields?.some((field) => field.name === "productSlug") &&
+    cachedOrderItemFields?.some((field) => field.name === "productImageUrl") &&
+    cachedOrderItemFields?.some((field) => field.name === "productId" && !field.isRequired),
+);
 export const prisma =
-  (cachedPrisma?.coupon && cachedPrisma.productReview && cachedPrisma.productComment ? cachedPrisma : undefined) ??
+  (cachedPrisma?.coupon && cachedPrisma.productReview && cachedPrisma.productComment && cachedOrderItemSchemaIsCurrent ? cachedPrisma : undefined) ??
   new PrismaClient({
     log: [],
     ...(process.env.DATABASE_URL

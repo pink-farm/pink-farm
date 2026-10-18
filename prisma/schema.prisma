@@ -174,9 +174,12 @@ model OrderItem {
   id               String      @id @default(auto()) @map("_id") @db.ObjectId
   orderId          String      @db.ObjectId
   order            Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId        String      @db.ObjectId
+    productId        String?     @db.ObjectId
   variantId        String?     @db.ObjectId
-  product          Product     @relation(fields: [productId], references: [id])
+    product          Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+    productName      String?
+    productSlug      String?
+    productImageUrl  String?
   variantName      String?
   quantity         Int
   unitPrice        Int         // In paise

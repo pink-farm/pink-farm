@@ -45,8 +45,8 @@ export async function POST(request: Request) {
         await tx.coupon.updateMany({ where: { code: order.couponCode, usedCount: { gt: 0 } }, data: { usedCount: { decrement: 1 } } });
       }
       for (const item of order.items) {
-        if (item.variantId) await tx.productVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { increment: item.quantity } } });
-        else await tx.product.update({ where: { id: item.productId }, data: { stockQuantity: { increment: item.quantity } } });
+        if (item.productId && item.variantId) await tx.productVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { increment: item.quantity } } });
+        else if (item.productId) await tx.product.update({ where: { id: item.productId }, data: { stockQuantity: { increment: item.quantity } } });
       }
     });
     return NextResponse.json({ success: true });

@@ -169,9 +169,13 @@ export default async function OrderPage({
               <div className="flex gap-3 sm:gap-4 items-center min-w-0 flex-1">
                 <span className="font-bold text-xs sm:text-sm shrink-0">{item.quantity}x</span>
                 <div className="min-w-0 flex-1">
-                   <Link href={`/products/${item.product.slug}`} className="font-medium text-brand-green hover:underline text-sm sm:text-base truncate block">{item.product.name}</Link>
+                   {item.product ? (
+                     <Link href={`/products/${item.product.slug}`} className="font-medium text-brand-green hover:underline text-sm sm:text-base truncate block">{item.product.name}</Link>
+                   ) : (
+                     <span className="font-medium text-brand-green text-sm sm:text-base truncate block">{item.productName || "Product"}</span>
+                   )}
                    {item.variantName && <p className="text-xs opacity-70 truncate">{item.variantName}</p>}
-                   {item.product.slug && (
+                   {item.product?.slug && (
                      <Link
                        href={`/products/${item.product.slug}?review=1#reviews`}
                        className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 px-2.5 py-1 rounded-full transition-all shadow-2xs"

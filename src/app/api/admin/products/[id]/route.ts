@@ -89,18 +89,40 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   try {
     const { id } = await params;
     const product = await prisma.$transaction(async (tx) => {
-      const existing = await tx.product.findUnique({ where: { id }, include: { _count: { select: { orderItems: true } } } });
+      const existing = await tx.product.findUnique({ where: { id } });
       if (!existing) throw new Error("PRODUCT_NOT_FOUND");
-      if (existing._count.orderItems > 0) throw new Error("PRODUCT_HAS_ORDER_HISTORY");
+      await tx.orderItem.updateMany({
+        where: { productId: id },
+        data: {
+          productId: null,
+          variantId: null,
+          productName: existing.name,
+          productSlug: existing.slug,
+          productImageUrl: existing.imageUrl.startsWith("data:") ? null : existing.imageUrl,
+        },
+      });
+      const settings = await tx.storeSettings.findUnique({ where: { id: "default" } });
+      if (settings) {
+        const comboProductIds = settings.comboProductIds.filter((productId) => productId !== id);
+        if (settings.heartProductId === id || settings.featuredProductId === id || comboProductIds.length !== settings.comboProductIds.length) {
+          await tx.storeSettings.update({
+            where: { id: settings.id },
+            data: {
+              ...(settings.heartProductId === id ? { heartProductId: null } : {}),
+              ...(settings.featuredProductId === id ? { featuredProductId: null } : {}),
+              ...(comboProductIds.length !== settings.comboProductIds.length ? { comboProductIds } : {}),
+            },
+          });
+        }
+      }
       await tx.productVariant.deleteMany({ where: { productId: id } });
       await tx.product.delete({ where: { id } });
       return existing;
     });
-    revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath(`/products/${product.slug}`); revalidatePath("/");
+    revalidatePath("/admin/products"); revalidatePath("/admin/settings"); revalidatePath("/products"); revalidatePath(`/products/${product.slug}`); revalidatePath("/");
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") return NextResponse.json({ error: "Product not found." }, { status: 404 });
-    if (error instanceof Error && error.message === "PRODUCT_HAS_ORDER_HISTORY") return NextResponse.json({ error: "This product has order history and can’t be deleted. Mark it out of stock to remove it from the storefront." }, { status: 409 });
     logServerError("security.admin/products.id.failed", error);
     return NextResponse.json({ error: "Could not delete product. Refresh and try again." }, { status: 500 });
   }

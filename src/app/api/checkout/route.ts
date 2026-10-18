@@ -83,7 +83,7 @@ export async function POST(request: Request) {
 
     // Server-side validation of pricing and inventory
     let subtotal = 0;
-    const validatedItems: { productId: string; variantId: string | null; variantName: string | null; quantity: number; unitPrice: number; subtotal: number }[] = [];
+    const validatedItems: { productId: string; productName: string; productSlug: string; productImageUrl: string | null; variantId: string | null; variantName: string | null; quantity: number; unitPrice: number; subtotal: number }[] = [];
 
     for (const item of items) {
       if (!item || typeof item.id !== "string" || !item.id || !isValidCheckoutQuantity(item.quantity)) {
@@ -138,6 +138,9 @@ export async function POST(request: Request) {
 
       validatedItems.push({
         productId: product.id,
+        productName: product.name,
+        productSlug: product.slug,
+        productImageUrl: product.imageUrl.startsWith("data:") ? null : product.imageUrl,
         variantId: matchedVariantId,
         variantName: item.variantName || null,
         quantity,
@@ -290,6 +293,9 @@ export async function POST(request: Request) {
           items: {
             create: validatedItems.map((vi) => ({
               productId: vi.productId,
+              productName: vi.productName,
+              productSlug: vi.productSlug,
+              productImageUrl: vi.productImageUrl,
               variantId: vi.variantId,
               variantName: vi.variantName,
               quantity: vi.quantity,

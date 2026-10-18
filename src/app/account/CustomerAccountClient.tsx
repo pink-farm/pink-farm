@@ -1151,11 +1151,11 @@ export function CustomerAccountClient() {
                             {order.items.map((item) => (
                               <div key={item.id} className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-3">
-                                  {item.product?.imageUrl ? (
+                                  {item.product?.imageUrl || item.productImageUrl ? (
                                     <div className="w-12 h-12 rounded-xl overflow-hidden relative bg-brand-cream shrink-0 border border-brand-green/10">
                                       <Image
-                                        src={item.product.imageUrl}
-                                        alt={item.product.name}
+                                        src={item.product?.imageUrl || item.productImageUrl || "/images/placeholder.jpg"}
+                                        alt={item.product?.name || item.productName || "Product"}
                                         fill
                                         className="object-cover"
                                       />
@@ -1167,7 +1167,7 @@ export function CustomerAccountClient() {
                                   )}
                                   <div>
                                     <div className="font-bold text-brand-charcoal">
-                                      {item.product?.name || "Artisanal Product"}
+                                      {item.product?.name || item.productName || "Artisanal Product"}
                                     </div>
                                     <div className="text-xs text-brand-charcoal/60">
                                       Qty: {item.quantity} {item.variantName ? `• ${item.variantName}` : ""}
