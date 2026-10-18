@@ -80,6 +80,10 @@ model Order {
   paymentMethod    String      @default("COD")
   fulfillmentStatus String     @default("PENDING") // PENDING, PROCESSING, PACKED, SHIPPED, OUT_FOR_DELIVERY, DELIVERED, CANCELLED
 
+  trackingNumber   String?     // AWB / Consignment tracking number
+  carrierName      String?     // Courier partner details (e.g. Delhivery, Blue Dart, etc.)
+  trackingUrl      String?     // Custom tracking URL (or auto-resolved)
+
   gatewayOrderId   String?
   gatewayPaymentId String?
 

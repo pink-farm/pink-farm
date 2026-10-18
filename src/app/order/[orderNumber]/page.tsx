@@ -2,10 +2,11 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { CheckCircle2, Clock, Printer, Star } from "lucide-react";
+import { CheckCircle2, Clock, Printer, Star, Truck, ExternalLink } from "lucide-react";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
 import { getCustomerSession } from "@/lib/auth";
 import { canAccessOrderReference } from "@/lib/session-policy.mjs";
+import { resolveTrackingUrl } from "@/lib/tracking";
 import type { Prisma } from "@prisma/client";
 import { logServerError } from "@/lib/server-log.mjs";
 
@@ -118,6 +119,49 @@ export default async function OrderPage({
             <p className="text-xs sm:text-sm opacity-70 mt-1.5 sm:mt-2 font-medium">Status: {order.fulfillmentStatus}</p>
           </div>
         </div>
+
+        {/* Courier & AWB Tracking Info if Shipped or Tracking Present */}
+        {order.trackingNumber && (
+          <div className="mb-6 p-4 rounded-2xl border border-purple-200/90 bg-gradient-to-r from-purple-50/80 via-pink-50/40 to-purple-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 shadow-2xs">
+                <Truck size={20} />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                  <span>Courier: {order.carrierName || "Express Courier"}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-200/90 text-purple-900 px-2 py-0.5 rounded-full">
+                    {order.fulfillmentStatus}
+                  </span>
+                </div>
+                <div className="text-xs text-brand-charcoal/80 mt-1 flex items-center gap-1.5 flex-wrap">
+                  <span>AWB Tracking No:</span>
+                  <a
+                    href={resolveTrackingUrl(order.carrierName, order.trackingNumber, order.trackingUrl) || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono font-bold text-purple-800 hover:text-purple-950 underline underline-offset-2 inline-flex items-center gap-1"
+                    title="Click AWB number to track order"
+                  >
+                    <span>{order.trackingNumber}</span>
+                    <ExternalLink size={11} />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href={resolveTrackingUrl(order.carrierName, order.trackingNumber, order.trackingUrl) || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs hover:shadow transition-all shrink-0 cursor-pointer"
+              title="Click to track your parcel on courier website"
+            >
+              <span>Track Parcel Live</span>
+              <ExternalLink size={12} />
+            </a>
+          </div>
+        )}
 
         <div className="space-y-4 mb-8">
           {order.items.map((item) => (

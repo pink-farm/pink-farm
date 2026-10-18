@@ -161,6 +161,12 @@ export default async function OrderSlipPage({
             </div>
 
             <div className="pt-2 border-t border-gray-300 text-[10px] text-gray-500 mt-2">
+              {order.carrierName && (
+                <div>Courier: <span className="font-bold text-black">{order.carrierName}</span></div>
+              )}
+              {order.trackingNumber && (
+                <div>AWB No: <span className="font-mono font-bold text-black">{order.trackingNumber}</span></div>
+              )}
               <div>Mode: Standard Express</div>
               <div>Payment: <span className="font-bold text-black">{order.paymentStatus}</span></div>
             </div>

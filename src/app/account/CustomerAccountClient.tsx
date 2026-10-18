@@ -36,6 +36,7 @@ import { useCustomerStore, CustomerAddress } from "@/store/customerStore";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
 import { useHydrated } from "@/lib/use-hydrated";
+import { resolveTrackingUrl } from "@/lib/tracking";
 
 type AccountTab = "profile" | "addresses" | "orders" | "security";
 type CustomerProfileResponse = {
@@ -57,6 +58,9 @@ type AccountOrder = {
   totalAmount: number;
   paymentStatus: string;
   fulfillmentStatus: string;
+  trackingNumber?: string | null;
+  carrierName?: string | null;
+  trackingUrl?: string | null;
   city: string;
   state: string;
   items: {
@@ -1096,6 +1100,49 @@ export function CustomerAccountClient() {
                                   );
                                 })}
                               </div>
+                            </div>
+                          )}
+
+                          {/* Courier Tracking Info if Shipped or AWB Present */}
+                          {order.trackingNumber && (
+                            <div className="my-3 p-3.5 rounded-2xl border border-purple-200/90 bg-gradient-to-r from-purple-50/80 via-pink-50/40 to-purple-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                              <div className="flex items-start sm:items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5 sm:mt-0">
+                                  <Truck size={18} />
+                                </div>
+                                <div>
+                                  <div className="text-xs font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                                    <span>Courier: {order.carrierName || "Express Courier"}</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-200/80 text-purple-900 px-2 py-0.2 rounded-full">
+                                      Dispatched
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-brand-charcoal/80 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                    <span>AWB Tracking No:</span>
+                                    <a
+                                      href={resolveTrackingUrl(order.carrierName, order.trackingNumber, order.trackingUrl) || "#"}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="font-mono font-bold text-purple-800 hover:text-purple-950 underline underline-offset-2 inline-flex items-center gap-1"
+                                      title="Click AWB number to track order"
+                                    >
+                                      <span>{order.trackingNumber}</span>
+                                      <ExternalLink size={11} />
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <a
+                                href={resolveTrackingUrl(order.carrierName, order.trackingNumber, order.trackingUrl) || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs hover:shadow transition-all shrink-0 cursor-pointer"
+                                title="Click to open live courier tracking"
+                              >
+                                <span>Track Order</span>
+                                <ExternalLink size={12} />
+                              </a>
                             </div>
                           )}
 

@@ -72,7 +72,12 @@ export default async function AdminOrdersPage() {
                   <td className="py-4 px-6">
                     <FulfillmentStatusSelect 
                       orderId={order.id} 
+                      orderNumber={order.orderNumber}
+                      customerName={order.customerName}
                       initialStatus={order.fulfillmentStatus} 
+                      initialTrackingNumber={order.trackingNumber}
+                      initialCarrierName={order.carrierName}
+                      initialTrackingUrl={order.trackingUrl}
                     />
                   </td>
                   <td className="py-4 px-6 text-right font-bold text-gray-900">

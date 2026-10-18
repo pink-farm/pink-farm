@@ -15,9 +15,8 @@ export async function PATCH(
     const parsed = await readBoundedJson(request, 4096);
     if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
     if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Order status must be a JSON object." }, { status: 400 });
-    const status = typeof (parsed.value as Record<string, unknown>).status === "string"
-      ? (parsed.value as Record<string, string>).status
-      : "";
+    const bodyObj = parsed.value as Record<string, unknown>;
+    const status = typeof bodyObj.status === "string" ? bodyObj.status.trim() : "";
 
     if (!status) {
       return NextResponse.json({ error: "Status is required" }, { status: 400 });
@@ -33,6 +32,24 @@ export async function PATCH(
       );
     }
 
+    const trackingNumber = typeof bodyObj.trackingNumber === "string"
+      ? bodyObj.trackingNumber.trim()
+      : bodyObj.trackingNumber === null
+      ? null
+      : undefined;
+
+    const carrierName = typeof bodyObj.carrierName === "string"
+      ? bodyObj.carrierName.trim()
+      : bodyObj.carrierName === null
+      ? null
+      : undefined;
+
+    const trackingUrl = typeof bodyObj.trackingUrl === "string"
+      ? bodyObj.trackingUrl.trim()
+      : bodyObj.trackingUrl === null
+      ? null
+      : undefined;
+
     const updatedOrder = await prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({ where: { id }, include: { items: true } });
       if (!current) throw new Error("ORDER_NOT_FOUND");
@@ -40,6 +57,9 @@ export async function PATCH(
       if (normalizedStatus === "CANCELLED" && ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"].includes(current.fulfillmentStatus)) throw new Error("CANNOT_CANCEL");
       const changed = await tx.order.updateMany({ where: { id, fulfillmentStatus: current.fulfillmentStatus }, data: {
         fulfillmentStatus: normalizedStatus,
+        ...(trackingNumber !== undefined ? { trackingNumber: trackingNumber || null } : {}),
+        ...(carrierName !== undefined ? { carrierName: carrierName || null } : {}),
+        ...(trackingUrl !== undefined ? { trackingUrl: trackingUrl || null } : {}),
         ...(normalizedStatus === "DELIVERED" && current.paymentMethod === "COD" ? { paymentStatus: "PAID" } : {}),
       } });
       if (changed.count !== 1) throw new Error("ORDER_CHANGED");
