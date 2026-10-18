@@ -21,9 +21,10 @@ export const instant = false;
 
 export default async function Home() {
   const [products, storeSettings] = await Promise.all([getStoreProducts(), getStoreSettings()]);
+  const homepageProducts = products.filter((p) => p.isFeatured);
   const featuredProduct = (storeSettings.featuredProductId
     ? products.find((p) => p.id === storeSettings.featuredProductId || p.slug === storeSettings.featuredProductId)
-    : null) || products.find((p) => p.category.toLowerCase() === 'makhana') || products[0];
+    : null) || homepageProducts.find((p) => p.category.toLowerCase() === 'makhana') || homepageProducts[0] || products[0];
 
   return (
     <div className="flex flex-col gap-8 md:gap-12 pb-28 sm:pb-20 overflow-x-hidden min-w-0">
@@ -171,9 +172,9 @@ export default async function Home() {
           </div>
         </FadeIn>
 
-        {products.length > 0 ? (
+        {homepageProducts.length > 0 ? (
           <StaggerContainer staggerDelay={0.16} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
-            {products.map((product, index) => (
+            {homepageProducts.map((product, index) => (
               <StaggerItem key={product.id}>
                 <SpotlightCard className="rounded-[2rem] h-full" glowColor="rgba(42, 89, 78, 0.15)">
                   <Link href={`/products/${product.slug}`} className="group flex flex-col gap-4 h-full p-2">
@@ -234,8 +235,8 @@ export default async function Home() {
           </StaggerContainer>
         ) : (
           <div className="text-center py-12 text-brand-charcoal opacity-70 bg-brand-pink/20 rounded-2xl">
-            <p>Products are being prepared for you. Check back soon!</p>
-            <p className="text-sm mt-2">(Development Note: Run the database seed script to see the 7 initial product slots)</p>
+            <p className="font-semibold text-brand-green">No featured products currently displayed on the storefront homepage.</p>
+            <p className="text-sm mt-1 text-brand-charcoal/70">Check &quot;Feature on storefront&quot; in the admin panel on products you wish to showcase here.</p>
           </div>
         )}
       </section>

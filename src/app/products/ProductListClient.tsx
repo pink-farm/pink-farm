@@ -86,7 +86,7 @@ export function ProductListClient({
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const filteredProducts = useMemo(() => {
-    let result = [...initialProducts];
+    let result = initialProducts.filter((p) => p.isAvailable !== false);
 
     // Category filter
     if (selectedCategory !== "all") {

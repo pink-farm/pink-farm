@@ -7,7 +7,8 @@ import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
 export const instant = false;
 
 export default async function ProductsPage() {
-  const [products, settings] = await Promise.all([getStoreProducts(), getStoreSettings()]);
+  const [allProducts, settings] = await Promise.all([getStoreProducts({ includeUnavailable: false }), getStoreSettings()]);
+  const products = allProducts.filter((p) => p.isAvailable !== false);
   const maxDiscount = Math.max(settings.comboTier1Discount || 11, settings.comboTier2Discount || 15);
   const showCombo = settings.comboEnabled !== false;
 

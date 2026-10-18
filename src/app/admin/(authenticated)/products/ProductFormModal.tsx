@@ -714,7 +714,42 @@ export function ProductFormModal({ product, onClose, onSaved, onDeleted }: { pro
           <label><span className={labelClass}>Tags (comma separated)</span><input value={field("tags")} onChange={(e) => set("tags", e.target.value)} className={inputClass}/></label>
           <label><span className={labelClass}>SEO title</span><input value={field("seoTitle")} onChange={(e) => set("seoTitle", e.target.value)} className={inputClass}/></label>
           <label><span className={labelClass}>SEO description</span><input value={field("seoDesc")} onChange={(e) => set("seoDesc", e.target.value)} className={inputClass}/></label>
-          <div className="flex flex-wrap gap-5 sm:col-span-2"><label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={Boolean(values.isFeatured)} onChange={(e) => set("isFeatured", e.target.checked)} className="accent-emerald-700"/> Feature on storefront</label><label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={Boolean(values.isAvailable)} onChange={(e) => set("isAvailable", e.target.checked)} className="accent-emerald-700"/> Available to purchase</label></div>
+          <div className="sm:col-span-2 rounded-xl border border-gray-200/90 bg-gray-50/50 p-4 space-y-2">
+            <span className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+              Storefront Display &amp; Shop Placement
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <label className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 bg-white hover:border-emerald-300 transition-colors cursor-pointer shadow-2xs">
+                <input
+                  type="checkbox"
+                  checked={Boolean(values.isFeatured)}
+                  onChange={(e) => set("isFeatured", e.target.checked)}
+                  className="accent-emerald-700 w-4 h-4 mt-0.5 shrink-0"
+                />
+                <div>
+                  <span className="text-xs font-bold text-gray-900 block">Feature on storefront</span>
+                  <span className="text-[11px] text-gray-500 block leading-tight mt-0.5">
+                    Controls whether this product is visible in the Homepage products section (&quot;Our Signature collection&quot;).
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 bg-white hover:border-emerald-300 transition-colors cursor-pointer shadow-2xs">
+                <input
+                  type="checkbox"
+                  checked={Boolean(values.isAvailable)}
+                  onChange={(e) => set("isAvailable", e.target.checked)}
+                  className="accent-emerald-700 w-4 h-4 mt-0.5 shrink-0"
+                />
+                <div>
+                  <span className="text-xs font-bold text-gray-900 block">Available to purchase</span>
+                  <span className="text-[11px] text-gray-500 block leading-tight mt-0.5">
+                    Controls whether this product is visible in the Shop section (/products catalog).
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
         </div>
         <footer className="flex items-center justify-between gap-4 border-t border-gray-100 px-5 py-4 sm:px-7">
           <div>
