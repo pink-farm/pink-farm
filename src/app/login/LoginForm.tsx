@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { useCustomerStore } from "@/store/customerStore";
 import { Mail, ShieldAlert, Settings, User, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 
 type CustomerMethod = "password" | "otp";

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, MessageCircle, Send, ShieldCheck, Star, ThumbsUp, X, Sparkles, PenLine, Filter, Heart } from "lucide-react";
+import { Check, MessageCircle, Send, ShieldCheck, Star, ThumbsUp, X, PenLine, Filter } from "lucide-react";
 import { useCustomerStore } from "@/store/customerStore";
 
 type FeedbackEntry = {
@@ -124,16 +124,23 @@ export function ProductFeedback({ slug }: { slug: string }) {
 
   // Check URL query param `?review=1`
   useEffect(() => {
-    if (searchParams && searchParams.get("review") === "1") {
+    if (!searchParams || searchParams.get("review") !== "1") return;
+
+    const openFormTimer = window.setTimeout(() => {
       setActiveForm("review");
       if (myReview) {
         setRating(myReview.rating);
         setContent(myReview.content);
       }
-      setTimeout(() => {
-        formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 300);
-    }
+    }, 0);
+    const scrollTimer = window.setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+
+    return () => {
+      window.clearTimeout(openFormTimer);
+      window.clearTimeout(scrollTimer);
+    };
   }, [searchParams, myReview]);
 
   const startForm = (kind: FeedbackKind) => {
