@@ -48,7 +48,7 @@ export default async function Home() {
             
             <FadeIn direction="up" delay={0.1}>
               <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl leading-[1.1] tracking-tight">
-                <span className="bg-[linear-gradient(110deg,#1A4031,45%,#88E2B0,55%,#1A4031)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block drop-shadow-sm">
+                <span className="bg-[linear-gradient(110deg,#1A4031_25%,#2A614C_40%,#54A982_48%,#8EE2B6_52%,#54A982_56%,#2A614C_64%,#1A4031_78%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block drop-shadow-sm">
                   Goodness That <br/><span className="italic font-light">Feels Like Home.</span>
                 </span>
               </h1>
@@ -56,7 +56,7 @@ export default async function Home() {
             
             <FadeIn direction="up" delay={0.25}>
               <p className="text-lg md:text-xl opacity-90 leading-relaxed">
-                <span className="bg-[linear-gradient(110deg,#2D2D2D,45%,#A0A0A0,55%,#2D2D2D)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block">
+                <span className="bg-[linear-gradient(110deg,#2D2D2D_25%,#484848_42%,#A8A8A8_50%,#484848_58%,#2D2D2D_75%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block">
                   Discover thoughtfully selected everyday favourites, with premium quality at the heart of Pink Farm. Direct from farms to your family.
                 </span>
               </p>
@@ -66,7 +66,7 @@ export default async function Home() {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <ScaleOnTap>
                   <ShimmerSheen className="rounded-full">
-                    <Button asChild size="lg" className="w-full sm:w-auto text-base rounded-full px-8 py-6 shadow-md hover:shadow-xl border-0 text-white bg-[linear-gradient(110deg,#1A4031,45%,#4CA371,55%,#1A4031)] bg-[length:200%_100%] animate-text-gradient transition-transform duration-300">
+                    <Button asChild size="lg" className="w-full sm:w-auto text-base rounded-full px-8 py-6 shadow-md hover:shadow-xl border-0 text-white bg-[linear-gradient(110deg,#1A4031_25%,#255E47_42%,#4FA677_50%,#255E47_58%,#1A4031_75%)] bg-[length:200%_100%] animate-text-gradient transition-transform duration-300">
                       <Link href="/products">Shop Now</Link>
                     </Button>
                   </ShimmerSheen>

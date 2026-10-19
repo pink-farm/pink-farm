@@ -29,7 +29,7 @@
   --animate-float-slow: float 8s ease-in-out infinite 1s;
   --animate-float-fast: float 5s ease-in-out infinite 2s;
   --animate-mesh: gradient-mesh 15s ease infinite alternate;
-  --animate-text-gradient: text-gradient-shimmer 3s linear infinite;
+  --animate-text-gradient: text-gradient-shimmer 6s ease-in-out infinite;
   --animate-breathe: breathe 4s ease-in-out infinite;
 }
 
