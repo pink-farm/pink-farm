@@ -59,23 +59,42 @@ declare global {
   }
 }
 
+let razorpayScriptPromise: Promise<void> | null = null;
+
 async function loadRazorpayCheckout() {
   if (window.Razorpay) return;
-  await new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
-    if (existing) {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Could not load Razorpay Checkout.")), { once: true });
-      if (window.Razorpay) resolve();
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Could not load Razorpay Checkout."));
-    document.body.appendChild(script);
-  });
+  if (!razorpayScriptPromise) {
+    // A previous failed load can leave a script element behind. Its load/error
+    // event has already fired, so listening to it again would wait forever.
+    document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]')?.remove();
+    razorpayScriptPromise = new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      const timeout = window.setTimeout(() => {
+        script.remove();
+        reject(new Error("Razorpay Checkout took too long to load. Check your connection and try again."));
+      }, 12_000);
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => {
+        window.clearTimeout(timeout);
+        if (window.Razorpay) resolve();
+        else reject(new Error("Razorpay Checkout loaded but did not initialize. Please try again."));
+      };
+      script.onerror = () => {
+        window.clearTimeout(timeout);
+        script.remove();
+        reject(new Error("Could not load Razorpay Checkout. Check your connection and try again."));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  try {
+    await razorpayScriptPromise;
+  } catch (error) {
+    razorpayScriptPromise = null;
+    throw error;
+  }
   if (!window.Razorpay) throw new Error("Razorpay Checkout is unavailable. Please try again.");
 }
 

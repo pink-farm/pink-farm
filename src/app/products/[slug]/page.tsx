@@ -8,7 +8,7 @@ import { ProductBadges } from "@/components/products/ProductHighlightBadges";
 import { ProductFeedback } from "@/components/products/ProductFeedback";
 import { ProductImageGallery, ProductDescriptionGallery } from "@/components/products/ProductImageGallery";
 import { getStoreProductBySlug, getStoreSettings } from "@/lib/defaultProducts";
-import { prisma } from "@/lib/db";
+import { prisma, queryDatabase } from "@/lib/db";
 
 export const instant = false;
 
@@ -27,11 +27,11 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const reviewStats = await prisma.productReview.aggregate({
+  const reviewStats = await queryDatabase(() => prisma.productReview.aggregate({
     where: { productId: product.id },
     _avg: { rating: true },
     _count: { _all: true },
-  }).catch(() => null);
+  })).catch(() => null);
 
   const reviewCount = reviewStats?._count?._all || 0;
   const avgRating = reviewStats?._avg?.rating ? reviewStats._avg.rating.toFixed(1) : null;
