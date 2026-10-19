@@ -161,8 +161,11 @@ export function CheckoutClient() {
   // Load the saved delivery address on mount.
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- restore the user's saved local address into the form after hydration */
-    // Auto-fill from logged-in customer's saved address or guest address from localStorage
+    // Auto-fill from logged-in customer's saved address
     try {
+      // Purge any legacy cached guest address for complete guest privacy
+      localStorage.removeItem("pinkfarm_guest_address");
+
       const custStoreStr = localStorage.getItem("pinkfarm_customer_store_v2");
       if (custStoreStr) {
         const parsedStore = JSON.parse(custStoreStr) as { state?: { addresses?: CustomerAddress[]; profile?: { phone?: string; name?: string } } };
@@ -179,16 +182,6 @@ export function CheckoutClient() {
             state: defaultAddr.state || "",
             pinCode: defaultAddr.pinCode || "",
           });
-          setHasLoadedSavedAddress(true);
-          return;
-        }
-      }
-
-      const saved = localStorage.getItem("pinkfarm_guest_address");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.fullName && parsed.mobile && parsed.addressLine1) {
-          reset(parsed);
           setHasLoadedSavedAddress(true);
         }
       }
@@ -345,12 +338,6 @@ export function CheckoutClient() {
     setIsProcessing(true);
     setError("");
 
-    // Cache guest address in localStorage for hassle-free reordering
-    try {
-      localStorage.setItem("pinkfarm_guest_address", JSON.stringify(data));
-    } catch {
-      // Ignore
-    }
 
     try {
       await loadRazorpayCheckout();
@@ -560,18 +547,7 @@ export function CheckoutClient() {
               <span className="italic">
                 Prefer to proceed without logging in? You may still complete your delivery details below.
               </span>
-              {hasLoadedSavedAddress && (
-                <div className="flex items-center gap-2 bg-white/80 border border-amber-200 px-2 py-1 rounded-lg">
-                  <span className="text-amber-900 font-medium">Autofilled saved details</span>
-                  <button
-                    type="button"
-                    onClick={clearSavedAddress}
-                    className="text-amber-800 hover:text-rose-600 underline font-semibold"
-                  >
-                    Clear
-                  </button>
-                </div>
-              )}
+
             </div>
           </div>
         )}

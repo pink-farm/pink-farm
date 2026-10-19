@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { ADMIN_EMAIL } from "../src/lib/auth-constants";
+import { resolveAdminEmail } from "../src/lib/admin-identity.mjs";
 
 const prisma = new PrismaClient();
 
@@ -36,7 +36,7 @@ async function main() {
   if (!adminPassword || adminPassword.length < 8) {
     throw new Error("Set an ADMIN_PASSWORD of at least 8 characters before seeding the authorized admin account.");
   }
-  const configuredAdminEmail = ADMIN_EMAIL;
+  const configuredAdminEmail = resolveAdminEmail(process.env.ADMIN_EMAIL, process.env.NODE_ENV);
   if (!configuredAdminEmail) {
     throw new Error("Set ADMIN_EMAIL before seeding the administrator outside development.");
   }
