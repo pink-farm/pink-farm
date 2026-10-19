@@ -17,8 +17,7 @@ import { formatPrice } from "@/lib/utils";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const instant = false;
 
 export default async function Home() {
   const [products, storeSettings] = await Promise.all([getStoreProducts(), getStoreSettings()]);
