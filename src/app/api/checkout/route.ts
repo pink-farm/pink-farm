@@ -200,13 +200,13 @@ export async function POST(request: Request) {
       if (failure) return NextResponse.json({ error: failure }, { status: 400 });
       discount = calculateCouponDiscount(coupon, subtotal);
     }
-    const totalAmount = Math.max(0, subtotal - discount + finalDeliveryFee);
+    const totalAmount = Math.round(Math.max(0, subtotal - discount + finalDeliveryFee));
     if (totalAmount < 100) {
       return NextResponse.json({ error: "The order total must be at least ₹1 for online payment." }, { status: 400 });
     }
 
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const keyId = process.env.RAZORPAY_KEY_ID?.trim().replace(/^["']|["']$/g, "");
+    const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim().replace(/^["']|["']$/g, "");
     if (!keyId || !keySecret) {
       return NextResponse.json({ error: "Online payments are not configured yet. Please contact the store." }, { status: 503 });
     }
@@ -220,7 +220,7 @@ export async function POST(request: Request) {
       const gatewayOrder = await razorpay.orders.create({
         amount: totalAmount,
         currency: "INR",
-        receipt: orderNumber,
+        receipt: orderNumber.slice(0, 40),
         notes: { orderNumber },
       });
       gatewayOrderId = gatewayOrder.id;

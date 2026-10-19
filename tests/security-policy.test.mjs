@@ -162,6 +162,7 @@ test("Razorpay failures log only safe provider diagnostics and map auth, outage,
 test("production CSP explicitly permits Razorpay Checkout without a wildcard script source", async () => {
   const config = await readFile(new URL("../next.config.ts", import.meta.url), "utf8");
   assert.match(config, /script-src[^`]*https:\/\/checkout\.razorpay\.com/);
+  assert.match(config, /script-src[^`]*https:\/\/cdn\.razorpay\.com/);
   assert.doesNotMatch(config, /script-src[^`]*\*/);
   assert.match(config, /connect-src 'self' https:\/\/api\.razorpay\.com https:\/\/checkout\.razorpay\.com https:\/\/api\.postalpincode\.in/);
   assert.doesNotMatch(config, /connect-src[^`]*https:\s*;/);

@@ -13,7 +13,7 @@ type RazorpayCapturedEvent = {
 };
 
 export async function POST(request: Request) {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET?.trim().replace(/^["']|["']$/g, "");
   if (!secret) return NextResponse.json({ error: "Webhook is not configured." }, { status: 503 });
 
   let rawBody: string;

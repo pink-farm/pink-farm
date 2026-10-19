@@ -16,8 +16,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Payment details are invalid." }, { status: 400 });
     }
 
-    const secret = process.env.RAZORPAY_KEY_SECRET;
-    const keyId = process.env.RAZORPAY_KEY_ID;
+    const secret = process.env.RAZORPAY_KEY_SECRET?.trim().replace(/^["']|["']$/g, "");
+    const keyId = process.env.RAZORPAY_KEY_ID?.trim().replace(/^["']|["']$/g, "");
     if (!secret || !keyId) {
       return NextResponse.json({ error: "Payment service is not configured." }, { status: 503 });
     }
