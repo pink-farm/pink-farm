@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         ].filter((tier) => Number.isInteger(tier.count) && tier.count >= 1 && tier.count <= 30 && Number.isInteger(tier.discount) && tier.discount >= 1 && tier.discount <= 95);
       }
     } catch {
-      return NextResponse.json({ error: "Checkout is temporarily unavailable. Please try again shortly." }, { status: 503 });
+      // Continue with safe default combo tiers if settings cannot be read
     }
     const allowedComboDiscounts = [...new Set(comboTiers.map((tier) => tier.discount))];
     const comboTotals = new Map<number, { quantity: number; requiredQuantity: number }>();
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
         freeThreshold = settings.freeDeliveryThreshold ?? 50000;
       }
     } catch {
-      return NextResponse.json({ error: "Checkout is temporarily unavailable. Please try again shortly." }, { status: 503 });
+      // Continue with standard default delivery fees if settings cannot be read
     }
 
     const finalDeliveryFee = subtotal > 0 ? (freeThreshold > 0 && subtotal >= freeThreshold ? 0 : deliveryFee) : 0;

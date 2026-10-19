@@ -379,6 +379,7 @@ export function CheckoutClient() {
       const responseData = await res.json();
 
       if (!res.ok) {
+        console.error("[Checkout Failure]", { status: res.status, error: responseData.error, code: responseData.code });
         throw new Error(responseData.error || "Failed to process payment");
       }
 
