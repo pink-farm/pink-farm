@@ -280,7 +280,11 @@ export function AddToCart({ product, variants }: { product: Product; variants: V
               className="w-full px-6 h-11 text-sm md:text-base bg-brand-pink text-brand-green font-bold hover:bg-brand-pink/90 disabled:opacity-50 shadow-xs"
               onClick={() => {
                 handleAddToCart();
-                router.push('/checkout');
+                if (typeof window !== "undefined" && window.pinkfarmNavigate) {
+                  window.pinkfarmNavigate('/checkout');
+                } else {
+                  router.push('/checkout');
+                }
               }}
               disabled={isDisabled}
             >

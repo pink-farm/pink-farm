@@ -75,17 +75,22 @@ export function LoginForm() {
       if (redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//") && !redirectParam.startsWith("/\\")) {
         destination = redirectParam;
       }
-      window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
+      if (window.pinkfarmNavigate) {
+        window.pinkfarmNavigate(destination);
+        return;
+      }
     }
     router.push(destination);
     router.refresh();
   };
 
   const enterAdminWorkspace = async () => {
-    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
-    await new Promise((resolve) => window.setTimeout(resolve, 2200));
-    router.push("/admin");
-    router.refresh();
+    if (typeof window !== "undefined" && window.pinkfarmNavigate) {
+      window.pinkfarmNavigate("/admin");
+    } else {
+      router.push("/admin");
+      router.refresh();
+    }
   };
 
   const handleAdminSubmit = async (event: React.FormEvent) => {

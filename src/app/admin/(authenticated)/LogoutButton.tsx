@@ -13,12 +13,15 @@ export function LogoutButton({
   const router = useRouter();
 
   const handleLogout = async () => {
-    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
     try {
       await fetch("/api/admin/logout", { method: "POST" });
     } finally {
-      router.push("/login");
-      router.refresh();
+      if (typeof window !== "undefined" && window.pinkfarmNavigate) {
+        window.pinkfarmNavigate("/login");
+      } else {
+        router.push("/login");
+        router.refresh();
+      }
     }
   };
 

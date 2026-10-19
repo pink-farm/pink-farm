@@ -400,7 +400,11 @@ export function CheckoutClient() {
             }
             setIsSuccess(true);
             clearCart();
-            router.push(`/order/${responseData.orderNumber}`);
+            if (typeof window !== "undefined" && window.pinkfarmNavigate) {
+              window.pinkfarmNavigate(`/order/${responseData.orderNumber}`);
+            } else {
+              router.push(`/order/${responseData.orderNumber}`);
+            }
           } catch (verificationError) {
             setError(verificationError instanceof Error ? `${verificationError.message} Your order reference is ${responseData.orderNumber}.` : `Payment confirmation is pending. Your order reference is ${responseData.orderNumber}.`);
             setIsProcessing(false);

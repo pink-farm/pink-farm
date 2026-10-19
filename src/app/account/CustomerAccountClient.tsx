@@ -325,12 +325,15 @@ export function CustomerAccountClient() {
   };
 
   const handleLogout = async () => {
-    window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start", { detail: { waitForRoute: true } }));
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
       customer.logoutCustomer();
-      router.push("/login");
+      if (typeof window !== "undefined" && window.pinkfarmNavigate) {
+        window.pinkfarmNavigate("/login");
+      } else {
+        router.push("/login");
+      }
     }
   };
 

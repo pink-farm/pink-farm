@@ -160,7 +160,11 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
         quantity
       );
     });
-    router.push("/checkout");
+    if (typeof window !== "undefined" && window.pinkfarmNavigate) {
+      window.pinkfarmNavigate("/checkout");
+    } else {
+      router.push("/checkout");
+    }
   };
 
   return (

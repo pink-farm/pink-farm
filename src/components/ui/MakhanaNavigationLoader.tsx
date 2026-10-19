@@ -1,13 +1,21 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MakhanaLoader } from "./MakhanaLoader";
+
+declare global {
+  interface Window {
+    pinkfarmNavigate?: (url: string) => void;
+  }
+}
 
 export function MakhanaNavigationLoader() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
+
   // Render the branded cover in the initial HTML too, so a slow first visit
   // does not flash an unstyled page before the client router hydrates.
   const [isNavigating, setIsNavigating] = useState(true);
@@ -15,19 +23,24 @@ export function MakhanaNavigationLoader() {
 
   const startTimestampRef = useRef<number>(0);
   const currentPathnameRef = useRef<string>(pathname);
+  const isNavigatingRef = useRef<boolean>(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const initialProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    startTimestampRef.current = Date.now();
+    isNavigatingRef.current = true;
+
     initialProgressTimerRef.current = setTimeout(() => setProgress(100), 300);
     dismissTimerRef.current = setTimeout(() => {
       requestAnimationFrame(() => {
         setIsNavigating(false);
+        isNavigatingRef.current = false;
         setProgress(0);
       });
-    }, 450);
+    }, 550);
 
     return () => {
       if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
@@ -42,6 +55,7 @@ export function MakhanaNavigationLoader() {
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
     startTimestampRef.current = Date.now();
+    isNavigatingRef.current = true;
     setIsNavigating(true);
     setProgress(25);
 
@@ -54,16 +68,14 @@ export function MakhanaNavigationLoader() {
         }
         return prev + Math.random() * 12;
       });
-    }, 120);
+    }, 100);
 
-    // Authentication transitions stay covered until the destination template
-    // reports that its route has mounted. Ordinary navigation keeps a fallback.
-    if (!waitForRoute) {
-      safetyTimeoutRef.current = setTimeout(() => {
-        setIsNavigating(false);
-        setProgress(0);
-      }, 6000);
-    }
+    // Safety fallback: if destination takes too long, dismiss overlay so user is never locked out
+    safetyTimeoutRef.current = setTimeout(() => {
+      setIsNavigating(false);
+      isNavigatingRef.current = false;
+      setProgress(0);
+    }, 6000);
   }, []);
 
   const completeNavigation = useCallback(() => {
@@ -74,16 +86,17 @@ export function MakhanaNavigationLoader() {
 
     setProgress(100);
 
-    // Ensure the lotus bloom animation plays gracefully for at least 600ms
+    // Ensure the lotus bloom animation plays gracefully for at least 650ms
     // so it doesn't abruptly vanish before the new page has painted.
-    const elapsed = Date.now() - startTimestampRef.current;
-    const minDisplayTime = 600;
-    const remainingTime = Math.max(0, minDisplayTime - elapsed);
+    const elapsed = startTimestampRef.current > 0 ? Date.now() - startTimestampRef.current : 0;
+    const minDisplayTime = 650;
+    const remainingTime = Math.max(90, minDisplayTime - elapsed);
 
     dismissTimerRef.current = setTimeout(() => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setIsNavigating(false);
+          isNavigatingRef.current = false;
           setProgress(0);
         });
       });
@@ -104,8 +117,7 @@ export function MakhanaNavigationLoader() {
     };
   }, [completeNavigation]);
 
-  // When pathname or searchParams change, update progress without prematurely killing the loader.
-  // Next.js updates the pathname before the new page finishes streaming.
+  // When pathname or searchParams change, update progress
   useEffect(() => {
     if (currentPathnameRef.current !== pathname) {
       currentPathnameRef.current = pathname;
@@ -121,16 +133,35 @@ export function MakhanaNavigationLoader() {
     }
   }, [pathname, searchParams, completeNavigation]);
 
+  // Expose global helper for programmatic navigations across the application
+  useEffect(() => {
+    window.pinkfarmNavigate = (url: string) => {
+      startNavigation(true);
+      setTimeout(() => {
+        router.push(url);
+      }, 90);
+    };
+
+    return () => {
+      delete window.pinkfarmNavigate;
+    };
+  }, [router, startNavigation]);
+
   // Intercept navigation link clicks across the application
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
+      if (e.defaultPrevented) return;
+      if (e.button !== 0) return; // Only primary left clicks
+
       const target = (e.target as HTMLElement)?.closest("a");
       if (!target) return;
+
+      if (target.hasAttribute("download")) return;
 
       const href = target.getAttribute("href");
       if (!href) return;
 
-      // Ignore external links, hash jumps, new tab targets, and modifier clicks
+      // Ignore external links, mailto, tel, hash jumps, new tab targets, and modifier clicks
       if (
         href.startsWith("http://") ||
         href.startsWith("https://") ||
@@ -146,17 +177,47 @@ export function MakhanaNavigationLoader() {
         return;
       }
 
-      const currentUrl = new URL(window.location.href);
-      const destinationUrl = new URL(href, window.location.origin);
+      let destinationUrl: URL;
+      try {
+        destinationUrl = new URL(href, window.location.origin);
+      } catch {
+        return;
+      }
 
+      if (destinationUrl.origin !== window.location.origin) return;
+
+      const currentUrl = new URL(window.location.href);
+
+      // Same page (pathname and query identical)
       if (
         currentUrl.pathname === destinationUrl.pathname &&
         currentUrl.search === destinationUrl.search
       ) {
+        // If it's a hash anchor on the same page, scroll smoothly without loader
+        if (destinationUrl.hash) {
+          const el = document.querySelector(destinationUrl.hash);
+          if (el) {
+            e.preventDefault();
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+        }
         return;
       }
 
-      startNavigation();
+      // CRITICAL: Prevent Next.js from instantaneously rendering the next page before the lotus animation covers the screen!
+      e.preventDefault();
+      e.stopPropagation();
+
+      const targetPath = destinationUrl.pathname + destinationUrl.search + destinationUrl.hash;
+
+      // Start the lotus bloom animation immediately
+      startNavigation(true);
+
+      // Wait 90ms for the luxury cover overlay to paint and cover the screen,
+      // then execute Next.js router transition so the new page renders behind the lotus.
+      setTimeout(() => {
+        router.push(targetPath);
+      }, 90);
     };
 
     // Custom events for manual triggers
@@ -167,7 +228,9 @@ export function MakhanaNavigationLoader() {
     const handleCustomStop = () => completeNavigation();
 
     // Listen to browser Back / Forward buttons
-    const handlePopState = () => startNavigation();
+    const handlePopState = () => {
+      startNavigation(true);
+    };
 
     document.addEventListener("click", handleDocumentClick, { capture: true });
     window.addEventListener("popstate", handlePopState);
@@ -184,11 +247,11 @@ export function MakhanaNavigationLoader() {
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
       if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
     };
-  }, [startNavigation, completeNavigation]);
+  }, [router, startNavigation, completeNavigation]);
 
   return (
     <>
-      {/* 1. Top Luxury Gradient Progress Bar (Flat, no glow shadow) */}
+      {/* 1. Top Luxury Gradient Progress Bar */}
       {(isNavigating || progress > 0) && (
         <div
           aria-hidden="true"
@@ -209,15 +272,15 @@ export function MakhanaNavigationLoader() {
         </div>
       )}
 
-      {/* 2. Smooth Lotus Transition (No reflections, no shadows, no harsh flash) */}
+      {/* 2. Smooth Lotus Transition (Covers screen smoothly, renders next page behind it, dissolves out) */}
       <AnimatePresence>
         {isNavigating && (
           <motion.div
             key="navigation-lotus-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.28, ease: "easeInOut" }}
+            exit={{ opacity: 0, transition: { duration: 0.28, ease: "easeInOut" } }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] pointer-events-auto select-none"
           >
             <MakhanaLoader
