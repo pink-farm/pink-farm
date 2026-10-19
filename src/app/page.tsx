@@ -76,7 +76,7 @@ export default async function Home() {
           </div>
 
           {/* Right Visual Column - FLOATING IMAGES WITH LUXURY GLOW & MOTION */}
-          <div className="flex-1 flex relative h-[320px] sm:h-[400px] md:h-[500px] w-full justify-center items-center z-10 mt-6 md:mt-0">
+          <div className="flex-1 hidden md:flex relative h-[500px] w-full justify-center items-center z-10">
             {/* Center Main Floating Image with GlowPulse */}
             <FloatingElement amplitude={14} duration={7} delay={0} className="absolute z-30">
               <HoverCard lift={-6}>
