@@ -21,11 +21,13 @@ export function MakhanaNavigationLoader() {
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    initialProgressTimerRef.current = setTimeout(() => setProgress(100), 220);
+    initialProgressTimerRef.current = setTimeout(() => setProgress(100), 300);
     dismissTimerRef.current = setTimeout(() => {
-      setIsNavigating(false);
-      setProgress(0);
-    }, 350);
+      requestAnimationFrame(() => {
+        setIsNavigating(false);
+        setProgress(0);
+      });
+    }, 450);
 
     return () => {
       if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
@@ -72,16 +74,19 @@ export function MakhanaNavigationLoader() {
 
     setProgress(100);
 
-    // Ensure the lotus animation is shown for at least minDisplayTime (300ms)
-    // so it doesn't flicker away instantly on super-fast cached pages,
-    // but dismisses smoothly once the new page is mounted.
+    // Ensure the lotus bloom animation plays gracefully for at least 600ms
+    // so it doesn't abruptly vanish before the new page has painted.
     const elapsed = Date.now() - startTimestampRef.current;
-    const minDisplayTime = 300;
+    const minDisplayTime = 600;
     const remainingTime = Math.max(0, minDisplayTime - elapsed);
 
     dismissTimerRef.current = setTimeout(() => {
-      setIsNavigating(false);
-      setProgress(0);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsNavigating(false);
+          setProgress(0);
+        });
+      });
     }, remainingTime);
   }, []);
 
@@ -99,14 +104,20 @@ export function MakhanaNavigationLoader() {
     };
   }, [completeNavigation]);
 
-  // Reactive fallback: detect when pathname or searchParams change to a different URL
+  // When pathname or searchParams change, update progress without prematurely killing the loader.
+  // Next.js updates the pathname before the new page finishes streaming.
   useEffect(() => {
     if (currentPathnameRef.current !== pathname) {
       currentPathnameRef.current = pathname;
-      requestAnimationFrame(() => {
-        window.scrollTo(0, 0);
+      setProgress((prev) => Math.max(prev, 85));
+
+      // Safety fallback: if pinkfarm:route:mounted doesn't fire within 1.2s of pathname change,
+      // gracefully complete so user is never stuck.
+      const fallbackTimer = setTimeout(() => {
         completeNavigation();
-      });
+      }, 1200);
+
+      return () => clearTimeout(fallbackTimer);
     }
   }, [pathname, searchParams, completeNavigation]);
 

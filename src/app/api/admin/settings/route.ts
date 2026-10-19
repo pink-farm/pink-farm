@@ -62,13 +62,20 @@ const DEFAULT_SETTINGS = {
   storeCategories: ["Makhana", "Nuts", "Pantry"] as string[],
 };
 
-const MAX_HERO_IMAGE_LENGTH = 900_000;
+const MAX_HERO_IMAGE_LENGTH = 2_500_000;
 
 function isSafeHeroImage(value: string) {
-  return (
-    value.length <= MAX_HERO_IMAGE_LENGTH &&
-    (value.startsWith("/images/") || /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value))
-  );
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (trimmed === "") return true;
+  if (trimmed.length > MAX_HERO_IMAGE_LENGTH) return false;
+  // Local static paths or remote URLs
+  if (trimmed.startsWith("/") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) return true;
+  // Base64 data URIs for images (jpeg, png, webp, gif, svg)
+  if (/^data:image\/(jpeg|jpg|png|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(trimmed.replace(/\s+/g, ""))) {
+    return true;
+  }
+  return false;
 }
 
 export async function GET() {

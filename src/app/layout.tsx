@@ -23,6 +23,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preload" as="image" href="/images/lotus-loader.webp?v=4" type="image/webp" />
+      </head>
       <body className="antialiased min-h-screen flex flex-col bg-brand-ivory text-brand-charcoal">
         <Suspense fallback={null}>
           <MakhanaNavigationLoader />

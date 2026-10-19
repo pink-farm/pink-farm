@@ -99,17 +99,31 @@ async function compressHeroImage(file: File): Promise<string> {
       image.src = sourceUrl;
     });
 
-    const scale = Math.min(1, 1000 / Math.max(image.width, image.height));
+    const maxDim = 900;
+    const scale = Math.min(1, maxDim / Math.max(image.width, image.height));
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.round(image.width * scale));
     canvas.height = Math.max(1, Math.round(image.height * scale));
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Your browser could not process this image.");
+
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-    const compressed = canvas.toDataURL("image/jpeg", 0.72);
-    if (compressed.length > 900_000)
-      throw new Error("Image is still too large after compression. Choose a smaller image.");
+    let compressed = canvas.toDataURL("image/webp", 0.85);
+    if (!compressed.startsWith("data:image/webp")) {
+      compressed = canvas.toDataURL("image/jpeg", 0.80);
+    }
+
+    if (compressed.length > 900_000) {
+      canvas.width = Math.max(1, Math.round(canvas.width * 0.75));
+      canvas.height = Math.max(1, Math.round(canvas.height * 0.75));
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      compressed = canvas.toDataURL("image/webp", 0.75);
+      if (!compressed.startsWith("data:image/webp")) {
+        compressed = canvas.toDataURL("image/jpeg", 0.72);
+      }
+    }
+
     return compressed;
   } finally {
     URL.revokeObjectURL(sourceUrl);

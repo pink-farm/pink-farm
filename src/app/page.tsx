@@ -17,7 +17,8 @@ import { formatPrice } from "@/lib/utils";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
 
-export const instant = false;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function Home() {
   const [products, storeSettings] = await Promise.all([getStoreProducts(), getStoreSettings()]);
@@ -76,19 +77,20 @@ export default async function Home() {
           </div>
 
           {/* Right Visual Column - FLOATING IMAGES WITH LUXURY GLOW & MOTION */}
-          <div className="flex-1 hidden md:flex relative h-[500px] w-full justify-center items-center z-10 mt-8 md:mt-0">
+          <div className="flex-1 flex relative h-[320px] sm:h-[400px] md:h-[500px] w-full justify-center items-center z-10 mt-6 md:mt-0">
             {/* Center Main Floating Image with GlowPulse */}
             <FloatingElement amplitude={14} duration={7} delay={0} className="absolute z-30">
               <HoverCard lift={-6}>
                 <GlowPulse color="rgba(230, 184, 192, 0.45)">
-                  <div className="shadow-2xl rounded-full overflow-hidden border-8 border-brand-ivory/60 w-[320px] h-[320px] relative transition-transform duration-700 hover:scale-105">
+                  <div className="shadow-2xl rounded-full overflow-hidden border-4 sm:border-6 md:border-8 border-brand-ivory/60 w-[220px] h-[220px] sm:w-[270px] sm:h-[270px] md:w-[320px] md:h-[320px] relative transition-transform duration-700 hover:scale-105">
                     <Image 
                       src={storeSettings.heroMainImage || "/images/makhana_sig.jpg"}
                       alt="Signature Makhana" 
                       fill
-                      sizes="(min-width: 768px) 320px, 0px"
+                      sizes="(min-width: 768px) 320px, 220px"
                       className="object-cover"
                       priority
+                      unoptimized={Boolean(storeSettings.heroMainImage?.startsWith("data:"))}
                     />
                   </div>
                 </GlowPulse>
@@ -96,30 +98,32 @@ export default async function Home() {
             </FloatingElement>
             
             {/* Top Right Floating Image */}
-            <FloatingElement amplitude={18} duration={8} delay={1} className="absolute top-4 right-8 z-20">
+            <FloatingElement amplitude={18} duration={8} delay={1} className="absolute -top-2 -right-2 sm:top-2 sm:right-4 md:top-4 md:right-8 z-20">
               <HoverCard lift={-5}>
-                <div className="shadow-xl rounded-full overflow-hidden border-4 border-brand-ivory/50 opacity-95 w-[190px] h-[190px] relative transition-transform duration-700 hover:scale-105">
+                <div className="shadow-xl rounded-full overflow-hidden border-2 sm:border-4 border-brand-ivory/50 opacity-95 w-[130px] h-[130px] sm:w-[160px] sm:h-[160px] md:w-[190px] md:h-[190px] relative transition-transform duration-700 hover:scale-105">
                   <Image 
-                      src={storeSettings.heroGheeImage || "/images/ghee.jpg"}
+                    src={storeSettings.heroGheeImage || "/images/ghee.jpg"}
                     alt="Premium Ghee" 
                     fill
-                    sizes="(min-width: 768px) 190px, 0px"
+                    sizes="(min-width: 768px) 190px, 130px"
                     className="object-cover"
+                    unoptimized={Boolean(storeSettings.heroGheeImage?.startsWith("data:"))}
                   />
                 </div>
               </HoverCard>
             </FloatingElement>
 
             {/* Bottom Left Floating Image */}
-            <FloatingElement amplitude={16} duration={6.5} delay={0.5} className="absolute bottom-4 left-8 z-40">
+            <FloatingElement amplitude={16} duration={6.5} delay={0.5} className="absolute -bottom-2 -left-2 sm:bottom-2 sm:left-4 md:bottom-4 md:left-8 z-40">
               <HoverCard lift={-5}>
-                <div className="shadow-2xl rounded-full overflow-hidden border-4 border-brand-ivory/50 opacity-95 w-[220px] h-[220px] relative transition-transform duration-700 hover:scale-105">
+                <div className="shadow-2xl rounded-full overflow-hidden border-2 sm:border-4 border-brand-ivory/50 opacity-95 w-[140px] h-[140px] sm:w-[170px] sm:h-[170px] md:w-[220px] md:h-[220px] relative transition-transform duration-700 hover:scale-105">
                   <Image 
-                      src={storeSettings.heroAlmondsImage || "/images/almonds.jpg"}
+                    src={storeSettings.heroAlmondsImage || "/images/almonds.jpg"}
                     alt="Premium Almonds" 
                     fill
-                    sizes="(min-width: 768px) 220px, 0px"
+                    sizes="(min-width: 768px) 220px, 140px"
                     className="object-cover"
+                    unoptimized={Boolean(storeSettings.heroAlmondsImage?.startsWith("data:"))}
                   />
                 </div>
               </HoverCard>
