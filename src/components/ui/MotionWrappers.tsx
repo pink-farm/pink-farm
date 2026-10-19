@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 
 // 1. FadeIn Container - Cinematic, Gentle & Slower Scroll Entrance
 interface FadeInProps {
@@ -16,12 +16,11 @@ interface FadeInProps {
 export function FadeIn({
   children,
   delay = 0,
-  duration = 0.68,
+  duration = 1.1,
   direction = "up",
-  distance = 18,
+  distance = 32,
   className = "",
 }: FadeInProps) {
-  const prefersReducedMotion = useReducedMotion();
   const directions = {
     up: { y: distance, x: 0 },
     down: { y: -distance, x: 0 },
@@ -34,7 +33,7 @@ export function FadeIn({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, ...initialOffset }}
+      initial={{ opacity: 0, ...initialOffset }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{
@@ -52,24 +51,23 @@ export function FadeIn({
 // 2. StaggerContainer & StaggerItem - Relaxed, Cascading Scroll Reveal
 export function StaggerContainer({
   children,
-  staggerDelay = 0.1,
+  staggerDelay = 0.18,
   className = "",
 }: {
   children: React.ReactNode;
   staggerDelay?: number;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : "hidden"}
+      initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-60px" }}
       variants={{
         hidden: {},
         show: {
           transition: {
-            staggerChildren: prefersReducedMotion ? 0 : staggerDelay,
+            staggerChildren: staggerDelay,
           },
         },
       }}
@@ -87,17 +85,16 @@ export function StaggerItem({
   children: React.ReactNode;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
       variants={{
-        hidden: prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 },
+        hidden: { opacity: 0, y: 28, scale: 0.97 },
         show: {
           opacity: 1,
           y: 0,
           scale: 1,
           transition: {
-            duration: prefersReducedMotion ? 0.01 : 0.52,
+            duration: 0.95,
             ease: [0.22, 1, 0.36, 1],
           },
         },
@@ -119,11 +116,14 @@ export function HoverCard({
   className?: string;
   lift?: number;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
-      whileHover={prefersReducedMotion ? undefined : { y: lift * 0.55, transition: { type: "spring", stiffness: 300, damping: 30 } }}
-      whileTap={prefersReducedMotion ? undefined : { scale: 0.992 }}
+      whileHover={{
+        y: lift,
+        scale: 1.015,
+        transition: { type: "spring", stiffness: 280, damping: 26 },
+      }}
+      whileTap={{ scale: 0.985 }}
       className={className}
     >
       {children}
@@ -145,10 +145,12 @@ export function FloatingElement({
   delay?: number;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
-      animate={prefersReducedMotion ? undefined : { y: [-amplitude * 0.28, amplitude * 0.28, -amplitude * 0.28], rotate: [-0.35, 0.35, -0.35] }}
+      animate={{
+        y: [-amplitude / 2, amplitude / 2, -amplitude / 2],
+        rotate: [-1, 1, -1],
+      }}
       transition={{
         duration,
         repeat: Infinity,
@@ -171,11 +173,10 @@ export function ScaleOnTap({
   children: React.ReactNode;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
-      whileHover={prefersReducedMotion ? undefined : { y: -1 }}
-      whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.96 }}
       transition={{ type: "spring", stiffness: 350, damping: 22 }}
       className={className}
     >
@@ -194,14 +195,13 @@ export function MaskReveal({
   delay?: number;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, clipPath: "inset(0 0 100% 0)", y: 18 }}
-      whileInView={{ opacity: 1, clipPath: "inset(0 0 0% 0)", y: 0 }}
+      initial={{ opacity: 0, clipPath: "polygon(0 100%, 100% 100%, 100% 100%, 0 100%)", y: 36 }}
+      whileInView={{ opacity: 1, clipPath: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)", y: 0 }}
       viewport={{ once: true }}
       transition={{
-        duration: prefersReducedMotion ? 0.01 : 0.72,
+        duration: 1.3,
         delay,
         ease: [0.16, 1, 0.3, 1],
       }}
@@ -220,12 +220,11 @@ export function MagneticWrapper({
   children: React.ReactNode;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
-      whileHover={prefersReducedMotion ? undefined : { y: -1 }}
-      whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 380, damping: 24 }}
       className={className}
     >
       {children}
@@ -271,15 +270,34 @@ export function SpotlightCard({
   className?: string;
   glowColor?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
 
   return (
     <motion.div
-      whileHover={prefersReducedMotion ? undefined : { y: -3 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={`pf-spotlight-card relative overflow-hidden ${className}`}
-      style={{ "--spotlight-tint": glowColor } as React.CSSProperties}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ y: -6 }}
+      transition={{ type: "spring", stiffness: 280, damping: 24 }}
+      className={`relative overflow-hidden ${className}`}
     >
+      {/* Dynamic Cursor Spotlight Layer */}
+      <motion.div
+        className="pointer-events-none absolute -inset-px transition-opacity duration-500 rounded-[inherit]"
+        style={{
+          background: `radial-gradient(350px circle at ${mousePos.x}px ${mousePos.y}px, ${glowColor}, transparent 80%)`,
+          opacity: isHovered ? 1 : 0,
+        }}
+      />
       {children}
     </motion.div>
   );
@@ -295,16 +313,15 @@ export function GlowPulse({
   color?: string;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
     <div className={`relative ${className}`}>
       <motion.div
-        animate={prefersReducedMotion ? undefined : {
-          opacity: [0.22, 0.38, 0.22],
-          scale: [0.99, 1.02, 0.99],
+        animate={{
+          opacity: [0.35, 0.7, 0.35],
+          scale: [0.97, 1.05, 0.97],
         }}
         transition={{
-          duration: 7,
+          duration: 4.5,
           repeat: Infinity,
           ease: "easeInOut",
         }}
@@ -324,16 +341,15 @@ export function ShimmerSheen({
   children: React.ReactNode;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   return (
-    <div className={`relative overflow-hidden group pf-sheen ${className}`}>
+    <div className={`relative overflow-hidden group ${className}`}>
       {children}
       <motion.div
         className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none skew-x-12"
-        initial={prefersReducedMotion ? false : { x: "-110%" }}
-        whileHover={prefersReducedMotion ? undefined : {
-          x: "210%",
-          transition: { duration: 0.72, ease: [0.22, 1, 0.36, 1] },
+        initial={{ x: "-100%" }}
+        whileHover={{
+          x: "200%",
+          transition: { duration: 0.85, ease: "easeInOut" },
         }}
       />
     </div>

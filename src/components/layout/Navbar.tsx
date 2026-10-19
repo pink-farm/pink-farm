@@ -87,10 +87,7 @@ export function Navbar() {
       
       {/* Premium Announcement Bar */}
       <div className="bg-gradient-to-r from-brand-green to-brand-green-light text-brand-ivory text-center py-2 text-xs md:text-sm font-medium tracking-wide flex justify-center items-center overflow-hidden px-4">
-        <span className="inline-flex items-center gap-2">
-          <span className="pf-announcement-dot" aria-hidden="true" />
-          {announcementText || "Welcome to Pink Farm — Goodness in Every Bite."}
-        </span>
+        <span className="animate-pulse">✨ {announcementText || "Welcome to Pink Farm — Goodness in Every Bite."}</span>
         {!isAcceptingOrders && (
           <span className="ml-3 bg-amber-500 text-brand-charcoal text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
             Orders Paused
@@ -153,7 +150,7 @@ export function Navbar() {
                 <Link 
                   key={link.name} 
                   href={link.path} 
-                    className={`pf-nav-link relative text-[15px] py-2 transition-colors duration-300 ${
+                  className={`relative text-[15px] py-2 transition-colors duration-300 ${
                     isActive ? "text-brand-green font-semibold" : "hover:text-brand-green"
                   }`}
                 >

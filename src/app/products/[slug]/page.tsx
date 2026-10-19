@@ -7,7 +7,7 @@ import { FadeIn, HoverCard, GlowPulse } from "@/components/ui/MotionWrappers";
 import { ProductBadges } from "@/components/products/ProductHighlightBadges";
 import { ProductFeedback } from "@/components/products/ProductFeedback";
 import { ProductImageGallery, ProductDescriptionGallery } from "@/components/products/ProductImageGallery";
-import { getStoreProductBySlug } from "@/lib/defaultProducts";
+import { getStoreProductBySlug, getStoreSettings } from "@/lib/defaultProducts";
 import { prisma } from "@/lib/db";
 
 export const instant = false;
@@ -18,7 +18,10 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getStoreProductBySlug(slug);
+  const [product, settings] = await Promise.all([
+    getStoreProductBySlug(slug),
+    getStoreSettings(),
+  ]);
 
   if (!product) {
     notFound();
@@ -137,6 +140,32 @@ export default async function ProductDetailPage({
                   <span className="block font-bold mb-1">Delivery</span>
                   <span>{product.deliveryNotes || "Delivered within 2-4 business days."}</span>
                 </div>
+              </div>
+
+              {/* FSSAI Certification Box */}
+              <div className="flex items-center justify-between gap-3 bg-white/80 border border-brand-green/15 p-3 rounded-xl shadow-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="bg-white p-1 rounded-md border border-stone-200 shrink-0">
+                    <Image
+                      src="/images/fssai-logo.png"
+                      alt="FSSAI Food Safety"
+                      width={44}
+                      height={22}
+                      className="h-4 w-auto object-contain"
+                    />
+                  </div>
+                  <div className="flex flex-col text-left min-w-0">
+                    <span className="text-[11px] font-semibold text-brand-green truncate">
+                      Food Safety &amp; Standards Authority of India
+                    </span>
+                    <span className="text-[11px] font-mono font-medium text-stone-600">
+                      Lic. No. {settings?.fssaiNumber || "22126026000144"}
+                    </span>
+                  </div>
+                </div>
+                <span className="hidden sm:inline-flex text-[10px] uppercase font-bold tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shrink-0">
+                  ✓ Certified
+                </span>
               </div>
             </div>
           </FadeIn>

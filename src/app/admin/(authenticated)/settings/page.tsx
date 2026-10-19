@@ -2493,17 +2493,34 @@ export default function StoreSettingsPage() {
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-stone-700 flex items-center gap-1.5">
-                      <ShieldCheck size={12} className="text-stone-400" /> FSSAI Registration / License Number
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-stone-700 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <ShieldCheck size={12} className="text-stone-400" /> FSSAI License / Registration Number
+                      </span>
+                      <span className="text-[10px] font-normal text-stone-400">14-Digit Format</span>
                     </label>
-                    <input
-                      type="text"
-                      value={fssaiNumber}
-                      onChange={(e) => setFssaiNumber(e.target.value)}
-                      placeholder="22126026000144"
-                      className="w-full px-3.5 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm transition-all"
-                    />
+                    <div className="relative flex items-center">
+                      <div className="absolute left-3 flex items-center pointer-events-none">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/images/fssai-logo.png"
+                          alt="FSSAI"
+                          className="h-4 w-auto object-contain"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={fssaiNumber}
+                        onChange={(e) => setFssaiNumber(e.target.value.replace(/[^0-9]/g, "").slice(0, 14))}
+                        placeholder="22126026000144"
+                        maxLength={14}
+                        className="w-full pl-14 pr-3.5 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-sm font-mono transition-all"
+                      />
+                    </div>
+                    <p className="text-[11px] text-stone-500 leading-normal">
+                      Display format on website: <span className="font-mono font-semibold text-stone-700">Lic. No. {fssaiNumber || "22126026000144"}</span> alongside the official FSSAI emblem.
+                    </p>
                   </div>
                 </div>
               </div>

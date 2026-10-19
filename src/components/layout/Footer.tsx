@@ -53,9 +53,33 @@ export function Footer() {
               📍 {businessAddress}
             </p>
           )}
-          <p className="text-xs opacity-75 leading-relaxed mt-1">
-            FSSAI NUMBER - {fssaiNumber || "22126026000144"}
-          </p>
+
+          {/* FSSAI Food Safety License / Registration Badge */}
+          <div className="mt-4 pt-3 border-t border-brand-green-light/25">
+            <a
+              href="https://foscos.fssai.gov.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Verify FSSAI Registration on FoSCoS portal"
+              className="inline-flex items-center gap-2.5 bg-white text-stone-900 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all group"
+            >
+              <Image
+                src="/images/fssai-logo.png"
+                alt="FSSAI"
+                width={48}
+                height={24}
+                className="h-5 w-auto object-contain"
+              />
+              <div className="flex flex-col text-left leading-tight">
+                <span className="text-[9px] font-bold text-stone-500 uppercase tracking-wider">
+                  Lic. / Reg. No.
+                </span>
+                <span className="text-[11px] font-mono font-bold text-stone-900 group-hover:text-brand-green transition-colors">
+                  {fssaiNumber || "22126026000144"}
+                </span>
+              </div>
+            </a>
+          </div>
         </div>
 
         <div>

@@ -162,8 +162,16 @@ export default async function CustomerReceiptPage({
               <div className="text-[11px] text-gray-700 leading-relaxed mt-0.5">
                 {settings?.businessAddress || "Dugri, Ludhiana, Punjab - 141003"}
               </div>
-              <div className="text-[10px] text-gray-700 font-medium mt-0.5">
-                FSSAI NUMBER - {settings?.fssaiNumber || "22126026000144"}
+              <div className="flex items-center gap-1.5 mt-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/fssai-logo.png"
+                  alt="FSSAI"
+                  className="h-3.5 w-auto object-contain"
+                />
+                <span className="text-[10px] font-mono font-bold text-gray-800">
+                  Lic. No. {settings?.fssaiNumber || "22126026000144"}
+                </span>
               </div>
               <div className="mt-1.5 text-[10px] text-gray-800">
                 <div>✉️ {settings?.supportEmail || "wecare@pinkfarm.in"}</div>
