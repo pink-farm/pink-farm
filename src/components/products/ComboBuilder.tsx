@@ -193,7 +193,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
           <h2 className="font-serif text-4xl md:text-6xl text-white leading-tight">
             {settings.comboTitlePrefix || "Curate Your"}{" "}
             <span
-              className="italic font-light bg-[linear-gradient(110deg,#E6B8C0_0%,#E6B8C0_25%,#EFCCD3_38%,#F8DFE4_46%,#FFFFFF_50%,#F8DFE4_54%,#EFCCD3_62%,#E6B8C0_75%,#E6B8C0_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient"
+              className="italic font-light bg-[linear-gradient(110deg,#E6B8C0_0%,#E6B8C0_10%,#EFCCD3_19%,#F8DFE4_23%,#FFFFFF_25%,#F8DFE4_27%,#EFCCD3_31%,#E6B8C0_40%,#E6B8C0_60%,#EFCCD3_69%,#F8DFE4_73%,#FFFFFF_75%,#F8DFE4_77%,#EFCCD3_81%,#E6B8C0_90%,#E6B8C0_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient"
             >
               {settings.comboTitleHighlight || "Pink Farm Combo"}
             </span>

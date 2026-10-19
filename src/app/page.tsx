@@ -48,7 +48,7 @@ export default async function Home() {
             
             <FadeIn direction="up" delay={0.1}>
               <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl leading-[1.1] tracking-tight">
-                <span className="bg-[linear-gradient(110deg,#1A4031_0%,#1A4031_25%,#2A614C_38%,#54A982_46%,#8EE2B6_50%,#54A982_54%,#2A614C_62%,#1A4031_75%,#1A4031_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block drop-shadow-sm">
+                <span className="bg-[linear-gradient(110deg,#1A4031_0%,#1A4031_10%,#2A614C_19%,#54A982_23%,#8EE2B6_25%,#54A982_27%,#2A614C_31%,#1A4031_40%,#1A4031_60%,#2A614C_69%,#54A982_73%,#8EE2B6_75%,#54A982_77%,#2A614C_81%,#1A4031_90%,#1A4031_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block drop-shadow-sm">
                   Goodness That <br/><span className="italic font-light">Feels Like Home.</span>
                 </span>
               </h1>
@@ -56,7 +56,7 @@ export default async function Home() {
             
             <FadeIn direction="up" delay={0.25}>
               <p className="text-lg md:text-xl opacity-90 leading-relaxed">
-                <span className="bg-[linear-gradient(110deg,#2D2D2D_0%,#2D2D2D_25%,#484848_38%,#7A7A7A_46%,#A8A8A8_50%,#7A7A7A_54%,#484848_62%,#2D2D2D_75%,#2D2D2D_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block">
+                <span className="bg-[linear-gradient(110deg,#2D2D2D_0%,#2D2D2D_10%,#484848_19%,#7A7A7A_23%,#A8A8A8_25%,#7A7A7A_27%,#484848_31%,#2D2D2D_40%,#2D2D2D_60%,#484848_69%,#7A7A7A_73%,#A8A8A8_75%,#7A7A7A_77%,#484848_81%,#2D2D2D_90%,#2D2D2D_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block">
                   Discover thoughtfully selected everyday favourites, with premium quality at the heart of Pink Farm. Direct from farms to your family.
                 </span>
               </p>
@@ -66,7 +66,7 @@ export default async function Home() {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <ScaleOnTap>
                   <ShimmerSheen className="rounded-full">
-                    <Button asChild size="lg" className="w-full sm:w-auto text-base rounded-full px-8 py-6 shadow-md hover:shadow-xl border-0 text-white bg-[linear-gradient(110deg,#1A4031_0%,#1A4031_25%,#255E47_38%,#3B8E67_46%,#56B887_50%,#3B8E67_54%,#255E47_62%,#1A4031_75%,#1A4031_100%)] bg-[length:200%_100%] animate-text-gradient transition-transform duration-300">
+                    <Button asChild size="lg" className="w-full sm:w-auto text-base rounded-full px-8 py-6 shadow-md hover:shadow-xl border-0 text-white bg-[linear-gradient(110deg,#1A4031_0%,#1A4031_10%,#255E47_19%,#3B8E67_23%,#56B887_25%,#3B8E67_27%,#255E47_31%,#1A4031_40%,#1A4031_60%,#255E47_69%,#3B8E67_73%,#56B887_75%,#3B8E67_77%,#255E47_81%,#1A4031_90%,#1A4031_100%)] bg-[length:200%_100%] animate-text-gradient transition-transform duration-300">
                       <Link href="/products">Shop Now</Link>
                     </Button>
                   </ShimmerSheen>
