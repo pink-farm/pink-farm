@@ -9,5 +9,8 @@ export function logServerError(event, error) {
   const code = error && typeof error === "object" && "code" in error && typeof error.code === "string" && SAFE_ERROR_CODE.test(error.code)
     ? error.code
     : undefined;
-  console.error(eventName, { errorType, ...(code ? { code } : {}) });
+  const statusCode = error && typeof error === "object" && "statusCode" in error && Number.isInteger(error.statusCode) && error.statusCode >= 100 && error.statusCode <= 599
+    ? error.statusCode
+    : undefined;
+  console.error(eventName, { errorType, ...(code ? { code } : {}), ...(statusCode ? { statusCode } : {}) });
 }

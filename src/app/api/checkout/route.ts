@@ -7,8 +7,9 @@ import Razorpay from "razorpay";
 import { calculateCouponDiscount, getCouponFailure } from "@/lib/coupons";
 import { comboQuantityQualifies, getComboDiscountPercent, isSameOriginMutation, isValidCheckoutQuantity, readBoundedJson } from "@/lib/request-security.mjs";
 import { createCheckoutCancelToken } from "@/lib/payment-token";
+import { classifyRazorpayOrderError, getRazorpayErrorDiagnostics } from "@/lib/razorpay-errors.mjs";
 
-type CheckoutItem = { id: string; variantId?: string; variantName?: string; name?: string; quantity: number };
+type CheckoutItem = { id: string; slug?: string; variantId?: string; variantName?: string; name?: string; quantity: number };
 type CheckoutCustomerDetails = { fullName?: string; mobile?: string; addressLine1?: string; addressLine2?: string; city?: string; state?: string; pinCode?: string; deliveryInstructions?: string; couponCode?: string };
 type StoreProduct = { id: string; name: string; slug: string; imageUrl: string; isAvailable: boolean; basePrice: number; originalPrice: number | null; stockQuantity: number; variants: { id: string; name?: string; packSize?: string; isAvailable: boolean; price: number; stockQuantity: number }[] };
 
@@ -97,7 +98,18 @@ export async function POST(request: Request) {
         try {
           product = await prisma.product.findUnique({ where: { id: item.id }, include: { variants: true } });
         } catch {
-          product = null;
+          return NextResponse.json({ error: "We couldn't verify current product availability. Please try again shortly." }, { status: 503 });
+        }
+      }
+
+      // Cart contents persist in the browser. Older carts can hold fallback or
+      // deleted product IDs, so resolve the current database record by its stable
+      // slug before declaring an item unavailable.
+      if (!product && typeof item.slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) {
+        try {
+          product = await prisma.product.findUnique({ where: { slug: item.slug }, include: { variants: true } });
+        } catch {
+          return NextResponse.json({ error: "We couldn't verify current product availability. Please try again shortly." }, { status: 503 });
         }
       }
 
@@ -112,10 +124,8 @@ export async function POST(request: Request) {
       const combo = getComboDiscountPercent(item.variantName, allowedComboDiscounts);
       if (combo !== null && item.variantId) return NextResponse.json({ error: "A combo item has an invalid product option." }, { status: 400 });
       if (combo === null && (item.variantId || item.variantName)) {
-        const variant = product.variants?.find((v) =>
-          (item.variantId && v.id === item.variantId) ||
-          (!item.variantId && item.variantName && (v.name === item.variantName || v.packSize === item.variantName))
-        );
+        const variant = product.variants?.find((v) => item.variantId && v.id === item.variantId) ??
+          product.variants?.find((v) => item.variantName && (v.name === item.variantName || v.packSize === item.variantName));
         if (!variant) return NextResponse.json({ error: "A selected product option is unavailable." }, { status: 400 });
         if (!variant.isAvailable) return NextResponse.json({ error: "This product option is currently unavailable." }, { status: 409 });
         if (variant) {
@@ -215,8 +225,12 @@ export async function POST(request: Request) {
       });
       gatewayOrderId = gatewayOrder.id;
     } catch (error) {
-      logServerError("security.checkout.razorpay_order_failed", error);
-      return NextResponse.json({ error: "Payment service is temporarily unavailable. Please try again." }, { status: 502 });
+      const diagnostics = getRazorpayErrorDiagnostics(error);
+      const diagnosticError = new Error("Razorpay order creation failed");
+      Object.assign(diagnosticError, diagnostics);
+      logServerError("security.checkout.razorpay_order_failed", diagnosticError);
+      const failure = classifyRazorpayOrderError(error);
+      return NextResponse.json({ error: failure.message, code: failure.code }, { status: failure.status });
     }
 
     // Create Order in DB

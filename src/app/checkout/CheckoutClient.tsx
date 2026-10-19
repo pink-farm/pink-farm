@@ -38,6 +38,7 @@ type RazorpayPaymentResult = {
 
 type RazorpayCheckout = {
   open: () => void;
+  on: (event: "payment.failed", handler: () => void) => void;
 };
 
 type RazorpayCheckoutOptions = {
@@ -357,6 +358,7 @@ export function CheckoutClient() {
       // Sanitize items so we don't send huge base64 images or unnecessary client fields
       const checkoutItems = items.map((item) => ({
         id: item.id,
+        slug: item.slug,
         variantId: item.variantId,
         variantName: item.variantName,
         name: item.name,
@@ -433,6 +435,10 @@ export function CheckoutClient() {
             }
           },
         },
+      });
+      razorpay.on("payment.failed", () => {
+        setError("Payment was not completed. Your cart is still here. Please try again or choose another payment method.");
+        setIsProcessing(false);
       });
       razorpay.open();
 

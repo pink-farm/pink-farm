@@ -15,6 +15,10 @@ import { AdminProductInputError, classifyAdminProductError } from "../src/lib/ad
 import { logServerError } from "../src/lib/server-log.mjs";
 import { getCouponInputErrorMessage } from "../src/lib/admin-coupon-errors.mjs";
 import { resolveAdminEmail } from "../src/lib/admin-identity.mjs";
+import { classifyRazorpayOrderError, getRazorpayErrorDiagnostics } from "../src/lib/razorpay-errors.mjs";
+import { readFile } from "node:fs/promises";
+import { verifyRazorpayWebhookSignature } from "../src/lib/razorpay-webhook.mjs";
+import { createHmac } from "node:crypto";
 
 test("same-origin writes are allowed and cross-origin browser writes are rejected", () => {
   assert.equal(isSameOriginMutation(new Request("https://shop.example/api", { method: "POST", headers: { origin: "https://shop.example" } })), true);
@@ -139,6 +143,38 @@ test("server error logs omit exception messages and unsafe event names", () => {
     ["security.checkout.failed", { errorType: "Error" }],
     ["security.internal_error", { errorType: "UnknownError", code: "P2002" }],
   ]);
+});
+
+test("Razorpay failures log only safe provider diagnostics and map auth, outage, and request errors accurately", () => {
+  const authFailure = { statusCode: 401, error: { code: "BAD_REQUEST_ERROR", description: "private message" }, message: "secret data" };
+  assert.deepEqual(getRazorpayErrorDiagnostics(authFailure), { statusCode: 401, code: "BAD_REQUEST_ERROR" });
+  assert.deepEqual(classifyRazorpayOrderError(authFailure), {
+    status: 503,
+    code: "PAYMENT_CONFIGURATION_ERROR",
+    message: "Online payments are temporarily unavailable. Please contact the store.",
+  });
+  assert.equal(classifyRazorpayOrderError({ statusCode: 503 }).status, 503);
+  assert.equal(classifyRazorpayOrderError({ statusCode: 429 }).code, "PAYMENT_PROVIDER_UNAVAILABLE");
+  assert.equal(classifyRazorpayOrderError({ statusCode: 400 }).status, 502);
+  assert.deepEqual(getRazorpayErrorDiagnostics({ statusCode: 999, code: "private data" }), {});
+});
+
+test("production CSP explicitly permits Razorpay Checkout without a wildcard script source", async () => {
+  const config = await readFile(new URL("../next.config.ts", import.meta.url), "utf8");
+  assert.match(config, /script-src[^`]*https:\/\/checkout\.razorpay\.com/);
+  assert.doesNotMatch(config, /script-src[^`]*\*/);
+  assert.match(config, /connect-src 'self' https:\/\/api\.razorpay\.com https:\/\/checkout\.razorpay\.com https:\/\/api\.postalpincode\.in/);
+  assert.doesNotMatch(config, /connect-src[^`]*https:\s*;/);
+});
+
+test("Razorpay webhook signature checks the exact raw body and rejects malformed signatures", () => {
+  const body = '{"event":"payment.captured"}';
+  const secret = "test-webhook-secret";
+  const signature = createHmac("sha256", secret).update(body).digest("hex");
+  assert.equal(verifyRazorpayWebhookSignature(body, signature, secret), true);
+  assert.equal(verifyRazorpayWebhookSignature(`${body} `, signature, secret), false);
+  assert.equal(verifyRazorpayWebhookSignature(body, "bad", secret), false);
+  assert.equal(verifyRazorpayWebhookSignature(body, signature, ""), false);
 });
 
 test("coupon APIs expose only exact known validation messages", () => {
