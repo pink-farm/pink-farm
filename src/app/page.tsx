@@ -17,6 +17,7 @@ import {
 import { formatPrice } from "@/lib/utils";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
+import { HeroVideoBackground } from "@/components/home/HeroVideoBackground";
 
 export const instant = false;
 export default async function Home() {
@@ -32,31 +33,20 @@ export default async function Home() {
       
       {/* C. HERO SECTION */}
       <section className="relative w-full overflow-hidden bg-brand-ivory pt-24 pb-16 md:pt-28 md:pb-20">
-        {storeSettings.heroVideo && (
-          <video
-            key={storeSettings.heroVideo}
-            aria-hidden="true"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            className="absolute inset-0 z-0 h-full w-full object-cover"
-            style={{ opacity: Math.max(0, Math.min(100, storeSettings.heroVideoOpacity ?? 55)) / 100 }}
-          >
-            <source src={storeSettings.heroVideo} />
-          </video>
-        )}
+        <HeroVideoBackground
+          videoUrl={storeSettings.heroVideo}
+          opacity={storeSettings.heroVideoOpacity}
+        />
         {/* Dynamic Abstract CSS Mesh Background */}
         <div 
-          className={`absolute inset-0 z-0 animate-mesh ${storeSettings.heroVideo ? "opacity-45" : "opacity-90"}`}
+          className={`absolute inset-0 z-0 ${storeSettings.heroVideo ? "opacity-35" : "animate-mesh opacity-90"}`}
           style={{
             backgroundImage: 'radial-gradient(at 0% 0%, rgba(247, 225, 215, 0.95) 0px, transparent 60%), radial-gradient(at 100% 0%, rgba(157, 180, 160, 0.8) 0px, transparent 60%), radial-gradient(at 100% 100%, rgba(255, 245, 230, 0.9) 0px, transparent 60%), radial-gradient(at 0% 100%, rgba(240, 210, 220, 0.8) 0px, transparent 60%)',
             backgroundSize: '200% 200%'
           }}
         />
-        {/* Grain Overlay */}
-        <div className="absolute inset-0 opacity-[0.25] mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
+        {/* Soft Warm Luxury Vignette Overlay (Hardware accelerated, zero compositor stall) */}
+        <div className="absolute inset-0 opacity-[0.12] pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#F7E1D7]/20 to-[#1A4031]/10" />
 
         <div className="container relative z-10 mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-12">
           {/* Left Text Column */}

@@ -177,13 +177,9 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
             "radial-gradient(ellipse at 20% 60%, rgba(230,184,192,0.13) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(42,89,78,0.18) 0%, transparent 55%), linear-gradient(160deg, #0d1a16 0%, #12261f 40%, #1a1a2e 100%)",
         }}
       />
-      {/* Grain overlay */}
+      {/* Soft warm overlay */}
       <div
-        className="absolute inset-0 opacity-[0.18] mix-blend-overlay pointer-events-none z-[1]"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-        }}
+        className="absolute inset-0 opacity-[0.06] pointer-events-none z-[1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#E88E9B]/30 via-transparent to-transparent"
       />
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
