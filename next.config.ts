@@ -19,7 +19,11 @@ const nextConfig: NextConfig = {
         { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
         { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
         { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-        { key: "Content-Security-Policy", value: `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; frame-src 'self' https://*.razorpay.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.razorpay.com; connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://api.postalpincode.in https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com https://*.blob.vercel-storage.com; upgrade-insecure-requests` },
+        {
+          key: "Content-Security-Policy",
+          value: `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; frame-src 'self' https://*.razorpay.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.razorpay.com` +
+            `; connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://api.postalpincode.in https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com https://*.blob.vercel-storage.com; upgrade-insecure-requests`,
+        },
         ...(process.env.NODE_ENV === "production" ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }] : []),
       ],
     }];
