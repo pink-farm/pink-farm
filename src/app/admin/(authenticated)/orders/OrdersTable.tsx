@@ -125,7 +125,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
                   <label className="text-xs font-semibold text-stone-700">From
                     <input type="date" value={rangeFrom} max={rangeTo || undefined} onChange={(event) => setRangeFrom(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-stone-200 bg-white px-2.5 py-2.5 text-sm font-normal text-stone-900 outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
                   </label>
-                  <label className="text-xs font-semibold text-stone-700">Through
+                  <label className="text-xs font-semibold text-stone-700">To
                     <input type="date" value={rangeTo} min={rangeFrom || undefined} onChange={(event) => setRangeTo(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-stone-200 bg-white px-2.5 py-2.5 text-sm font-normal text-stone-900 outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
                   </label>
                 </div>

@@ -1113,7 +1113,7 @@ export function CustomerAccountClient() {
                               <label className="text-xs font-semibold text-brand-charcoal/80">From
                                 <input type="date" value={orderFromDate} max={orderThroughDate || undefined} onChange={(event) => setOrderFromDate(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-brand-green/15 bg-white px-2.5 py-2.5 text-sm font-normal text-brand-charcoal outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
                               </label>
-                              <label className="text-xs font-semibold text-brand-charcoal/80">Through
+                              <label className="text-xs font-semibold text-brand-charcoal/80">To
                                 <input type="date" value={orderThroughDate} min={orderFromDate || undefined} onChange={(event) => setOrderThroughDate(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-brand-green/15 bg-white px-2.5 py-2.5 text-sm font-normal text-brand-charcoal outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
                               </label>
                             </div>

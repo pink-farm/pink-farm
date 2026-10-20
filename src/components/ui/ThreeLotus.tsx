@@ -43,35 +43,35 @@ export function ThreeLotus({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMappingExposure = 1.15;
+    renderer.autoClear = true;
+    renderer.setClearColor(0x000000, 0);
 
     container.appendChild(renderer.domElement);
 
-    // --- 2. Studio Lighting Rig ---
-    // Warm sunlight key light
-    const keyLight = new THREE.DirectionalLight(0xfffaee, 3.6);
+    // --- 2. Studio Lighting Rig (Clean Luminous Studio Shading) ---
+    // Warm key light
+    const keyLight = new THREE.DirectionalLight(0xfffaee, 3.2);
     keyLight.position.set(4, 7, 5);
     scene.add(keyLight);
 
     // Cool blush fill light
-    const fillLight = new THREE.DirectionalLight(0xffd5dc, 2.2);
+    const fillLight = new THREE.DirectionalLight(0xffe8ee, 2.0);
     fillLight.position.set(-5, 4, 2);
     scene.add(fillLight);
 
     // Rim backlight for specular highlights on gold rims
-    const rimLight = new THREE.DirectionalLight(0xfff7ea, 3.5);
+    const rimLight = new THREE.DirectionalLight(0xfff7ea, 2.8);
     rimLight.position.set(0, 6, -5);
     scene.add(rimLight);
 
     // Golden underlight for core glow
-    const coreLight = new THREE.PointLight(0xffd700, 2.4, 5);
+    const coreLight = new THREE.PointLight(0xffd700, 2.0, 5);
     coreLight.position.set(0, 0.4, 0);
     scene.add(coreLight);
 
     // Soft ambient fill
-    const ambientLight = new THREE.AmbientLight(0xffedf0, 1.2);
+    const ambientLight = new THREE.AmbientLight(0xfff5f7, 1.4);
     scene.add(ambientLight);
 
     // --- 3. Materials ---
@@ -90,20 +90,20 @@ export function ThreeLotus({
       emissive: 0x422d05,
     });
 
-    // High-Resolution Smooth Blush Gradient Texture for Petals (Opaque)
+    // High-Resolution Smooth Blush Gradient Texture for Petals (Pure, luminous, no dark marks)
     function createPorcelainGradient(): THREE.CanvasTexture {
       const canvas = document.createElement("canvas");
       canvas.width = 256;
       canvas.height = 512;
       const ctx = canvas.getContext("2d")!;
 
-      // Vertical smooth luxury gradient
+      // Vertical smooth luxury gradient without dark muddy tips
       const grad = ctx.createLinearGradient(0, 512, 0, 0);
       grad.addColorStop(0.0, "#FFFFFF"); // Pure ivory root
-      grad.addColorStop(0.2, "#FDE4EB"); // Softest blush
-      grad.addColorStop(0.55, "#F799AE"); // Radiant lotus pink
-      grad.addColorStop(0.85, "#E26482"); // Rich rose petal
-      grad.addColorStop(1.0, "#D04868"); // Deep tip blush
+      grad.addColorStop(0.25, "#FFF0F4"); // Softest blush
+      grad.addColorStop(0.60, "#FBB6CE"); // Radiant lotus petal
+      grad.addColorStop(0.88, "#F472B6"); // Warm blooming rose
+      grad.addColorStop(1.0, "#EC4899"); // Vibrant crisp petal tip (clean & luminous)
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 256, 512);
 
@@ -178,8 +178,6 @@ export function ThreeLotus({
       uvs.needsUpdate = true;
 
       const petalMesh = new THREE.Mesh(shapeGeo, petalPorcelainMaterial);
-      petalMesh.castShadow = true;
-      petalMesh.receiveShadow = true;
       group.add(petalMesh);
 
       // --- Build 3D Solid Gold Rim Tube along the perimeter ---

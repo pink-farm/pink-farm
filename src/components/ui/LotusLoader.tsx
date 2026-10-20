@@ -53,7 +53,7 @@ export function LotusLoader({
           }}
         >
           <Image
-            src="/images/lotus-loader.webp?v=5"
+            src="/images/lotus-loader.webp"
             alt="Pink Farm Lotus Bloom"
             width={width}
             height={height}

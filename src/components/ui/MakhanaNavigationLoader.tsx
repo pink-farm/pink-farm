@@ -16,37 +16,18 @@ export function MakhanaNavigationLoader() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Render the branded cover in the initial HTML too, so a slow first visit
-  // does not flash an unstyled page before the client router hydrates.
-  const [isNavigating, setIsNavigating] = useState(true);
-  const [progress, setProgress] = useState(18);
+  // Frame-0 initial loading is handled instantaneously by layout.tsx SSR splash.
+  // isNavigating is activated smoothly during client-side route transitions.
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const startTimestampRef = useRef<number>(0);
   const currentPathnameRef = useRef<string>(pathname);
-  const isNavigatingRef = useRef<boolean>(true);
+  const isNavigatingRef = useRef<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const initialProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    startTimestampRef.current = Date.now();
-    isNavigatingRef.current = true;
-
-    initialProgressTimerRef.current = setTimeout(() => setProgress(100), 300);
-    dismissTimerRef.current = setTimeout(() => {
-      requestAnimationFrame(() => {
-        setIsNavigating(false);
-        isNavigatingRef.current = false;
-        setProgress(0);
-      });
-    }, 550);
-
-    return () => {
-      if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
-      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    };
-  }, []);
 
   const startNavigation = useCallback((waitForRoute = false) => {
     if (timerRef.current) clearInterval(timerRef.current);

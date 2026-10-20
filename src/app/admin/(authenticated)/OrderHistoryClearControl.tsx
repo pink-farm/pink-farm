@@ -118,7 +118,7 @@ export function OrderHistoryClearControl({ orders }: OrderHistoryClearControlPro
     : pendingScope?.type === "single"
       ? `order ${selectedOrder?.orderNumber || "selected"}`
       : pendingScope?.type === "range"
-        ? `orders from ${fromDate} through ${toDate}`
+        ? `orders from ${fromDate} to ${toDate}`
         : "selected orders";
   const progressStep = step === "ready" ? 0 : step === "otp" ? 1 : step === "confirm" ? 2 : 3;
   const choices: { value: DeleteMode; title: string; description: string; icon: typeof CalendarDays; danger?: boolean }[] = [
@@ -188,7 +188,7 @@ export function OrderHistoryClearControl({ orders }: OrderHistoryClearControlPro
                   <label className="space-y-1.5 text-xs font-semibold text-stone-600">From
                     <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="block w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-normal text-stone-900 shadow-sm outline-none transition focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
                   </label>
-                  <label className="space-y-1.5 text-xs font-semibold text-stone-600">Through
+                  <label className="space-y-1.5 text-xs font-semibold text-stone-600">To
                     <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="block w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-normal text-stone-900 shadow-sm outline-none transition focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
                   </label>
                 </div>
