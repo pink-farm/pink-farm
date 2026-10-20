@@ -367,7 +367,7 @@ export function DashboardOverview({ initialOrders, lowStockCount }: DashboardOve
         </Link>
       </div>
 
-      <OrderHistoryClearControl />
+      <OrderHistoryClearControl orders={initialOrders.map(({ id, orderNumber, createdAt }) => ({ id, orderNumber, createdAt }))} />
 
       {/* ============================================================== */}
       {/* RECENT ORDERS SECTION WITH INSTANT SEARCH & PERIOD DATA        */}

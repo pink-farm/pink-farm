@@ -5,10 +5,43 @@ import { prisma } from "@/lib/db";
 import { ADMIN_EMAIL, requireAdminSession } from "@/lib/auth";
 import { consumeAuthRequestRateLimit, pruneAuthRateLimits } from "@/lib/rate-limit";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
+import type { Prisma } from "@prisma/client";
 
-const OTP_PURPOSE = "admin_clear_order_history";
-const GRANT_PURPOSE = "admin_clear_order_history_approved";
+const OTP_PURPOSE = "admin_order_history_delete";
+const GRANT_PURPOSE = "admin_order_history_delete_approved";
 const otpSecret = process.env.SESSION_SECRET || (process.env.NODE_ENV === "development" ? "local-development-only-change-me-32-chars" : "");
+
+type DeletionScope =
+  | { type: "all" }
+  | { type: "range"; from: string; to: string }
+  | { type: "single"; orderId: string };
+
+function parseDeletionScope(value: unknown): DeletionScope | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const scope = value as Record<string, unknown>;
+  if (scope.type === "all") return { type: "all" };
+  if (scope.type === "single" && typeof scope.orderId === "string" && /^[a-f\d]{24}$/i.test(scope.orderId)) {
+    return { type: "single", orderId: scope.orderId };
+  }
+  if (scope.type === "range" && typeof scope.from === "string" && typeof scope.to === "string") {
+    const from = new Date(scope.from);
+    const to = new Date(scope.to);
+    if (Number.isFinite(from.getTime()) && Number.isFinite(to.getTime()) && from.toISOString() === scope.from && to.toISOString() === scope.to && from < to) {
+      return { type: "range", from: scope.from, to: scope.to };
+    }
+  }
+  return null;
+}
+
+function scopePurpose(scope: DeletionScope) {
+  return `${OTP_PURPOSE}:${hashValue(JSON.stringify(scope))}`;
+}
+
+function orderWhere(scope: DeletionScope): Prisma.OrderWhereInput {
+  if (scope.type === "single") return { id: scope.orderId };
+  if (scope.type === "range") return { createdAt: { gte: new Date(scope.from), lt: new Date(scope.to) } };
+  return {};
+}
 
 function hashValue(value: string) {
   return createHmac("sha256", otpSecret).update(`${ADMIN_EMAIL}:${value}`).digest("hex");
@@ -53,9 +86,12 @@ export async function POST(request: Request) {
 
     const values = parsed.value as Record<string, unknown>;
     const action = values.action;
-    if (action !== "send" && action !== "verify" && action !== "clear") {
+    if (action !== "send" && action !== "verify" && action !== "delete") {
       return NextResponse.json({ error: "That order history action is not supported." }, { status: 400 });
     }
+    const scope = parseDeletionScope(values.scope);
+    if (!scope) return NextResponse.json({ error: "Choose a valid order history deletion target." }, { status: 400 });
+    const requestedPurpose = scopePurpose(scope);
 
     try {
       const limits = action === "send"
@@ -77,17 +113,17 @@ export async function POST(request: Request) {
 
     if (action === "send") {
       const recent = await prisma.otpChallenge.findFirst({
-        where: { email: ADMIN_EMAIL, purpose: OTP_PURPOSE, createdAt: { gt: new Date(Date.now() - 60_000) } },
+        where: { email: ADMIN_EMAIL, purpose: requestedPurpose, createdAt: { gt: new Date(Date.now() - 60_000) } },
         select: { id: true },
       });
       if (recent) return NextResponse.json({ error: "Please wait a minute before requesting another code." }, { status: 429 });
 
       const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-      await prisma.otpChallenge.deleteMany({ where: { email: ADMIN_EMAIL, purpose: { in: [OTP_PURPOSE, GRANT_PURPOSE] } } });
+      await prisma.otpChallenge.deleteMany({ where: { email: ADMIN_EMAIL, purpose: { in: [requestedPurpose, GRANT_PURPOSE] } } });
       const challenge = await prisma.otpChallenge.create({
         data: {
           email: ADMIN_EMAIL,
-          purpose: OTP_PURPOSE,
+          purpose: requestedPurpose,
           codeHash: hashValue(`otp:${code}`),
           expiresAt: new Date(Date.now() + 10 * 60_000),
         },
@@ -107,7 +143,7 @@ export async function POST(request: Request) {
       const code = typeof values.code === "string" ? values.code.trim() : "";
       if (!/^\d{6}$/.test(code)) return NextResponse.json({ error: "Enter the 6-digit code from your email." }, { status: 400 });
       const challenge = await prisma.otpChallenge.findFirst({
-        where: { email: ADMIN_EMAIL, purpose: OTP_PURPOSE },
+        where: { email: ADMIN_EMAIL, purpose: requestedPurpose },
         orderBy: { createdAt: "desc" },
       });
       if (!challenge || challenge.expiresAt <= new Date() || challenge.attempts >= 5) {
@@ -118,7 +154,7 @@ export async function POST(request: Request) {
       const actual = Buffer.from(hashValue(`otp:${code}`), "hex");
       if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
         await prisma.otpChallenge.updateMany({
-          where: { id: challenge.id, purpose: OTP_PURPOSE, attempts: challenge.attempts, expiresAt: { gt: new Date() } },
+          where: { id: challenge.id, purpose: requestedPurpose, attempts: challenge.attempts, expiresAt: { gt: new Date() } },
           data: { attempts: { increment: 1 } },
         });
         return NextResponse.json({ error: "That code is not correct." }, { status: 400 });
@@ -126,23 +162,24 @@ export async function POST(request: Request) {
 
       const grant = randomBytes(32).toString("base64url");
       const claimed = await prisma.otpChallenge.updateMany({
-        where: { id: challenge.id, purpose: OTP_PURPOSE, attempts: challenge.attempts, expiresAt: { gt: new Date() } },
+        where: { id: challenge.id, purpose: requestedPurpose, attempts: challenge.attempts, expiresAt: { gt: new Date() } },
         data: {
           purpose: GRANT_PURPOSE,
-          codeHash: hashValue(`grant:${grant}`),
+          codeHash: hashValue(`grant:${grant}:${requestedPurpose}`),
           attempts: 0,
           expiresAt: new Date(Date.now() + 5 * 60_000),
         },
       });
       if (claimed.count !== 1) return NextResponse.json({ error: "This code has already been used. Request a new code." }, { status: 409 });
 
-      const orderCount = await prisma.order.count();
+      const orderCount = await prisma.order.count({ where: orderWhere(scope) });
       return NextResponse.json({ success: true, grant, orderCount });
     }
 
     const grant = typeof values.grant === "string" ? values.grant : "";
     if (!/^[A-Za-z0-9_-]{40,60}$/.test(grant)) return NextResponse.json({ error: "Verify the email code before continuing." }, { status: 400 });
-    const grantHash = hashValue(`grant:${grant}`);
+    const grantHash = hashValue(`grant:${grant}:${requestedPurpose}`);
+    const where = orderWhere(scope);
     const result = await prisma.$transaction(async (tx) => {
       const claimed = await tx.otpChallenge.deleteMany({
         where: {
@@ -153,11 +190,12 @@ export async function POST(request: Request) {
         },
       });
       if (claimed.count !== 1) throw new Error("ORDER_HISTORY_GRANT_INVALID");
-      await tx.orderItem.deleteMany({});
-      return await tx.order.deleteMany({});
+      const itemWhere: Prisma.OrderItemWhereInput = scope.type === "all" ? {} : { order: { is: where } };
+      await tx.orderItem.deleteMany({ where: itemWhere });
+      return await tx.order.deleteMany({ where });
     });
 
-    console.info("security.admin.order_history.cleared", { deletedOrders: result.count });
+    console.info("security.admin.order_history.deleted", { scope: scope.type, deletedOrders: result.count });
     return NextResponse.json({ success: true, deletedOrders: result.count });
   } catch (error) {
     if (error instanceof Error && error.message === "ORDER_HISTORY_GRANT_INVALID") {
