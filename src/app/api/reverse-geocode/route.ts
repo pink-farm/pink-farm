@@ -23,6 +23,8 @@ export async function GET(request: Request) {
         lon: String(longitude),
         format: "json",
         addressdetails: "1",
+        normalizeaddress: "1",
+        normalizecity: "1",
         zoom: "18",
       }).toString();
 
@@ -43,16 +45,20 @@ export async function GET(request: Request) {
           const pinCode = addr.postcode ? addr.postcode.replace(/\s+/g, "").slice(0, 6) : "";
           const streetAddress = [houseNumber, building, road].filter(Boolean).join(", ");
 
-          return NextResponse.json({
-            success: true,
-            pinCode,
-            city,
-            state,
-            addressLine1: streetAddress,
-            addressLine2: [suburb, addr.village, addr.postcode_area].filter(Boolean).join(", "),
-            hasStreetAddress: Boolean(streetAddress),
-            displayName: data.display_name,
-          });
+          // A locality-only result isn't enough for the required street field.
+          // Try Nominatim before returning so it can fill a road when available.
+          if (streetAddress) {
+            return NextResponse.json({
+              success: true,
+              pinCode,
+              city,
+              state,
+              addressLine1: streetAddress,
+              addressLine2: [suburb, addr.village, addr.postcode_area].filter(Boolean).join(", "),
+              hasStreetAddress: true,
+              displayName: data.display_name,
+            });
+          }
         }
       }
     }
