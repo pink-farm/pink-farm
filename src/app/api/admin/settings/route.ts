@@ -14,6 +14,8 @@ const DEFAULT_SETTINGS = {
   heroMainImage: "/images/makhana_sig.jpg",
   heroGheeImage: "/images/ghee.jpg",
   heroAlmondsImage: "/images/almonds.jpg",
+  heroVideo: "",
+  heroVideoOpacity: 55,
   heartProductId: "",
   heartProductTitle: "Premium Phool Makhana",
   heartProductTagline: "Why not? You deserve the best.",

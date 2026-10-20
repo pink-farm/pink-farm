@@ -197,6 +197,8 @@ model StoreSettings {
   heroMainImage       String?
   heroGheeImage       String?
   heroAlmondsImage    String?
+  heroVideo           String?
+  heroVideoOpacity    Int?     @default(55)
   heartProductId      String?
   heartProductTitle   String   @default("Premium Phool Makhana")
   heartProductTagline String   @default("Why not? You deserve the best.")

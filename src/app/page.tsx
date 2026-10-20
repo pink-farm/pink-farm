@@ -32,9 +32,24 @@ export default async function Home() {
       
       {/* C. HERO SECTION */}
       <section className="relative w-full overflow-hidden bg-brand-ivory pt-24 pb-16 md:pt-28 md:pb-20">
+        {storeSettings.heroVideo && (
+          <video
+            key={storeSettings.heroVideo}
+            aria-hidden="true"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className="absolute inset-0 z-0 h-full w-full object-cover"
+            style={{ opacity: Math.max(0, Math.min(100, storeSettings.heroVideoOpacity ?? 55)) / 100 }}
+          >
+            <source src={storeSettings.heroVideo} />
+          </video>
+        )}
         {/* Dynamic Abstract CSS Mesh Background */}
         <div 
-          className="absolute inset-0 z-0 animate-mesh opacity-90"
+          className={`absolute inset-0 z-0 animate-mesh ${storeSettings.heroVideo ? "opacity-45" : "opacity-90"}`}
           style={{
             backgroundImage: 'radial-gradient(at 0% 0%, rgba(247, 225, 215, 0.95) 0px, transparent 60%), radial-gradient(at 100% 0%, rgba(157, 180, 160, 0.8) 0px, transparent 60%), radial-gradient(at 100% 100%, rgba(255, 245, 230, 0.9) 0px, transparent 60%), radial-gradient(at 0% 100%, rgba(240, 210, 220, 0.8) 0px, transparent 60%)',
             backgroundSize: '200% 200%'

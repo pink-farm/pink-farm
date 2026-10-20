@@ -9,6 +9,8 @@ export interface StoreSettingsData {
   heroMainImage: string;
   heroGheeImage: string;
   heroAlmondsImage: string;
+  heroVideo: string;
+  heroVideoOpacity: number;
   heartProductId: string;
   heartProductTitle: string;
   heartProductTagline: string;
@@ -68,6 +70,8 @@ export const DEFAULT_SETTINGS: StoreSettingsData = {
   heroMainImage: "/images/makhana_sig.jpg",
   heroGheeImage: "/images/ghee.jpg",
   heroAlmondsImage: "/images/almonds.jpg",
+  heroVideo: "",
+  heroVideoOpacity: 55,
   heartProductId: "",
   heartProductTitle: "Premium Phool Makhana",
   heartProductTagline: "Why not? You deserve the best.",
@@ -151,6 +155,8 @@ export const useSettingsStore = create<SettingsStore>()(
                 heroMainImage: data.heroMainImage ?? get().heroMainImage,
                 heroGheeImage: data.heroGheeImage ?? get().heroGheeImage,
                 heroAlmondsImage: data.heroAlmondsImage ?? get().heroAlmondsImage,
+                heroVideo: data.heroVideo ?? get().heroVideo,
+                heroVideoOpacity: typeof data.heroVideoOpacity === "number" ? data.heroVideoOpacity : get().heroVideoOpacity,
                 heartProductId: data.heartProductId ?? get().heartProductId,
                 heartProductTitle: data.heartProductTitle ?? get().heartProductTitle,
                 heartProductTagline: data.heartProductTagline ?? get().heartProductTagline,

@@ -144,6 +144,7 @@ export function AdminSidebarNav() {
                           {[
                             { id: "settings-identity", label: "🏷️ Store Identity & Top Bar" },
                             { id: "settings-hero-images", label: "🖼️ Homepage Bubble Images" },
+                            { id: "settings-hero-video", label: "🎬 Homepage Hero Video" },
                             { id: "settings-status", label: "⚡ Store Online / Pause Toggle" },
                             { id: "settings-delivery", label: "🚚 Delivery Fees & Shipping" },
                             { id: "settings-support", label: "📞 Support Phone, Email & Address" },
