@@ -80,6 +80,32 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-brand-ivory text-brand-charcoal">
+        {/* Instant First-Paint Brand Splash Curtain: Eliminates any half-loaded flash before React hydrates */}
+        <div
+          id="pinkfarm-initial-curtain"
+          aria-hidden="true"
+          className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#FDFBF7] select-none transition-opacity duration-500 ease-out"
+        >
+          <div className="relative flex items-center justify-center w-[220px] h-[220px] sm:w-[260px] sm:h-[260px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/lotus-loader.webp"
+              alt="Loading Pink Farm"
+              width={260}
+              height={260}
+              className="w-full h-full object-contain pointer-events-none select-none"
+            />
+          </div>
+          <div className="mt-3 text-center px-4">
+            <p className="font-serif tracking-wide text-brand-green font-medium text-lg sm:text-xl">
+              Loading Freshness...
+            </p>
+            <p className="text-xs uppercase tracking-widest text-brand-sage/80 mt-1 font-sans">
+              Every bite crafted with love
+            </p>
+          </div>
+        </div>
+
         <Suspense fallback={null}>
           <MakhanaNavigationLoader />
         </Suspense>

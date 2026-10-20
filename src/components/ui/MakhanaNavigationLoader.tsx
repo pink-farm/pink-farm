@@ -16,36 +16,33 @@ export function MakhanaNavigationLoader() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [isNavigating, setIsNavigating] = useState(true);
-  const [progress, setProgress] = useState(30);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const startTimestampRef = useRef<number>(0);
   const currentPathnameRef = useRef<string>(pathname);
-  const isNavigatingRef = useRef<boolean>(true);
+  const isNavigatingRef = useRef<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const initialProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Play lotus animation smoothly on initial website load
+  // 1. Initial Page Load: Smoothly dismiss the server-rendered HTML curtain once React hydrates
   useEffect(() => {
-    startTimestampRef.current = Date.now();
-    isNavigatingRef.current = true;
+    const curtain = document.getElementById("pinkfarm-initial-curtain");
+    if (curtain) {
+      const dismissCurtain = () => {
+        curtain.style.opacity = "0";
+        curtain.style.pointerEvents = "none";
+        setTimeout(() => {
+          curtain.style.display = "none";
+        }, 550);
+      };
 
-    initialProgressTimerRef.current = setTimeout(() => {
-      setProgress(100);
-    }, 280);
-
-    dismissTimerRef.current = setTimeout(() => {
-      setIsNavigating(false);
-      isNavigatingRef.current = false;
-      setProgress(0);
-    }, 550);
-
-    return () => {
-      if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
-      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    };
+      // Allow 650ms on first load so user gets the full bloom before smooth reveal
+      const timer = setTimeout(dismissCurtain, 650);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const startNavigation = useCallback((waitForRoute = false) => {
@@ -66,16 +63,16 @@ export function MakhanaNavigationLoader() {
           if (timerRef.current) clearInterval(timerRef.current);
           return 90;
         }
-        return prev + 15;
+        return prev + 12;
       });
-    }, 80);
+    }, 90);
 
-    // Safety fallback: dismiss so user is never locked out
+    // Generous safety fallback (6s) so slow server routes never end prematurely
     safetyTimeoutRef.current = setTimeout(() => {
       setIsNavigating(false);
       isNavigatingRef.current = false;
       setProgress(0);
-    }, 2800);
+    }, 6000);
   }, []);
 
   const completeNavigation = useCallback(() => {
@@ -86,12 +83,12 @@ export function MakhanaNavigationLoader() {
 
     setProgress(100);
 
-    // Give a satisfying, graceful 240ms for the bloom to finish, then dissolve smoothly
+    // Keep lotus visible for 300ms to finish its bloom, then dissolve smoothly into the new page (ZERO GAP)
     dismissTimerRef.current = setTimeout(() => {
       setIsNavigating(false);
       isNavigatingRef.current = false;
       setProgress(0);
-    }, 240);
+    }, 300);
   }, []);
 
   // Listen for the new route to be mounted into the DOM via template.tsx
@@ -108,7 +105,7 @@ export function MakhanaNavigationLoader() {
     };
   }, [completeNavigation]);
 
-  // When pathname or searchParams change, ensure progress reaches final stretch
+  // When pathname or searchParams change, ensure progress reaches final stretch without premature dismissal
   useEffect(() => {
     if (currentPathnameRef.current !== pathname) {
       currentPathnameRef.current = pathname;
@@ -116,16 +113,8 @@ export function MakhanaNavigationLoader() {
         startNavigation(false);
       }
       setProgress((prev) => Math.max(prev, 90));
-
-      // Safety fallback: if pinkfarm:route:mounted doesn't fire within 800ms of pathname change,
-      // gracefully complete so user is never stuck.
-      const fallbackTimer = setTimeout(() => {
-        completeNavigation();
-      }, 800);
-
-      return () => clearTimeout(fallbackTimer);
     }
-  }, [pathname, searchParams, startNavigation, completeNavigation]);
+  }, [pathname, searchParams, startNavigation]);
 
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
@@ -252,7 +241,7 @@ export function MakhanaNavigationLoader() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.32, ease: "easeOut" }}
             style={{
               transform: "translateZ(0)",
               willChange: "opacity",
