@@ -34,13 +34,13 @@ export function MakhanaNavigationLoader() {
 
     initialProgressTimerRef.current = setTimeout(() => {
       setProgress(100);
-    }, 400);
+    }, 280);
 
     dismissTimerRef.current = setTimeout(() => {
       setIsNavigating(false);
       isNavigatingRef.current = false;
       setProgress(0);
-    }, 700);
+    }, 550);
 
     return () => {
       if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
@@ -57,25 +57,25 @@ export function MakhanaNavigationLoader() {
     startTimestampRef.current = Date.now();
     isNavigatingRef.current = true;
     setIsNavigating(true);
-    setProgress(25);
+    setProgress(35);
 
     // Increment progress bar smoothly
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 85) {
+        if (prev >= 90) {
           if (timerRef.current) clearInterval(timerRef.current);
-          return 85;
+          return 90;
         }
-        return prev + Math.random() * 12;
+        return prev + 15;
       });
-    }, 100);
+    }, 80);
 
-    // Safety fallback: if destination takes too long, dismiss overlay so user is never locked out
+    // Safety fallback: dismiss so user is never locked out
     safetyTimeoutRef.current = setTimeout(() => {
       setIsNavigating(false);
       isNavigatingRef.current = false;
       setProgress(0);
-    }, 6000);
+    }, 2800);
   }, []);
 
   const completeNavigation = useCallback(() => {
@@ -86,21 +86,15 @@ export function MakhanaNavigationLoader() {
 
     setProgress(100);
 
-    // Ensure the lotus bloom animation plays gracefully for at least 780ms
-    // and allows the newly mounted route to finish layout and image paint
-    // before the screen cover dissolves away.
+    // Snappy, silky transition: show lotus bloom without locking the screen or hanging
     const elapsed = startTimestampRef.current > 0 ? Date.now() - startTimestampRef.current : 0;
-    const minDisplayTime = 780;
-    const remainingTime = Math.max(180, minDisplayTime - elapsed);
+    const minDisplayTime = 240;
+    const remainingTime = Math.max(60, minDisplayTime - elapsed);
 
     dismissTimerRef.current = setTimeout(() => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsNavigating(false);
-          isNavigatingRef.current = false;
-          setProgress(0);
-        });
-      });
+      setIsNavigating(false);
+      isNavigatingRef.current = false;
+      setProgress(0);
     }, remainingTime);
   }, []);
 
@@ -256,16 +250,16 @@ export function MakhanaNavigationLoader() {
         {isNavigating && (
           <motion.div
             key="navigation-lotus-overlay"
-            initial={{ opacity: 1 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeOut" } }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             style={{
               transform: "translateZ(0)",
               willChange: "opacity",
               backfaceVisibility: "hidden",
             }}
-            className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] pointer-events-auto select-none"
+            className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] select-none"
           >
             <MakhanaLoader
               size="xl"

@@ -62,7 +62,7 @@ export default async function Home() {
           {/* Left Text Column */}
           <div className="flex-1 space-y-8 max-w-2xl relative z-20">
             
-            <FadeIn direction="up" delay={0.1}>
+            <FadeIn direction="up" delay={0}>
               <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl leading-[1.1] tracking-tight">
                 <span className="bg-[linear-gradient(110deg,#1A4031_0%,#1A4031_10%,#2A614C_19%,#54A982_23%,#8EE2B6_25%,#54A982_27%,#2A614C_31%,#1A4031_40%,#1A4031_60%,#2A614C_69%,#54A982_73%,#8EE2B6_75%,#54A982_77%,#2A614C_81%,#1A4031_90%,#1A4031_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block drop-shadow-sm">
                   Goodness That <br/><span className="italic font-light">Feels Like Home.</span>
@@ -70,7 +70,7 @@ export default async function Home() {
               </h1>
             </FadeIn>
             
-            <FadeIn direction="up" delay={0.25}>
+            <FadeIn direction="up" delay={0.08}>
               <p className="text-lg md:text-xl opacity-90 leading-relaxed">
                 <span className="bg-[linear-gradient(110deg,#2D2D2D_0%,#2D2D2D_10%,#484848_19%,#7A7A7A_23%,#A8A8A8_25%,#7A7A7A_27%,#484848_31%,#2D2D2D_40%,#2D2D2D_60%,#484848_69%,#7A7A7A_73%,#A8A8A8_75%,#7A7A7A_77%,#484848_81%,#2D2D2D_90%,#2D2D2D_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block">
                   Discover thoughtfully selected everyday favourites, with premium quality at the heart of Pink Farm. Direct from farms to your family.
@@ -78,7 +78,7 @@ export default async function Home() {
               </p>
             </FadeIn>
             
-            <FadeIn direction="up" delay={0.4}>
+            <FadeIn direction="up" delay={0.15}>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <ScaleOnTap>
                   <ShimmerSheen className="rounded-full">

@@ -49,7 +49,6 @@ export function LotusLoader({
             transform: "translateZ(0)",
             willChange: "transform",
             backfaceVisibility: "hidden",
-            contain: "paint",
           }}
         >
           <Image

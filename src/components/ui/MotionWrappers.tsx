@@ -16,9 +16,9 @@ interface FadeInProps {
 export function FadeIn({
   children,
   delay = 0,
-  duration = 1.1,
+  duration = 0.45,
   direction = "up",
-  distance = 32,
+  distance = 16,
   className = "",
 }: FadeInProps) {
   const directions = {
@@ -35,7 +35,7 @@ export function FadeIn({
     <motion.div
       initial={{ opacity: 0, ...initialOffset }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
+      viewport={{ once: true, margin: "0px" }}
       transition={{
         duration,
         delay,
@@ -48,10 +48,10 @@ export function FadeIn({
   );
 }
 
-// 2. StaggerContainer & StaggerItem - Relaxed, Cascading Scroll Reveal
+// 2. StaggerContainer & StaggerItem - Cohesive, Harmonious Scroll Reveal
 export function StaggerContainer({
   children,
-  staggerDelay = 0.18,
+  staggerDelay = 0.08,
   className = "",
 }: {
   children: React.ReactNode;
@@ -62,7 +62,7 @@ export function StaggerContainer({
     <motion.div
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, margin: "-60px" }}
+      viewport={{ once: true, margin: "0px" }}
       variants={{
         hidden: {},
         show: {
@@ -88,13 +88,12 @@ export function StaggerItem({
   return (
     <motion.div
       variants={{
-        hidden: { opacity: 0, y: 28, scale: 0.97 },
+        hidden: { opacity: 0, y: 14 },
         show: {
           opacity: 1,
           y: 0,
-          scale: 1,
           transition: {
-            duration: 0.95,
+            duration: 0.42,
             ease: [0.22, 1, 0.36, 1],
           },
         },
