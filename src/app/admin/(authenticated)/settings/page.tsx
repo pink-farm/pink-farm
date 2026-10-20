@@ -99,32 +99,31 @@ async function compressHeroImage(file: File): Promise<string> {
       image.src = sourceUrl;
     });
 
-    const maxDim = 900;
-    const scale = Math.min(1, maxDim / Math.max(image.width, image.height));
     const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(image.width * scale));
-    canvas.height = Math.max(1, Math.round(image.height * scale));
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Your browser could not process this image.");
+    const scale = Math.min(1, 900 / Math.max(image.width, image.height));
+    let width = Math.max(1, Math.round(image.width * scale));
+    let height = Math.max(1, Math.round(image.height * scale));
+    let quality = 0.82;
 
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    for (let attempt = 0; attempt < 7; attempt += 1) {
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Your browser could not process this image.");
+      context.drawImage(image, 0, 0, width, height);
 
-    let compressed = canvas.toDataURL("image/webp", 0.85);
-    if (!compressed.startsWith("data:image/webp")) {
-      compressed = canvas.toDataURL("image/jpeg", 0.80);
-    }
-
-    if (compressed.length > 900_000) {
-      canvas.width = Math.max(1, Math.round(canvas.width * 0.75));
-      canvas.height = Math.max(1, Math.round(canvas.height * 0.75));
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      compressed = canvas.toDataURL("image/webp", 0.75);
+      let compressed = canvas.toDataURL("image/webp", quality);
       if (!compressed.startsWith("data:image/webp")) {
-        compressed = canvas.toDataURL("image/jpeg", 0.72);
+        compressed = canvas.toDataURL("image/jpeg", quality);
       }
+      if (compressed.length <= 700_000) return compressed;
+
+      width = Math.max(1, Math.round(width * 0.8));
+      height = Math.max(1, Math.round(height * 0.8));
+      quality = Math.max(0.45, quality - 0.06);
     }
 
-    return compressed;
+    throw new Error("This image is too large to save. Choose a smaller photo and try again.");
   } finally {
     URL.revokeObjectURL(sourceUrl);
   }
@@ -379,6 +378,7 @@ export default function StoreSettingsPage() {
   const [saveError, setSaveError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [heroImageError, setHeroImageError] = useState("");
+  const [heroImagesChanged, setHeroImagesChanged] = useState(false);
 
   // Coupons
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -465,7 +465,7 @@ export default function StoreSettingsPage() {
       }
     }
 
-    fetch("/api/admin/settings")
+    fetch("/api/admin/settings", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (data && data.storeName) {
@@ -636,6 +636,7 @@ export default function StoreSettingsPage() {
     setHeroImageError("");
     try {
       setImage(await compressHeroImage(file));
+      setHeroImagesChanged(true);
     } catch (error) {
       setHeroImageError(error instanceof Error ? error.message : "Could not process this image.");
     }
@@ -722,13 +723,15 @@ export default function StoreSettingsPage() {
     try {
       const res = await fetch("/api/admin/settings", {
         method: "POST",
+        cache: "no-store",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const result = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(result.error || "Could not save settings.");
-      useSettingsStore.getState().setSettings(payload);
+      useSettingsStore.getState().setSettings(result.settings || payload);
+      setHeroImagesChanged(false);
       setSaveSuccess(true);
       setStatusMessage("Store settings saved live across your website!");
     } catch (error) {
@@ -777,21 +780,21 @@ export default function StoreSettingsPage() {
   const heroImageFields = [
     {
       key: "main",
-      label: "Center bubble · Makhana",
+      label: "Center",
       image: heroMainImage,
       setImage: setHeroMainImage,
       defaultImage: DEFAULT_SETTINGS.heroMainImage,
     },
     {
       key: "ghee",
-      label: "Top right bubble · Ghee",
+      label: "Top right",
       image: heroGheeImage,
       setImage: setHeroGheeImage,
       defaultImage: DEFAULT_SETTINGS.heroGheeImage,
     },
     {
       key: "almonds",
-      label: "Bottom left bubble · Almonds",
+      label: "Bottom left",
       image: heroAlmondsImage,
       setImage: setHeroAlmondsImage,
       defaultImage: DEFAULT_SETTINGS.heroAlmondsImage,
@@ -1335,7 +1338,7 @@ export default function StoreSettingsPage() {
                     className="flex flex-col items-center text-center gap-3 rounded-2xl border border-stone-200/80 p-4 bg-stone-50/50 hover:bg-stone-50 transition-colors"
                   >
                     <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-brand-pink-accent/40 bg-white shadow-sm">
-                      <Image src={field.image} alt={`${field.label} preview`} width={80} height={80} unoptimized className="h-full w-full object-cover" />
+                      <Image key={`${field.key}-${field.image.slice(0, 80)}`} src={field.image} alt={`${field.label} hero bubble preview`} width={80} height={80} unoptimized className="h-full w-full object-cover" />
                     </div>
                     <div className="space-y-1 w-full">
                       <p className="text-xs font-bold text-stone-800 truncate">{field.label}</p>
@@ -1352,7 +1355,11 @@ export default function StoreSettingsPage() {
                         {field.image !== field.defaultImage && (
                           <button
                             type="button"
-                            onClick={() => field.setImage(field.defaultImage)}
+                            onClick={() => {
+                              field.setImage(field.defaultImage);
+                              setHeroImagesChanged(true);
+                              setHeroImageError("");
+                            }}
                             className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-stone-500 hover:bg-stone-200/60 transition-colors cursor-pointer"
                           >
                             <RotateCcw size={11} /> Reset to Default
@@ -1364,6 +1371,11 @@ export default function StoreSettingsPage() {
                 ))}
               </div>
 
+              {heroImagesChanged && (
+                <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs font-medium leading-5 text-amber-900">
+                  Your bubble preview has changed. Click <strong>Save Changes</strong> to publish it on the homepage.
+                </p>
+              )}
               {heroImageError && <p role="alert" className="text-xs font-medium text-rose-700">{heroImageError}</p>}
             </div>
           </div>

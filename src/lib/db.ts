@@ -68,7 +68,7 @@ function withMongoTimeouts(connectionString: string): string {
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-export async function queryDatabase<T>(operation: () => Promise<T>): Promise<T> {
+export async function queryDatabase<T>(operation: () => Promise<T>, timeoutMs = DB_QUERY_TIMEOUT_MS): Promise<T> {
   if (performance.now() < databaseUnavailableUntil) {
     throw new Error("Database is temporarily unavailable");
   }
@@ -80,7 +80,7 @@ export async function queryDatabase<T>(operation: () => Promise<T>): Promise<T> 
       new Promise<never>((_, reject) => {
         timeout = setTimeout(
           () => reject(new Error("Database query timed out")),
-          DB_QUERY_TIMEOUT_MS,
+          timeoutMs,
         );
       }),
     ]);

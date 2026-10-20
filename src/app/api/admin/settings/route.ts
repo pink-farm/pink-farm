@@ -84,14 +84,19 @@ export async function GET() {
       prisma.storeSettings.findUnique({
         where: { id: "default" },
       }),
+      8_000,
     );
 
     if (settings) {
-      return NextResponse.json(settings);
+      return NextResponse.json(settings, { headers: { "Cache-Control": "no-store" } });
     }
-    return NextResponse.json(DEFAULT_SETTINGS);
-  } catch {
-    return NextResponse.json(DEFAULT_SETTINGS);
+    return NextResponse.json(DEFAULT_SETTINGS, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    logServerError("security.admin.settings.load_failed", error);
+    return NextResponse.json({ error: "Store settings are temporarily unavailable." }, {
+      status: 503,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 }
 
@@ -99,7 +104,7 @@ export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const parsed = await readBoundedJson(request, 5_000_000);
+    const parsed = await readBoundedJson(request, 8_000_000);
     if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
     if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
       return NextResponse.json({ error: "Settings must be a JSON object." }, { status: 400 });
@@ -261,7 +266,7 @@ export async function POST(request: Request) {
       });
     } catch (error) {
       logServerError("security.admin.settings.persist_failed", error);
-      saved = { id: "default", ...dataToSave, updatedAt: new Date().toISOString() };
+      return NextResponse.json({ error: "Settings could not be saved to the database. Please try again." }, { status: 503 });
     }
 
     try {

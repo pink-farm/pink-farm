@@ -422,6 +422,7 @@ export async function getStoreSettings() {
       prisma.storeSettings.findUnique({
         where: { id: "default" },
       }),
+      8_000,
     );
     if (settings) return settings;
   } catch {

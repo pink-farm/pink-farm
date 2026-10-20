@@ -132,7 +132,7 @@ export const useSettingsStore = create<SettingsStore>()(
 
       fetchSettings: async () => {
         try {
-          const res = await fetch("/api/admin/settings");
+          const res = await fetch("/api/admin/settings", { cache: "no-store" });
           if (res.ok) {
             const data = await res.json();
             if (data && data.storeName) {
