@@ -732,7 +732,7 @@ export default function StoreSettingsPage() {
         access: "public",
         handleUploadUrl: "/api/admin/settings/hero-video/upload",
         multipart: true,
-        onUploadProgress: ({ percentage }) => {
+        onUploadProgress: ({ percentage }: { percentage: number }) => {
           const progress = Math.round(percentage);
           setHeroVideoProgress(progress);
           setHeroVideoStatus(`Uploading video… ${progress}%`);

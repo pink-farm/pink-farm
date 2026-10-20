@@ -160,17 +160,36 @@ export function CheckoutClient() {
   const pinCodeValue = useWatch({ control, name: "pinCode" });
   const mobileValue = useWatch({ control, name: "mobile" });
 
-  // Load the saved delivery address on mount.
+  // Load the saved delivery address on mount (strictly for logged-in accounts).
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- restore the user's saved local address into the form after hydration */
-    // Auto-fill from logged-in customer's saved address
     try {
       // Purge any legacy cached guest address for complete guest privacy
       localStorage.removeItem("pinkfarm_guest_address");
 
+      // STRICT GUEST PRIVACY: If user is not logged in (guest), NEVER load or autofill any address.
+      if (!isLoggedIn) {
+        setHasLoadedSavedAddress(false);
+        reset({
+          fullName: "",
+          mobile: "",
+          addressLine1: "",
+          addressLine2: "",
+          city: "",
+          state: "",
+          pinCode: "",
+        });
+        return;
+      }
+
+      // Auto-fill strictly from logged-in customer's saved address
       const custStoreStr = localStorage.getItem("pinkfarm_customer_store_v2");
       if (custStoreStr) {
-        const parsedStore = JSON.parse(custStoreStr) as { state?: { addresses?: CustomerAddress[]; profile?: { phone?: string; name?: string } } };
+        const parsedStore = JSON.parse(custStoreStr) as { state?: { isLoggedIn?: boolean; addresses?: CustomerAddress[]; profile?: { phone?: string; name?: string } } };
+        if (!parsedStore.state?.isLoggedIn) {
+          setHasLoadedSavedAddress(false);
+          return;
+        }
         const addresses = parsedStore.state?.addresses || [];
         const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
         if (defaultAddr && defaultAddr.fullName && defaultAddr.addressLine1) {
@@ -191,7 +210,7 @@ export function CheckoutClient() {
       // Ignore localStorage errors
     }
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [reset]);
+  }, [reset, isLoggedIn]);
 
   // Real-time Postal PIN Code lookup for auto-filling City & State
   useEffect(() => {
@@ -406,6 +425,23 @@ export function CheckoutClient() {
             }
             setIsSuccess(true);
             clearCart();
+            if (!isLoggedIn) {
+              reset({
+                fullName: "",
+                mobile: "",
+                addressLine1: "",
+                addressLine2: "",
+                city: "",
+                state: "",
+                pinCode: "",
+              });
+              setHasLoadedSavedAddress(false);
+              try {
+                localStorage.removeItem("pinkfarm_guest_address");
+              } catch {
+                // Ignore
+              }
+            }
             if (typeof window !== "undefined" && window.pinkfarmNavigate) {
               window.pinkfarmNavigate(`/order/${responseData.orderNumber}`);
             } else {
@@ -670,7 +706,7 @@ export function CheckoutClient() {
             </div>
           )}
 
-          <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5" autoComplete="on">
+          <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5" autoComplete={isLoggedIn ? "on" : "off"}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1.5">
                 <label htmlFor="fullName" className="text-xs font-bold text-brand-charcoal uppercase tracking-wider">
@@ -681,7 +717,7 @@ export function CheckoutClient() {
                   {...register("fullName")} 
                   type="text"
                   name="fullName"
-                  autoComplete="name"
+                  autoComplete={isLoggedIn ? "name" : "off"}
                   placeholder="e.g. Priya Sharma"
                   className="w-full border border-brand-green-light/25 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all" 
                 />
@@ -701,7 +737,7 @@ export function CheckoutClient() {
                     {...register("mobile")} 
                     type="tel" 
                     name="mobile"
-                    autoComplete="tel"
+                    autoComplete={isLoggedIn ? "tel" : "off"}
                     maxLength={10}
                     placeholder="9876543210" 
                     className="w-full pl-12 pr-3 py-3 border border-brand-green-light/25 rounded-xl text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all" 
@@ -720,7 +756,7 @@ export function CheckoutClient() {
                 {...register("addressLine1")} 
                 type="text"
                 name="addressLine1"
-                autoComplete="street-address address-line1"
+                autoComplete={isLoggedIn ? "street-address address-line1" : "off"}
                 placeholder="e.g. Flat 402, Green Orchid Apartments, 12th Main Road"
                 className="w-full border border-brand-green-light/25 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all" 
               />
@@ -736,7 +772,7 @@ export function CheckoutClient() {
                 {...register("addressLine2")} 
                 type="text"
                 name="addressLine2"
-                autoComplete="address-line2"
+                autoComplete={isLoggedIn ? "address-line2" : "off"}
                 placeholder="e.g. Near City Hospital or Sector 14"
                 className="w-full border border-brand-green-light/25 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all" 
               />
@@ -760,7 +796,7 @@ export function CheckoutClient() {
                     {...register("pinCode", { onChange: () => setPinLookupSuccess(null) })}
                     type="text"
                     name="pinCode"
-                    autoComplete="postal-code"
+                    autoComplete={isLoggedIn ? "postal-code" : "off"}
                     inputMode="numeric"
                     maxLength={6} 
                     placeholder="6 digits"
@@ -787,7 +823,7 @@ export function CheckoutClient() {
                   {...register("city")} 
                   type="text"
                   name="city"
-                  autoComplete="address-level2"
+                  autoComplete={isLoggedIn ? "address-level2" : "off"}
                   placeholder="e.g. New Delhi"
                   className="w-full border border-brand-green-light/25 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all" 
                 />
@@ -803,7 +839,7 @@ export function CheckoutClient() {
                   {...register("state")} 
                   type="text"
                   name="state"
-                  autoComplete="address-level1"
+                  autoComplete={isLoggedIn ? "address-level1" : "off"}
                   placeholder="e.g. Delhi"
                   className="w-full border border-brand-green-light/25 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all" 
                 />

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const response = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname) => {
+      onBeforeGenerateToken: async (pathname: string) => {
         if (!isSameOriginMutation(request)) throw new Error("Cross-origin request rejected.");
         if (!(await requireAdminSession())) throw new Error("Unauthorized");
         if (!/\.(mp4|webm)$/i.test(pathname)) throw new Error("Only MP4 and WebM videos are accepted.");
