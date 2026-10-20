@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -30,7 +30,9 @@ import {
   HelpCircle,
   X,
   XCircle,
-  Star
+  Star,
+  CalendarDays,
+  SlidersHorizontal
 } from "lucide-react";
 import { useCustomerStore, CustomerAddress } from "@/store/customerStore";
 import { useCartStore } from "@/store/cartStore";
@@ -76,6 +78,37 @@ type AccountOrder = {
     product: { id: string; name: string; slug: string; imageUrl: string } | null;
   }[];
 };
+
+type OrderDateMode = "day" | "week" | "month" | "range";
+
+function toLocalDateInput(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getOrderDateRange(mode: OrderDateMode, dateValue: string, fromValue: string, throughValue: string) {
+  if (mode === "range") {
+    const start = new Date(`${fromValue}T00:00:00`);
+    const end = new Date(`${throughValue}T23:59:59.999`);
+    if (!fromValue || !throughValue || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return null;
+    return { start, end };
+  }
+  if (!dateValue) return null;
+  const selected = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(selected.getTime())) return null;
+  const start = new Date(selected);
+  const end = new Date(selected);
+  if (mode === "week") {
+    const daysFromMonday = (selected.getDay() + 6) % 7;
+    start.setDate(selected.getDate() - daysFromMonday);
+    end.setDate(start.getDate() + 6);
+  } else if (mode === "month") {
+    start.setDate(1);
+    end.setMonth(selected.getMonth() + 1, 0);
+  }
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
 
 export function CustomerAccountClient() {
   const router = useRouter();
@@ -130,10 +163,45 @@ export function CustomerAccountClient() {
   // Orders State
   const [orders, setOrders] = useState<AccountOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [orderFilterOpen, setOrderFilterOpen] = useState(false);
+  const [orderDateMode, setOrderDateMode] = useState<OrderDateMode>("day");
+  const [orderDateValue, setOrderDateValue] = useState(() => toLocalDateInput(new Date()));
+  const [orderFromDate, setOrderFromDate] = useState(() => toLocalDateInput(new Date()));
+  const [orderThroughDate, setOrderThroughDate] = useState(() => toLocalDateInput(new Date()));
+  const [appliedOrderDateRange, setAppliedOrderDateRange] = useState<ReturnType<typeof getOrderDateRange>>(null);
+  const [appliedOrderDateLabel, setAppliedOrderDateLabel] = useState("");
   const [reorderSuccessMsg, setReorderSuccessMsg] = useState<string | null>(null);
   const [cancellingOrder, setCancellingOrder] = useState<AccountOrder | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelModalError, setCancelModalError] = useState<string | null>(null);
+
+  const visibleCustomerOrders = useMemo(() => {
+    if (!appliedOrderDateRange) return orders;
+    return orders.filter((order) => {
+      const createdAt = new Date(order.createdAt);
+      return createdAt >= appliedOrderDateRange.start && createdAt <= appliedOrderDateRange.end;
+    });
+  }, [orders, appliedOrderDateRange]);
+
+  const applyOrderDateFilter = () => {
+    const dateRange = getOrderDateRange(orderDateMode, orderDateValue, orderFromDate, orderThroughDate);
+    if (!dateRange) return;
+    setAppliedOrderDateRange(dateRange);
+    const selectedDate = new Date(`${orderDateValue}T00:00:00`);
+    const formatDate = (value: Date) => value.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    setAppliedOrderDateLabel(orderDateMode === "range"
+      ? `${formatDate(dateRange.start)} – ${formatDate(dateRange.end)}`
+      : orderDateMode === "day"
+        ? formatDate(selectedDate)
+        : `${formatDate(dateRange.start)} – ${formatDate(dateRange.end)}`);
+    setOrderFilterOpen(false);
+  };
+
+  const clearOrderDateFilter = () => {
+    setAppliedOrderDateRange(null);
+    setAppliedOrderDateLabel("");
+    setOrderFilterOpen(false);
+  };
 
   // Synchronize initial state from customer store
   // This is an intentional form-state sync when the authenticated profile changes.
@@ -998,8 +1066,86 @@ export function CustomerAccountClient() {
                     </Link>
                   </div>
                 ) : (
+                  <>
+                  <div className="flex flex-col gap-3 rounded-2xl border border-brand-green/10 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                    <div>
+                      <p className="text-sm font-semibold text-brand-charcoal">Order list</p>
+                      <p className="mt-0.5 text-xs text-brand-charcoal/60">
+                        {appliedOrderDateRange
+                          ? `Showing ${visibleCustomerOrders.length} of ${orders.length} orders · ${appliedOrderDateLabel}`
+                          : `${orders.length} orders across all dates`}
+                      </p>
+                    </div>
+                    <div className="relative flex items-center gap-2 self-start sm:self-auto">
+                      {appliedOrderDateRange && (
+                        <button type="button" onClick={clearOrderDateFilter} className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-brand-charcoal/70 transition hover:bg-brand-cream/60">
+                          <X size={15} /> Clear
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        aria-expanded={orderFilterOpen}
+                        aria-controls="customer-orders-date-filter"
+                        onClick={() => setOrderFilterOpen((open) => !open)}
+                        className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold shadow-sm transition focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100 ${appliedOrderDateRange ? "border-emerald-300 bg-emerald-50 text-brand-green" : "border-brand-green/15 bg-white text-brand-charcoal hover:border-brand-green/30 hover:bg-brand-cream/30"}`}
+                      >
+                        <SlidersHorizontal size={16} /> Filter
+                        {appliedOrderDateRange && <span className="h-2 w-2 rounded-full bg-emerald-500" aria-label="Filter active" />}
+                      </button>
+                      {orderFilterOpen && (
+                        <div id="customer-orders-date-filter" className="absolute right-0 top-full z-30 mt-2 w-[min(23rem,calc(100vw-3.5rem))] rounded-2xl border border-brand-green/15 bg-white p-4 shadow-xl sm:p-5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h3 className="text-sm font-bold text-brand-charcoal">Filter my orders</h3>
+                              <p className="mt-1 text-xs text-brand-charcoal/60">Choose a date or time period.</p>
+                            </div>
+                            <button type="button" aria-label="Close date filter" onClick={() => setOrderFilterOpen(false)} className="rounded-lg p-1.5 text-brand-charcoal/50 hover:bg-brand-cream/60 hover:text-brand-charcoal"><X size={16} /></button>
+                          </div>
+                          <div className="mt-4 grid grid-cols-4 gap-1 rounded-xl bg-brand-cream/60 p-1" role="group" aria-label="Date filter period">
+                            {(["day", "week", "month", "range"] as const).map((option) => (
+                              <button key={option} type="button" aria-pressed={orderDateMode === option} onClick={() => setOrderDateMode(option)} className={`rounded-lg px-1.5 py-2 text-xs font-bold transition ${orderDateMode === option ? "bg-white text-brand-green shadow-sm" : "text-brand-charcoal/60 hover:text-brand-charcoal"}`}>
+                                {option === "day" ? "Date" : option === "range" ? "Range" : option[0].toUpperCase() + option.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                          {orderDateMode === "range" ? (
+                            <div className="mt-4 grid grid-cols-2 gap-3">
+                              <label className="text-xs font-semibold text-brand-charcoal/80">From
+                                <input type="date" value={orderFromDate} max={orderThroughDate || undefined} onChange={(event) => setOrderFromDate(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-brand-green/15 bg-white px-2.5 py-2.5 text-sm font-normal text-brand-charcoal outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
+                              </label>
+                              <label className="text-xs font-semibold text-brand-charcoal/80">Through
+                                <input type="date" value={orderThroughDate} min={orderFromDate || undefined} onChange={(event) => setOrderThroughDate(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-brand-green/15 bg-white px-2.5 py-2.5 text-sm font-normal text-brand-charcoal outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
+                              </label>
+                            </div>
+                          ) : (
+                            <label className="mt-4 block text-xs font-semibold text-brand-charcoal/80">
+                              {orderDateMode === "day" ? "Select date" : orderDateMode === "week" ? "Select any date in the week" : "Select any date in the month"}
+                              <span className="relative mt-1.5 block">
+                                <CalendarDays size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-charcoal/40" />
+                                <input type="date" value={orderDateValue} onChange={(event) => setOrderDateValue(event.target.value)} className="w-full rounded-xl border border-brand-green/15 bg-white py-2.5 pl-10 pr-3 text-sm font-normal text-brand-charcoal outline-none transition focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
+                              </span>
+                            </label>
+                          )}
+                          <p className="mt-3 text-xs text-brand-charcoal/60">
+                            {orderDateMode === "range" ? "Both dates are included." : orderDateMode === "week" ? "The full Monday–Sunday week is included." : orderDateMode === "month" ? "All days in the selected month are included." : "Orders placed on the selected date are shown."}
+                          </p>
+                          <div className="mt-4 flex justify-end gap-2 border-t border-brand-green/10 pt-4">
+                            <button type="button" onClick={clearOrderDateFilter} className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-charcoal/70 hover:bg-brand-cream/60">Clear</button>
+                            <button type="button" onClick={applyOrderDateFilter} disabled={orderDateMode === "range" ? !orderFromDate || !orderThroughDate || orderFromDate > orderThroughDate : !orderDateValue} className="inline-flex items-center gap-1.5 rounded-xl bg-brand-green px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-green-light disabled:opacity-50"><SlidersHorizontal size={14} /> Apply filter</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {visibleCustomerOrders.length === 0 ? (
+                    <div className="rounded-2xl border border-brand-green/10 bg-brand-cream/20 py-10 text-center text-sm text-brand-charcoal/60">
+                      <Package className="mx-auto mb-2 h-9 w-9 text-brand-green/30" />
+                      No orders found in this date range. Try another date or clear the filter.
+                    </div>
+                  ) : (
                   <div className="space-y-6">
-                    {orders.map((order) => {
+                    {visibleCustomerOrders.map((order) => {
                       const s = (order.fulfillmentStatus || "PENDING").toUpperCase();
                       const isCancelled = s === "CANCELLED";
                       const isShippedOrDelivered = s === "SHIPPED" || s === "OUT_FOR_DELIVERY" || s === "DELIVERED";
@@ -1251,6 +1397,8 @@ export function CustomerAccountClient() {
                       );
                     })}
                   </div>
+                  )}
+                  </>
                 )}
               </div>
             )}
