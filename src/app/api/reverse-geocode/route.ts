@@ -14,6 +14,49 @@ export async function GET(request: Request) {
   const { latitude, longitude } = coordinates;
 
   try {
+    const locationIqKey = process.env.LOCATIONIQ_API_KEY;
+    if (locationIqKey) {
+      const locationIqUrl = new URL("https://us1.locationiq.com/v1/reverse");
+      locationIqUrl.search = new URLSearchParams({
+        key: locationIqKey,
+        lat: String(latitude),
+        lon: String(longitude),
+        format: "json",
+        addressdetails: "1",
+        zoom: "18",
+      }).toString();
+
+      const locationIqRes = await fetch(locationIqUrl, {
+        headers: { "Accept-Language": "en" },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (locationIqRes.ok) {
+        const data = await locationIqRes.json();
+        if (data?.address) {
+          const addr = data.address;
+          const road = addr.road || addr.pedestrian || addr.street || addr.residential || addr.footway || "";
+          const houseNumber = addr.house_number || "";
+          const building = addr.building && addr.building !== "yes" ? addr.building : (addr.amenity || addr.shop || "");
+          const suburb = addr.suburb || addr.neighbourhood || addr.city_district || addr.quarter || addr.hamlet || "";
+          const city = addr.city || addr.town || addr.village || addr.municipality || addr.state_district || addr.county || "";
+          const state = addr.state || "";
+          const pinCode = addr.postcode ? addr.postcode.replace(/\s+/g, "").slice(0, 6) : "";
+          const streetAddress = [houseNumber, building, road].filter(Boolean).join(", ");
+
+          return NextResponse.json({
+            success: true,
+            pinCode,
+            city,
+            state,
+            addressLine1: streetAddress,
+            addressLine2: [suburb, addr.village, addr.postcode_area].filter(Boolean).join(", "),
+            hasStreetAddress: Boolean(streetAddress),
+            displayName: data.display_name,
+          });
+        }
+      }
+    }
+
     const nominatimUrl = new URL("https://nominatim.openstreetmap.org/reverse");
     nominatimUrl.search = new URLSearchParams({
       lat: String(latitude),
