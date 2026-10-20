@@ -68,6 +68,28 @@ function isMissingSettingsRecord(error: unknown) {
   return error && typeof error === "object" && "code" in error && error.code === "P2025";
 }
 
+function getSafeDatabaseFailure(error: unknown) {
+  const meta = error && typeof error === "object" && "meta" in error && error.meta && typeof error.meta === "object"
+    ? error.meta as Record<string, unknown>
+    : {};
+  const message = typeof meta.message === "string" ? meta.message.toLowerCase() : "";
+  let reason = "DATABASE_COMMAND_REJECTED";
+  if (/not authorized|unauthorized|authentication failed/.test(message)) reason = "DATABASE_PERMISSION";
+  else if (/document too large|bsonobj size|object to insert too large/.test(message)) reason = "DOCUMENT_SIZE_LIMIT";
+  else if (/transaction|replica set|mongos/.test(message)) reason = "TRANSACTION_CONFIGURATION";
+  else if (/duplicate key/.test(message)) reason = "DUPLICATE_KEY";
+  else if (/immutable field|_id.*(modify|update)|cannot update.*_id/.test(message)) reason = "IMMUTABLE_ID";
+
+  const rawCode = meta.code;
+  const databaseCode = typeof rawCode === "number" && Number.isInteger(rawCode)
+    ? rawCode
+    : typeof rawCode === "string" && /^\d{1,5}$/.test(rawCode)
+      ? Number(rawCode)
+      : undefined;
+
+  return { reason, ...(databaseCode === undefined ? {} : { databaseCode }) };
+}
+
 function isSafeHeroImage(value: string) {
   if (typeof value !== "string") return false;
   const trimmed = value.trim();
@@ -148,12 +170,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, settings });
       } catch (error) {
         logServerError("security.admin.settings.hero_image_persist_failed", error);
-        const code = error && typeof error === "object" && "code" in error && typeof error.code === "string"
+        const prismaCode = error && typeof error === "object" && "code" in error && typeof error.code === "string"
           ? error.code
           : undefined;
         return NextResponse.json({
           error: "Bubble image could not be saved to the database.",
-          ...(code ? { code } : {}),
+          ...getSafeDatabaseFailure(error),
+          ...(prismaCode ? { code: prismaCode } : {}),
         }, { status: 503 });
       }
     }
@@ -314,12 +337,13 @@ export async function POST(request: Request) {
       }
     } catch (error) {
       logServerError("security.admin.settings.persist_failed", error);
-      const code = error && typeof error === "object" && "code" in error && typeof error.code === "string"
+      const prismaCode = error && typeof error === "object" && "code" in error && typeof error.code === "string"
         ? error.code
         : undefined;
       return NextResponse.json({
         error: "Settings could not be saved to the database. Please try again.",
-        ...(code ? { code } : {}),
+        ...getSafeDatabaseFailure(error),
+        ...(prismaCode ? { code: prismaCode } : {}),
       }, { status: 503 });
     }
 
