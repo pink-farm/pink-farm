@@ -86,16 +86,12 @@ export function MakhanaNavigationLoader() {
 
     setProgress(100);
 
-    // Snappy, silky transition: show lotus bloom without locking the screen or hanging
-    const elapsed = startTimestampRef.current > 0 ? Date.now() - startTimestampRef.current : 0;
-    const minDisplayTime = 240;
-    const remainingTime = Math.max(60, minDisplayTime - elapsed);
-
+    // Give a satisfying, graceful 240ms for the bloom to finish, then dissolve smoothly
     dismissTimerRef.current = setTimeout(() => {
       setIsNavigating(false);
       isNavigatingRef.current = false;
       setProgress(0);
-    }, remainingTime);
+    }, 240);
   }, []);
 
   // Listen for the new route to be mounted into the DOM via template.tsx
@@ -112,21 +108,24 @@ export function MakhanaNavigationLoader() {
     };
   }, [completeNavigation]);
 
-  // When pathname or searchParams change, update progress
+  // When pathname or searchParams change, ensure progress reaches final stretch
   useEffect(() => {
     if (currentPathnameRef.current !== pathname) {
       currentPathnameRef.current = pathname;
-      setProgress((prev) => Math.max(prev, 85));
+      if (!isNavigatingRef.current) {
+        startNavigation(false);
+      }
+      setProgress((prev) => Math.max(prev, 90));
 
-      // Safety fallback: if pinkfarm:route:mounted doesn't fire within 1.4s of pathname change,
+      // Safety fallback: if pinkfarm:route:mounted doesn't fire within 800ms of pathname change,
       // gracefully complete so user is never stuck.
       const fallbackTimer = setTimeout(() => {
         completeNavigation();
-      }, 1400);
+      }, 800);
 
       return () => clearTimeout(fallbackTimer);
     }
-  }, [pathname, searchParams, completeNavigation]);
+  }, [pathname, searchParams, startNavigation, completeNavigation]);
 
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
@@ -140,10 +139,9 @@ export function MakhanaNavigationLoader() {
     };
   }, [router, startNavigation]);
 
-  // Trigger loader smoothly on navigation link clicks without breaking Next.js Link lifecycle
+  // Capture link clicks in CAPTURE phase so Next.js Link's preventDefault does not block loader
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
-      if (e.defaultPrevented) return;
       if (e.button !== 0) return; // Only primary left clicks
 
       const target = (e.target as HTMLElement)?.closest("a");
@@ -189,7 +187,7 @@ export function MakhanaNavigationLoader() {
         return;
       }
 
-      // Smoothly activate loader; let Next.js Link execute natively without preventDefault
+      // Instantly bring up lotus loader to cover the 2-3s server route fetching
       startNavigation(true);
     };
 
@@ -205,13 +203,14 @@ export function MakhanaNavigationLoader() {
       startNavigation(true);
     };
 
-    document.addEventListener("click", handleDocumentClick, { passive: true });
+    // Use CAPTURE phase so we intercept before any child prevents default
+    document.addEventListener("click", handleDocumentClick, true);
     window.addEventListener("popstate", handlePopState);
     window.addEventListener("pinkfarm:buffering:start", handleCustomStart);
     window.addEventListener("pinkfarm:buffering:stop", handleCustomStop);
 
     return () => {
-      document.removeEventListener("click", handleDocumentClick);
+      document.removeEventListener("click", handleDocumentClick, true);
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);
