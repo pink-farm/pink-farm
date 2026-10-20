@@ -188,10 +188,13 @@ export async function POST(request: Request) {
     let discount = 0;
     const rawCoupon = couponCode || rawDetails.couponCode;
     const customerSession = await getCustomerSession();
+    const normalizedCoupon = rawCoupon ? String(rawCoupon).trim().toUpperCase() : "";
+    if (normalizedCoupon && !customerSession) {
+      return NextResponse.json({ error: "Please sign in to use coupons.", code: "CUSTOMER_LOGIN_REQUIRED" }, { status: 401 });
+    }
     const customerId = (customerSession?.userId && /^[0-9a-fA-F]{24}$/.test(String(customerSession.userId)))
       ? String(customerSession.userId)
       : undefined;
-    const normalizedCoupon = rawCoupon ? String(rawCoupon).trim().toUpperCase() : "";
     let coupon: Awaited<ReturnType<typeof prisma.coupon.findUnique>> = null;
     if (normalizedCoupon) {
       coupon = await prisma.coupon.findUnique({ where: { code: normalizedCoupon } });
