@@ -64,6 +64,10 @@ const DEFAULT_SETTINGS = {
 
 const MAX_HERO_IMAGE_LENGTH = 2_500_000;
 
+function isMissingSettingsRecord(error: unknown) {
+  return error && typeof error === "object" && "code" in error && error.code === "P2025";
+}
+
 function isSafeHeroImage(value: string) {
   if (typeof value !== "string") return false;
   const trimmed = value.trim();
@@ -125,12 +129,20 @@ export async function POST(request: Request) {
       }
 
       try {
-        const settings = await prisma.storeSettings.upsert({
-          where: { id: "default" },
-          update: { [field]: image },
-          create: { id: "default", [field]: image },
-          select: { id: true, [field]: true },
-        });
+        let settings;
+        try {
+          settings = await prisma.storeSettings.update({
+            where: { id: "default" },
+            data: { [field]: image },
+            select: { id: true, [field]: true },
+          });
+        } catch (error) {
+          if (!isMissingSettingsRecord(error)) throw error;
+          settings = await prisma.storeSettings.create({
+            data: { id: "default", [field]: image },
+            select: { id: true, [field]: true },
+          });
+        }
         revalidatePath("/");
         revalidatePath("/admin/settings");
         return NextResponse.json({ success: true, settings });
@@ -294,14 +306,21 @@ export async function POST(request: Request) {
 
     let saved = null;
     try {
-      saved = await prisma.storeSettings.upsert({
-        where: { id: "default" },
-        update: dataToSave,
-        create: dataToSave,
-      });
+      try {
+        saved = await prisma.storeSettings.update({ where: { id: "default" }, data: dataToSave });
+      } catch (error) {
+        if (!isMissingSettingsRecord(error)) throw error;
+        saved = await prisma.storeSettings.create({ data: { id: "default", ...dataToSave } });
+      }
     } catch (error) {
       logServerError("security.admin.settings.persist_failed", error);
-      return NextResponse.json({ error: "Settings could not be saved to the database. Please try again." }, { status: 503 });
+      const code = error && typeof error === "object" && "code" in error && typeof error.code === "string"
+        ? error.code
+        : undefined;
+      return NextResponse.json({
+        error: "Settings could not be saved to the database. Please try again.",
+        ...(code ? { code } : {}),
+      }, { status: 503 });
     }
 
     try {

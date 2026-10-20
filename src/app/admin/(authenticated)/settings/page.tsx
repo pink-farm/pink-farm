@@ -767,7 +767,7 @@ export default function StoreSettingsPage() {
       });
 
       const result = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(result.error || "Could not save settings.");
+      if (!res.ok) throw new Error(`${result.error || "Could not save settings."}${result.code ? ` (${result.code})` : ""}`);
       useSettingsStore.getState().setSettings(result.settings || payload);
       setSaveSuccess(true);
       setStatusMessage("Store settings saved live across your website!");
