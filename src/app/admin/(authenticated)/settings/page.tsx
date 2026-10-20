@@ -139,6 +139,8 @@ export default function StoreSettingsPage() {
   // Store & Announcements
   const [storeName, setStoreName] = useState(DEFAULT_SETTINGS.storeName);
   const [announcementText, setAnnouncementText] = useState(DEFAULT_SETTINGS.announcementText);
+  const [bottomAnnouncementText, setBottomAnnouncementText] = useState(DEFAULT_SETTINGS.bottomAnnouncementText);
+  const [bottomAnnouncementEnabled, setBottomAnnouncementEnabled] = useState(DEFAULT_SETTINGS.bottomAnnouncementEnabled);
 
   // Floating bubble images
   const [heroMainImage, setHeroMainImage] = useState(DEFAULT_SETTINGS.heroMainImage);
@@ -401,6 +403,12 @@ export default function StoreSettingsPage() {
     if (storeSettings.storeName) {
       setStoreName(storeSettings.storeName);
       setAnnouncementText(storeSettings.announcementText);
+      if (typeof storeSettings.bottomAnnouncementText === "string") {
+        setBottomAnnouncementText(storeSettings.bottomAnnouncementText);
+      }
+      if (typeof storeSettings.bottomAnnouncementEnabled === "boolean") {
+        setBottomAnnouncementEnabled(storeSettings.bottomAnnouncementEnabled);
+      }
       setHeroMainImage(storeSettings.heroMainImage);
       setHeroGheeImage(storeSettings.heroGheeImage);
       setHeroAlmondsImage(storeSettings.heroAlmondsImage);
@@ -471,6 +479,10 @@ export default function StoreSettingsPage() {
         if (data && data.storeName) {
           setStoreName(data.storeName);
           if (data.announcementText !== undefined) setAnnouncementText(data.announcementText);
+          if (data.bottomAnnouncementText !== undefined) setBottomAnnouncementText(data.bottomAnnouncementText);
+          if (typeof data.bottomAnnouncementEnabled === "boolean") {
+            setBottomAnnouncementEnabled(data.bottomAnnouncementEnabled);
+          }
           if (typeof data.heroMainImage === "string") setHeroMainImage(data.heroMainImage);
           if (typeof data.heroGheeImage === "string") setHeroGheeImage(data.heroGheeImage);
           if (typeof data.heroAlmondsImage === "string") setHeroAlmondsImage(data.heroAlmondsImage);
@@ -694,6 +706,8 @@ export default function StoreSettingsPage() {
     const payload = {
       storeName: storeName.trim() || DEFAULT_SETTINGS.storeName,
       announcementText: announcementText.trim(),
+      bottomAnnouncementText: bottomAnnouncementText.trim(),
+      bottomAnnouncementEnabled,
       heroMainImage,
       heroGheeImage,
       heroAlmondsImage,
@@ -2364,6 +2378,120 @@ export default function StoreSettingsPage() {
                   <div className="bg-gradient-to-r from-brand-green to-brand-green-light text-brand-ivory text-center py-2.5 px-4 rounded-lg text-xs font-medium truncate shadow-2xs">
                     ✨ {announcementText || "Welcome to Pink Farm — Goodness in Every Bite."}
                   </div>
+                </div>
+              </div>
+
+              {/* Bottom Announcement Banner (Fixed at Bottom) */}
+              <div className="bg-white rounded-2xl p-5 sm:p-7 border border-stone-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5 transition-all hover:border-stone-300 flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0">
+                        <Sliders size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">
+                          Bottom Banner (Fixed)
+                        </h3>
+                        <p className="text-xs text-stone-500">Fixed announcement bar at the bottom of the screen</p>
+                      </div>
+                    </div>
+
+                    {/* Enable / Remove Toggle Switch */}
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                        bottomAnnouncementEnabled
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-stone-100 text-stone-500"
+                      }`}>
+                        {bottomAnnouncementEnabled ? "Active" : "Removed"}
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer select-none" title={bottomAnnouncementEnabled ? "Click to remove banner" : "Click to enable banner"}>
+                        <input
+                          type="checkbox"
+                          checked={bottomAnnouncementEnabled}
+                          onChange={(e) => setBottomAnnouncementEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-stone-700">Bottom Announcement Text</label>
+                      <div className="flex items-center gap-2">
+                        {bottomAnnouncementEnabled && (
+                          <button
+                            type="button"
+                            onClick={() => setBottomAnnouncementEnabled(false)}
+                            className="inline-flex items-center gap-1 text-[11px] text-red-600 hover:text-red-700 font-semibold transition-colors cursor-pointer"
+                            title="Remove the bottom banner according to admin wish"
+                          >
+                            <Trash2 size={12} />
+                            Remove Banner
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBottomAnnouncementText(DEFAULT_SETTINGS.bottomAnnouncementText);
+                            setBottomAnnouncementEnabled(true);
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
+                          title="Reset to default text and enable"
+                        >
+                          <RotateCcw size={12} />
+                          Restore Default
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={bottomAnnouncementText}
+                      onChange={(e) => setBottomAnnouncementText(e.target.value)}
+                      placeholder="Welcome to Pink Farm — Goodness in Every Bite."
+                      disabled={!bottomAnnouncementEnabled}
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all ${
+                        bottomAnnouncementEnabled
+                          ? "border-stone-200 focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 text-stone-900 bg-white"
+                          : "border-stone-200 bg-stone-50 text-stone-400 cursor-not-allowed"
+                      }`}
+                    />
+                    <p className="text-[11px] text-stone-500">
+                      {bottomAnnouncementEnabled
+                        ? "This message stays fixed at the bottom of the user's screen across all pages."
+                        : "Banner is currently hidden/removed. Turn the toggle ON or click Restore to re-enable."}
+                    </p>
+                  </div>
+
+                  {/* Inline Live Preview */}
+                  <div className="bg-stone-50 rounded-xl p-3.5 border border-stone-200/70 space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5 text-stone-500">
+                        <Sparkles size={12} className="text-brand-pink-accent" />
+                        Live Bottom Banner Preview
+                      </span>
+                      <span className={bottomAnnouncementEnabled ? "text-emerald-700" : "text-stone-400"}>
+                        {bottomAnnouncementEnabled ? "● Visible on Storefront" : "○ Removed / Hidden"}
+                      </span>
+                    </div>
+                    {bottomAnnouncementEnabled ? (
+                      <div className="bg-gradient-to-r from-brand-green to-brand-green-light text-brand-ivory text-center py-2.5 px-4 rounded-lg text-xs font-medium truncate shadow-2xs">
+                        ✨ {bottomAnnouncementText || "Welcome to Pink Farm — Goodness in Every Bite."}
+                      </div>
+                    ) : (
+                      <div className="bg-stone-100/80 text-stone-400 border border-dashed border-stone-200 text-center py-2 px-3 rounded-lg text-xs italic">
+                        Banner is removed according to admin wish. Switch toggle ON to display.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-stone-400 pt-2 border-t border-stone-100 flex items-center justify-between">
+                  <span>Fixed to bottom of screen (print:hidden)</span>
+                  <span>Click Save Changes to publish live</span>
                 </div>
               </div>
 

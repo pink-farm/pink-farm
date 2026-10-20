@@ -10,6 +10,7 @@ import { Suspense } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingSocials } from "@/components/ui/FloatingSocials";
+import { BottomAnnouncementBar } from "@/components/layout/BottomAnnouncementBar";
 import { LuxuryScrollProgressBar } from "@/components/ui/MotionWrappers";
 import { SettingsSync } from "@/components/layout/SettingsSync";
 import { MakhanaNavigationLoader } from "@/components/ui/MakhanaNavigationLoader";
@@ -40,6 +41,9 @@ export default function RootLayout({
         </main>
         <Footer />
         <FloatingSocials />
+        <Suspense fallback={null}>
+          <BottomAnnouncementBar />
+        </Suspense>
       </body>
     </html>
   );

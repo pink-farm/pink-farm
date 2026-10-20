@@ -9,6 +9,8 @@ const DEFAULT_SETTINGS = {
   id: "default",
   storeName: "Pink Farm",
   announcementText: "Welcome to Pink Farm — Goodness in Every Bite.",
+  bottomAnnouncementText: "Welcome to Pink Farm — Goodness in Every Bite.",
+  bottomAnnouncementEnabled: true,
   heroMainImage: "/images/makhana_sig.jpg",
   heroGheeImage: "/images/ghee.jpg",
   heroAlmondsImage: "/images/almonds.jpg",
@@ -151,6 +153,12 @@ export async function POST(request: Request) {
     const dataToSave = {
       storeName: typeof body.storeName === "string" ? body.storeName : DEFAULT_SETTINGS.storeName,
       announcementText: typeof body.announcementText === "string" ? body.announcementText : DEFAULT_SETTINGS.announcementText,
+      bottomAnnouncementText:
+        typeof body.bottomAnnouncementText === "string" ? body.bottomAnnouncementText : DEFAULT_SETTINGS.bottomAnnouncementText,
+      bottomAnnouncementEnabled:
+        typeof body.bottomAnnouncementEnabled === "boolean"
+          ? body.bottomAnnouncementEnabled
+          : DEFAULT_SETTINGS.bottomAnnouncementEnabled,
       heroMainImage: typeof body.heroMainImage === "string" ? body.heroMainImage : DEFAULT_SETTINGS.heroMainImage,
       heroGheeImage: typeof body.heroGheeImage === "string" ? body.heroGheeImage : DEFAULT_SETTINGS.heroGheeImage,
       heroAlmondsImage: typeof body.heroAlmondsImage === "string" ? body.heroAlmondsImage : DEFAULT_SETTINGS.heroAlmondsImage,

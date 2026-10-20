@@ -12,6 +12,9 @@ export function Footer() {
   const supportEmail = useSettingsStore((state) => state.supportEmail);
   const businessAddress = useSettingsStore((state) => state.businessAddress);
   const fssaiNumber = useSettingsStore((state) => state.fssaiNumber);
+  const bottomAnnouncementEnabled = useSettingsStore((state) => state.bottomAnnouncementEnabled);
+  const bottomAnnouncementText = useSettingsStore((state) => state.bottomAnnouncementText);
+  const hasBottomBanner = Boolean(bottomAnnouncementEnabled && (bottomAnnouncementText ?? "").trim().length > 0);
 
   const cleanPhone = (supportPhone || "8437504040").replace(/[^0-9]/g, "");
 
@@ -21,7 +24,11 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-brand-green text-brand-ivory pt-16 pb-28 sm:pb-8 border-t border-brand-green-light print:hidden min-w-0">
+    <footer
+      className={`bg-brand-green text-brand-ivory pt-16 border-t border-brand-green-light print:hidden min-w-0 transition-all duration-300 ${
+        hasBottomBanner ? "pb-36 sm:pb-16" : "pb-28 sm:pb-8"
+      }`}
+    >
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-sm">
         <div>
           <div className="flex items-center gap-1 mb-6">

@@ -288,6 +288,8 @@ export const DEFAULT_SETTINGS = {
   id: "default",
   storeName: "Pink Farm",
   announcementText: "Welcome to Pink Farm — Goodness in Every Bite.",
+  bottomAnnouncementText: "Welcome to Pink Farm — Goodness in Every Bite.",
+  bottomAnnouncementEnabled: true,
   heroMainImage: "/images/makhana_sig.jpg",
   heroGheeImage: "/images/ghee.jpg",
   heroAlmondsImage: "/images/almonds.jpg",

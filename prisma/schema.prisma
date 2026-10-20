@@ -192,6 +192,8 @@ model StoreSettings {
   id                  String   @id @default("default") @map("_id")
   storeName           String   @default("Pink Farm")
   announcementText    String   @default("Welcome to Pink Farm — Goodness in Every Bite.")
+  bottomAnnouncementText String @default("Welcome to Pink Farm — Goodness in Every Bite.")
+  bottomAnnouncementEnabled Boolean @default(true)
   heroMainImage       String?
   heroGheeImage       String?
   heroAlmondsImage    String?

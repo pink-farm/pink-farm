@@ -8,6 +8,10 @@ import { useSettingsStore } from "@/store/settingsStore";
 export function FloatingSocials() {
   const pathname = usePathname();
   const supportPhone = useSettingsStore((state) => state.supportPhone);
+  const bottomAnnouncementEnabled = useSettingsStore((state) => state.bottomAnnouncementEnabled);
+  const bottomAnnouncementText = useSettingsStore((state) => state.bottomAnnouncementText);
+  const hasBottomBanner = Boolean(bottomAnnouncementEnabled && (bottomAnnouncementText ?? "").trim().length > 0);
+
   const cleanPhone = (supportPhone || "8437504040").replace(/[^0-9]/g, "");
   const whatsappUrl = `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : `91${cleanPhone}`}`;
 
@@ -17,7 +21,11 @@ export function FloatingSocials() {
   }
 
   return (
-    <div className="fixed bottom-4 right-3.5 sm:bottom-6 sm:right-6 z-40 flex flex-col gap-2.5 sm:gap-3.5 pointer-events-auto print:hidden">
+    <div
+      className={`fixed right-3.5 sm:right-6 z-40 flex flex-col gap-2.5 sm:gap-3.5 pointer-events-auto print:hidden transition-all duration-300 ${
+        hasBottomBanner ? "bottom-14 sm:bottom-16" : "bottom-4 sm:bottom-6"
+      }`}
+    >
       
       {/* WhatsApp Button */}
       <motion.a 

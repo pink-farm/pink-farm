@@ -4,6 +4,8 @@ import { persist } from "zustand/middleware";
 export interface StoreSettingsData {
   storeName: string;
   announcementText: string;
+  bottomAnnouncementText: string;
+  bottomAnnouncementEnabled: boolean;
   heroMainImage: string;
   heroGheeImage: string;
   heroAlmondsImage: string;
@@ -61,6 +63,8 @@ export interface StoreSettingsData {
 export const DEFAULT_SETTINGS: StoreSettingsData = {
   storeName: "Pink Farm",
   announcementText: "Welcome to Pink Farm — Goodness in Every Bite.",
+  bottomAnnouncementText: "Welcome to Pink Farm — Goodness in Every Bite.",
+  bottomAnnouncementEnabled: true,
   heroMainImage: "/images/makhana_sig.jpg",
   heroGheeImage: "/images/ghee.jpg",
   heroAlmondsImage: "/images/almonds.jpg",
@@ -139,6 +143,11 @@ export const useSettingsStore = create<SettingsStore>()(
               set({
                 storeName: data.storeName,
                 announcementText: data.announcementText ?? get().announcementText,
+                bottomAnnouncementText: data.bottomAnnouncementText ?? get().bottomAnnouncementText,
+                bottomAnnouncementEnabled:
+                  typeof data.bottomAnnouncementEnabled === "boolean"
+                    ? data.bottomAnnouncementEnabled
+                    : get().bottomAnnouncementEnabled,
                 heroMainImage: data.heroMainImage ?? get().heroMainImage,
                 heroGheeImage: data.heroGheeImage ?? get().heroGheeImage,
                 heroAlmondsImage: data.heroAlmondsImage ?? get().heroAlmondsImage,
@@ -220,6 +229,8 @@ export const useSettingsStore = create<SettingsStore>()(
       partialize: (state) => ({
         storeName: state.storeName,
         announcementText: state.announcementText,
+        bottomAnnouncementText: state.bottomAnnouncementText,
+        bottomAnnouncementEnabled: state.bottomAnnouncementEnabled,
         supportPhone: state.supportPhone,
         supportEmail: state.supportEmail,
         businessAddress: state.businessAddress,
