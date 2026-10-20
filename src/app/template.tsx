@@ -7,12 +7,22 @@ export default function Template({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Fired as soon as the new route component tree is mounted into the DOM
-    window.dispatchEvent(
-      new CustomEvent("pinkfarm:route:mounted", {
-        detail: { pathname },
-      })
-    );
+    // Wait for the browser to complete layout and initial paint of the new route
+    let raf2: number;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        window.dispatchEvent(
+          new CustomEvent("pinkfarm:route:mounted", {
+            detail: { pathname },
+          })
+        );
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
   }, [pathname]);
 
   return <>{children}</>;

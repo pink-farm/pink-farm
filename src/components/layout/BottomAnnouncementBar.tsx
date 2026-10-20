@@ -46,6 +46,7 @@ export function BottomAnnouncementBar() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 50, opacity: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
+        style={{ transform: "translateZ(0)", willChange: "transform" }}
         role="region"
         aria-label="Bottom Announcement"
         className="fixed bottom-0 left-0 right-0 z-40 w-full bg-gradient-to-r from-brand-green to-brand-green-light text-brand-ivory text-center py-2 text-xs md:text-sm font-medium tracking-wide flex justify-center items-center overflow-hidden px-4 shadow-[0_-4px_22px_rgba(26,60,52,0.22)] border-t border-brand-green-light/40 print:hidden select-none"

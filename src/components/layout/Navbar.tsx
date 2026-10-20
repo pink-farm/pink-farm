@@ -83,7 +83,10 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full transition-all duration-300 print:hidden">
+    <header
+      className="sticky top-0 z-50 w-full transition-all duration-300 print:hidden"
+      style={{ transform: "translateZ(0)", willChange: "transform" }}
+    >
       
       {/* Premium Announcement Bar */}
       <div className="bg-gradient-to-r from-brand-green to-brand-green-light text-brand-ivory text-center py-2 text-xs md:text-sm font-medium tracking-wide flex justify-center items-center overflow-hidden px-4">

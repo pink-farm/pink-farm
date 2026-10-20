@@ -86,11 +86,12 @@ export function MakhanaNavigationLoader() {
 
     setProgress(100);
 
-    // Ensure the lotus bloom animation plays gracefully for at least 650ms
-    // so it doesn't abruptly vanish before the new page has painted.
+    // Ensure the lotus bloom animation plays gracefully for at least 780ms
+    // and allows the newly mounted route to finish layout and image paint
+    // before the screen cover dissolves away.
     const elapsed = startTimestampRef.current > 0 ? Date.now() - startTimestampRef.current : 0;
-    const minDisplayTime = 650;
-    const remainingTime = Math.max(90, minDisplayTime - elapsed);
+    const minDisplayTime = 780;
+    const remainingTime = Math.max(180, minDisplayTime - elapsed);
 
     dismissTimerRef.current = setTimeout(() => {
       requestAnimationFrame(() => {
@@ -123,23 +124,65 @@ export function MakhanaNavigationLoader() {
       currentPathnameRef.current = pathname;
       setProgress((prev) => Math.max(prev, 85));
 
-      // Safety fallback: if pinkfarm:route:mounted doesn't fire within 1.2s of pathname change,
+      // Safety fallback: if pinkfarm:route:mounted doesn't fire within 1.4s of pathname change,
       // gracefully complete so user is never stuck.
       const fallbackTimer = setTimeout(() => {
         completeNavigation();
-      }, 1200);
+      }, 1400);
 
       return () => clearTimeout(fallbackTimer);
     }
   }, [pathname, searchParams, completeNavigation]);
 
+  // Hook into history.pushState and history.replaceState so ANY router.push or programmatic
+  // navigation immediately triggers the loader synchronously without late delay
+  useEffect(() => {
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    window.history.pushState = function (...args) {
+      const url = args[2];
+      if (url && typeof url === "string") {
+        try {
+          const parsed = new URL(url, window.location.origin);
+          if (parsed.pathname !== window.location.pathname) {
+            queueMicrotask(() => startNavigation(true));
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return originalPushState.apply(this, args);
+    };
+
+    window.history.replaceState = function (...args) {
+      const url = args[2];
+      if (url && typeof url === "string") {
+        try {
+          const parsed = new URL(url, window.location.origin);
+          if (parsed.pathname !== window.location.pathname) {
+            queueMicrotask(() => startNavigation(true));
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return originalReplaceState.apply(this, args);
+    };
+
+    return () => {
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+    };
+  }, [startNavigation]);
+
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
     window.pinkfarmNavigate = (url: string) => {
       startNavigation(true);
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         router.push(url);
-      }, 90);
+      });
     };
 
     return () => {
@@ -213,11 +256,10 @@ export function MakhanaNavigationLoader() {
       // Start the lotus bloom animation immediately
       startNavigation(true);
 
-      // Wait 90ms for the luxury cover overlay to paint and cover the screen,
-      // then execute Next.js router transition so the new page renders behind the lotus.
-      setTimeout(() => {
+      // Execute Next.js router transition in next animation frame
+      requestAnimationFrame(() => {
         router.push(targetPath);
-      }, 90);
+      });
     };
 
     // Custom events for manual triggers
@@ -281,6 +323,11 @@ export function MakhanaNavigationLoader() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.28, ease: "easeInOut" } }}
             transition={{ duration: 0.12, ease: "easeOut" }}
+            style={{
+              transform: "translateZ(0)",
+              willChange: "opacity",
+              backfaceVisibility: "hidden",
+            }}
             className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] pointer-events-auto select-none"
           >
             <MakhanaLoader

@@ -42,14 +42,23 @@ export function LotusLoader({
       >
 
 
-        {/* Pure Transparent Looping Lotus with Zero-Lag Tab Switching */}
-        <div className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">
+        {/* Pure Transparent Seamless Looping Lotus Bloom with Hardware Acceleration */}
+        <div
+          className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none"
+          style={{
+            transform: "translateZ(0)",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
+            contain: "paint",
+          }}
+        >
           <Image
-            src="/images/lotus-loader.webp?v=4"
+            src="/images/lotus-loader.webp?v=5"
             alt="Pink Farm Lotus Bloom"
             width={width}
             height={height}
             loading="eager"
+            priority={true}
             decoding="async"
             unoptimized
             className="w-full h-full object-contain pointer-events-none select-none"

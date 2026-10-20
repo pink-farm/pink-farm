@@ -232,35 +232,51 @@ export function MagneticWrapper({
   );
 }
 
-// 8. Luxury Scroll Progress Bar
+// 8. Luxury Scroll Progress Bar (Hardware-Accelerated RAF, Zero Re-renders)
 export function LuxuryScrollProgressBar() {
-  const [scrollProgress, setScrollProgress] = React.useState(0);
+  const barRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    const handleScroll = () => {
+    let ticking = false;
+
+    const updateScroll = () => {
       const totalScroll = document.documentElement.scrollTop || document.body.scrollTop;
       const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      if (windowHeight > 0) {
-        setScrollProgress((totalScroll / windowHeight) * 100);
+      if (barRef.current && windowHeight > 0) {
+        const progress = Math.min(1, Math.max(0, totalScroll / windowHeight));
+        barRef.current.style.transform = `scaleX(${progress})`;
+      }
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScroll);
+        ticking = true;
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    updateScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <div className="fixed top-0 left-0 right-0 h-[3px] z-[60] bg-transparent pointer-events-none print:hidden">
-      <motion.div
-        className="h-full bg-gradient-to-r from-brand-green via-brand-pink-accent to-[#88E2B0]"
-        style={{ width: `${scrollProgress}%` }}
-        transition={{ ease: "easeOut", duration: 0.2 }}
+      <div
+        ref={barRef}
+        className="h-full w-full bg-gradient-to-r from-brand-green via-brand-pink-accent to-[#88E2B0] origin-left"
+        style={{
+          transform: "scaleX(0)",
+          willChange: "transform",
+          transition: "transform 0.08s ease-out",
+        }}
       />
     </div>
   );
 }
 
-// 9. Premium Spotlight Card with Mouse Follow Glow
+// 9. Premium Spotlight Card with Mouse Follow Glow (Pure CSS variables, Zero React Re-renders)
 export function SpotlightCard({
   children,
   className = "",
@@ -270,31 +286,37 @@ export function SpotlightCard({
   className?: string;
   glowColor?: string;
 }) {
-  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const cardRef = React.useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    cardRef.current.style.setProperty("--spotlight-x", `${x}px`);
+    cardRef.current.style.setProperty("--spotlight-y", `${y}px`);
   };
 
   return (
     <motion.div
+      ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       whileHover={{ y: -6 }}
       transition={{ type: "spring", stiffness: 280, damping: 24 }}
+      style={{
+        transform: "translateZ(0)",
+        willChange: "transform",
+      }}
       className={`relative overflow-hidden ${className}`}
     >
       {/* Dynamic Cursor Spotlight Layer */}
-      <motion.div
-        className="pointer-events-none absolute -inset-px transition-opacity duration-500 rounded-[inherit]"
+      <div
+        className="pointer-events-none absolute -inset-px transition-opacity duration-300 rounded-[inherit]"
         style={{
-          background: `radial-gradient(350px circle at ${mousePos.x}px ${mousePos.y}px, ${glowColor}, transparent 80%)`,
+          background: `radial-gradient(350px circle at var(--spotlight-x, -999px) var(--spotlight-y, -999px), ${glowColor}, transparent 80%)`,
           opacity: isHovered ? 1 : 0,
         }}
       />
@@ -303,7 +325,7 @@ export function SpotlightCard({
   );
 }
 
-// 10. Ambient Glow Pulse for Signature Elements
+// 10. Ambient Glow Pulse for Signature Elements (GPU-Isolated)
 export function GlowPulse({
   children,
   color = "rgba(136, 226, 176, 0.25)",
@@ -325,8 +347,12 @@ export function GlowPulse({
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute -inset-4 rounded-full blur-2xl pointer-events-none -z-10"
-        style={{ backgroundColor: color }}
+        style={{
+          backgroundColor: color,
+          transform: "translateZ(0)",
+          willChange: "transform, opacity",
+        }}
+        className="absolute -inset-4 rounded-full blur-xl pointer-events-none -z-10"
       />
       {children}
     </div>

@@ -222,6 +222,22 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-brand-green);
 }
 
+/* GPU Acceleration & Performance Helpers */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
+
+video {
+  contain: paint;
+}
+
 @media print {
   /* Strictly hide everything non-printable */
   header,

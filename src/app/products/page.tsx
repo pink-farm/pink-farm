@@ -7,6 +7,7 @@ import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
 import { connection } from "next/server";
 
 
+export const instant = false;
 export default async function ProductsPage() {
   await connection();
   const [allProducts, settings] = await Promise.all([getStoreProducts({ includeUnavailable: false }), getStoreSettings()]);
