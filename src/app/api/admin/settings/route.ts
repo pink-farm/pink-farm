@@ -64,10 +64,6 @@ const DEFAULT_SETTINGS = {
 
 const MAX_HERO_IMAGE_LENGTH = 2_500_000;
 
-function isMissingSettingsRecord(error: unknown) {
-  return error && typeof error === "object" && "code" in error && error.code === "P2025";
-}
-
 function getSafeDatabaseFailure(error: unknown) {
   const meta = error && typeof error === "object" && "meta" in error && error.meta && typeof error.meta === "object"
     ? error.meta as Record<string, unknown>
@@ -137,49 +133,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Settings must be a JSON object." }, { status: 400 });
     }
     const body = parsed.value as Record<string, unknown>;
-
-    if (body.action === "saveHeroBubbleImage") {
-      const fields = {
-        center: "heroMainImage",
-        topRight: "heroGheeImage",
-        bottomLeft: "heroAlmondsImage",
-      } as const;
-      const field = fields[body.position as keyof typeof fields];
-      const image = body.image;
-      if (!field || typeof image !== "string" || !isSafeHeroImage(image)) {
-        return NextResponse.json({ error: "Choose a valid bubble image and try again." }, { status: 400 });
-      }
-
-      try {
-        let settings;
-        try {
-          settings = await prisma.storeSettings.update({
-            where: { id: "default" },
-            data: { [field]: image },
-            select: { id: true, [field]: true },
-          });
-        } catch (error) {
-          if (!isMissingSettingsRecord(error)) throw error;
-          settings = await prisma.storeSettings.create({
-            data: { id: "default", [field]: image },
-            select: { id: true, [field]: true },
-          });
-        }
-        revalidatePath("/");
-        revalidatePath("/admin/settings");
-        return NextResponse.json({ success: true, settings });
-      } catch (error) {
-        logServerError("security.admin.settings.hero_image_persist_failed", error);
-        const prismaCode = error && typeof error === "object" && "code" in error && typeof error.code === "string"
-          ? error.code
-          : undefined;
-        return NextResponse.json({
-          error: "Bubble image could not be saved to the database.",
-          ...getSafeDatabaseFailure(error),
-          ...(prismaCode ? { code: prismaCode } : {}),
-        }, { status: 503 });
-      }
-    }
 
     const heroImages = [
       ["heroMainImage", body.heroMainImage],
@@ -329,12 +282,24 @@ export async function POST(request: Request) {
 
     let saved = null;
     try {
-      try {
-        saved = await prisma.storeSettings.update({ where: { id: "default" }, data: dataToSave });
-      } catch (error) {
-        if (!isMissingSettingsRecord(error)) throw error;
-        saved = await prisma.storeSettings.create({ data: { id: "default", ...dataToSave } });
+      // Use MongoDB's atomic single-document update for settings persistence.
+      // The previous Prisma update path returned P2010 in production even though
+      // reads worked. Upsert also makes first-time setup safe.
+      const result = await prisma.$runCommandRaw({
+        update: "StoreSettings",
+        updates: [{
+          q: { _id: "default" },
+          u: {
+            $set: dataToSave,
+            $currentDate: { updatedAt: true },
+          },
+          upsert: true,
+        }],
+      });
+      if (Number(result.ok) !== 1 || Number(result.n) !== 1) {
+        throw new Error("MongoDB did not confirm the settings update.");
       }
+      saved = { id: "default", ...dataToSave, updatedAt: new Date() };
     } catch (error) {
       logServerError("security.admin.settings.persist_failed", error);
       const prismaCode = error && typeof error === "object" && "code" in error && typeof error.code === "string"

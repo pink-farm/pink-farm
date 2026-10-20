@@ -645,16 +645,17 @@ export default function StoreSettingsPage() {
     setHeroImageError("");
     setHeroImageStatus("Saving bubble image to the database…");
     try {
-      const response = await fetch("/api/admin/settings", {
+      const response = await fetch("/api/admin/settings/hero-bubbles", {
         method: "POST",
         cache: "no-store",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "saveHeroBubbleImage", position, image }),
+        body: JSON.stringify({ position, image }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || "Could not save this bubble image.");
       const field = position === "center" ? "heroMainImage" : position === "topRight" ? "heroGheeImage" : "heroAlmondsImage";
       useSettingsStore.getState().setSettings({ [field]: image });
+      setSaveError("");
       setHeroImageStatus("Bubble image saved to the database.");
       return true;
     } catch (error) {
