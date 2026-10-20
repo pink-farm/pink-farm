@@ -115,55 +115,11 @@ export function MakhanaNavigationLoader() {
     }
   }, [pathname, searchParams, completeNavigation]);
 
-  // Hook into history.pushState and history.replaceState so ANY router.push or programmatic
-  // navigation immediately triggers the loader synchronously without late delay
-  useEffect(() => {
-    const originalPushState = window.history.pushState;
-    const originalReplaceState = window.history.replaceState;
-
-    window.history.pushState = function (...args) {
-      const url = args[2];
-      if (url && typeof url === "string") {
-        try {
-          const parsed = new URL(url, window.location.origin);
-          if (parsed.pathname !== window.location.pathname) {
-            queueMicrotask(() => startNavigation(true));
-          }
-        } catch {
-          // ignore
-        }
-      }
-      return originalPushState.apply(this, args);
-    };
-
-    window.history.replaceState = function (...args) {
-      const url = args[2];
-      if (url && typeof url === "string") {
-        try {
-          const parsed = new URL(url, window.location.origin);
-          if (parsed.pathname !== window.location.pathname) {
-            queueMicrotask(() => startNavigation(true));
-          }
-        } catch {
-          // ignore
-        }
-      }
-      return originalReplaceState.apply(this, args);
-    };
-
-    return () => {
-      window.history.pushState = originalPushState;
-      window.history.replaceState = originalReplaceState;
-    };
-  }, [startNavigation]);
-
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
     window.pinkfarmNavigate = (url: string) => {
       startNavigation(true);
-      requestAnimationFrame(() => {
-        router.push(url);
-      });
+      router.push(url);
     };
 
     return () => {
@@ -171,7 +127,7 @@ export function MakhanaNavigationLoader() {
     };
   }, [router, startNavigation]);
 
-  // Intercept navigation link clicks across the application
+  // Trigger loader smoothly on navigation link clicks without breaking Next.js Link lifecycle
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
       if (e.defaultPrevented) return;
@@ -217,30 +173,11 @@ export function MakhanaNavigationLoader() {
         currentUrl.pathname === destinationUrl.pathname &&
         currentUrl.search === destinationUrl.search
       ) {
-        // If it's a hash anchor on the same page, scroll smoothly without loader
-        if (destinationUrl.hash) {
-          const el = document.querySelector(destinationUrl.hash);
-          if (el) {
-            e.preventDefault();
-            el.scrollIntoView({ behavior: "smooth" });
-          }
-        }
         return;
       }
 
-      // CRITICAL: Prevent Next.js from instantaneously rendering the next page before the lotus animation covers the screen!
-      e.preventDefault();
-      e.stopPropagation();
-
-      const targetPath = destinationUrl.pathname + destinationUrl.search + destinationUrl.hash;
-
-      // Start the lotus bloom animation immediately
+      // Smoothly activate loader; let Next.js Link execute natively without preventDefault
       startNavigation(true);
-
-      // Execute Next.js router transition in next animation frame
-      requestAnimationFrame(() => {
-        router.push(targetPath);
-      });
     };
 
     // Custom events for manual triggers
@@ -255,13 +192,13 @@ export function MakhanaNavigationLoader() {
       startNavigation(true);
     };
 
-    document.addEventListener("click", handleDocumentClick, { capture: true });
+    document.addEventListener("click", handleDocumentClick, { passive: true });
     window.addEventListener("popstate", handlePopState);
     window.addEventListener("pinkfarm:buffering:start", handleCustomStart);
     window.addEventListener("pinkfarm:buffering:stop", handleCustomStop);
 
     return () => {
-      document.removeEventListener("click", handleDocumentClick, { capture: true });
+      document.removeEventListener("click", handleDocumentClick);
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);

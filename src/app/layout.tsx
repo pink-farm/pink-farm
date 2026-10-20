@@ -80,69 +80,6 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-brand-ivory text-brand-charcoal">
-        {/* Instant Frame-0 Server Rendered Lotus Splash Screen: prevents late popping */}
-        <div
-          id="pinkfarm-initial-loader"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 999999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#FDFBF7",
-            transition: "opacity 0.32s ease-out, visibility 0.32s ease-out",
-          }}
-        >
-          <div style={{ width: 260, height: 260, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img
-              src="/images/lotus-loader.webp"
-              alt="Pink Farm Lotus Bloom"
-              width={260}
-              height={260}
-              fetchPriority="high"
-              style={{ width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none", userSelect: "none" }}
-            />
-          </div>
-          <div style={{ marginTop: "12px", textAlign: "center", padding: "0 16px" }}>
-            <p style={{ fontFamily: "serif", fontSize: "1.25rem", color: "#1C322A", fontWeight: 500, letterSpacing: "0.025em" }}>
-              Loading Freshness...
-            </p>
-            <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#748873", marginTop: "4px" }}>
-              Every bite crafted with love
-            </p>
-          </div>
-        </div>
-
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                function dismissLoader() {
-                  var loader = document.getElementById('pinkfarm-initial-loader');
-                  if (loader) {
-                    loader.style.opacity = '0';
-                    loader.style.pointerEvents = 'none';
-                    setTimeout(function() {
-                      if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
-                    }, 350);
-                  }
-                }
-                if (document.readyState === 'complete') {
-                  setTimeout(dismissLoader, 300);
-                } else {
-                  window.addEventListener('load', function() {
-                    setTimeout(dismissLoader, 300);
-                  });
-                }
-                // Fallback dismiss safety
-                setTimeout(dismissLoader, 2200);
-              })();
-            `,
-          }}
-        />
-
         <Suspense fallback={null}>
           <MakhanaNavigationLoader />
         </Suspense>
