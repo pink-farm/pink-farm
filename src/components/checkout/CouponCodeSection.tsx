@@ -56,7 +56,22 @@ export function CouponCodeSection({ subtotal, phone = "" }: CouponCodeSectionPro
     }
   }, [clearAppliedCoupon]);
 
-  useEffect(() => { void checkCouponAccess(); }, [checkCouponAccess]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((response) => response.json().then((session) => ({ authenticated: response.ok && Boolean(session.isCustomer) })))
+      .then(({ authenticated }) => {
+        if (cancelled) return;
+        setCouponAccess(authenticated ? "allowed" : "guest");
+        if (!authenticated) clearAppliedCoupon();
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setCouponAccess("guest");
+        clearAppliedCoupon();
+      });
+    return () => { cancelled = true; };
+  }, [clearAppliedCoupon]);
 
   const fetchAvailableCoupons = useCallback(async () => {
     setIsLoadingCoupons(true);
