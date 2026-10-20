@@ -44,7 +44,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
     <div className="flex flex-col w-full min-w-0">
       {/* Main Image Viewer */}
       <div
-        className="relative aspect-square w-full max-h-[340px] md:max-h-[360px] lg:max-h-[380px] rounded-2xl overflow-hidden bg-brand-pink-accent/10 border border-brand-green-light/10 shadow-md group"
+        className="relative aspect-square w-full rounded-2xl overflow-hidden bg-brand-pink-accent/10 border border-brand-green-light/10 shadow-md group"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -61,7 +61,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
               src={safeImages[currentIndex]}
               alt={`${productName} - Image ${currentIndex + 1}`}
               fill
-              className="object-cover transition-transform duration-500 hover:scale-105"
+              className="object-cover"
               priority={currentIndex === 0}
               sizes="(max-width: 768px) 100vw, 400px"
               unoptimized={safeImages[currentIndex].startsWith("data:")}
@@ -211,7 +211,7 @@ export function ProductDescriptionGallery({ images, productName }: ProductImageG
               src={img}
               alt={`${productName} view ${idx + 1}`}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-108"
+              className="object-cover"
               unoptimized={img.startsWith("data:")}
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-6 text-white text-[11px] font-semibold flex items-center justify-between">

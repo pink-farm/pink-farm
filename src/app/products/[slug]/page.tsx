@@ -10,13 +10,15 @@ import { ProductImageGallery, ProductDescriptionGallery } from "@/components/pro
 import { getStoreProductBySlug, getStoreSettings } from "@/lib/defaultProducts";
 import { prisma, queryDatabase } from "@/lib/db";
 
-export const instant = false;
+import { connection } from "next/server";
+
 
 export default async function ProductDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  await connection();
   const { slug } = await params;
   const [product, settings] = await Promise.all([
     getStoreProductBySlug(slug),

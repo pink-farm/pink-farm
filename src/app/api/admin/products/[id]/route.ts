@@ -45,20 +45,70 @@ function parseProduct(body: Record<string, unknown>) {
   };
 }
 
+function isValidObjectId(str: string): boolean {
+  return /^[0-9a-fA-F]{24}$/.test(str);
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
+    const isHexId = isValidObjectId(id);
     const parsed = await readBoundedJson(request, 15_000_000);
     if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
     if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) return NextResponse.json({ error: "Product data must be a JSON object." }, { status: 400 });
     const { packSize, ...data } = parseProduct(parsed.value as Record<string, unknown>);
     const updated = await prisma.$transaction(async (tx) => {
-      const product = await tx.product.update({ where: { id }, data });
-      const variant = await tx.productVariant.findFirst({ where: { productId: id } });
-      if (variant) await tx.productVariant.updateMany({ where: { productId: id }, data: { name: packSize, packSize, price: data.basePrice, originalPrice: data.originalPrice, stockQuantity: data.stockQuantity, isAvailable: data.isAvailable } });
-      else await tx.productVariant.create({ data: { productId: id, name: packSize, packSize, price: data.basePrice, originalPrice: data.originalPrice, stockQuantity: data.stockQuantity, isAvailable: data.isAvailable } });
+      let existing = isHexId ? await tx.product.findUnique({ where: { id } }) : null;
+      if (!existing && data.slug) {
+        existing = await tx.product.findUnique({ where: { slug: data.slug } });
+      }
+      if (!existing && data.sku) {
+        existing = await tx.product.findUnique({ where: { sku: data.sku } });
+      }
+
+      let product;
+      if (existing) {
+        product = await tx.product.update({
+          where: { id: existing.id },
+          data,
+        });
+      } else {
+        product = await tx.product.create({
+          data: {
+            ...(isHexId ? { id } : {}),
+            ...data,
+          },
+        });
+      }
+
+      const variant = await tx.productVariant.findFirst({ where: { productId: product.id } });
+      if (variant) {
+        await tx.productVariant.updateMany({
+          where: { productId: product.id },
+          data: {
+            name: packSize,
+            packSize,
+            price: data.basePrice,
+            originalPrice: data.originalPrice,
+            stockQuantity: data.stockQuantity,
+            isAvailable: data.isAvailable,
+          },
+        });
+      } else {
+        await tx.productVariant.create({
+          data: {
+            productId: product.id,
+            name: packSize,
+            packSize,
+            price: data.basePrice,
+            originalPrice: data.originalPrice,
+            stockQuantity: data.stockQuantity,
+            isAvailable: data.isAvailable,
+          },
+        });
+      }
       return product;
     });
 
@@ -74,7 +124,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     } catch {}
 
-    revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath(`/products/${updated.slug}`); revalidatePath("/");
+    revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath(`/products/${updated.slug}`); revalidatePath("/"); revalidatePath("/", "layout");
     return NextResponse.json({ success: true });
   } catch (error) {
     const result = classifyAdminProductError(error);
@@ -88,11 +138,16 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
+    const isHexId = isValidObjectId(id);
     const product = await prisma.$transaction(async (tx) => {
-      const existing = await tx.product.findUnique({ where: { id } });
+      let existing = isHexId ? await tx.product.findUnique({ where: { id } }) : null;
+      if (!existing) {
+        existing = await tx.product.findFirst({ where: { OR: [{ slug: id }, { sku: id }] } });
+      }
       if (!existing) throw new Error("PRODUCT_NOT_FOUND");
+      const targetId = existing.id;
       await tx.orderItem.updateMany({
-        where: { productId: id },
+        where: { productId: targetId },
         data: {
           productId: null,
           variantId: null,
@@ -103,23 +158,23 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       });
       const settings = await tx.storeSettings.findUnique({ where: { id: "default" } });
       if (settings) {
-        const comboProductIds = settings.comboProductIds.filter((productId) => productId !== id);
-        if (settings.heartProductId === id || settings.featuredProductId === id || comboProductIds.length !== settings.comboProductIds.length) {
+        const comboProductIds = settings.comboProductIds.filter((productId) => productId !== targetId);
+        if (settings.heartProductId === targetId || settings.featuredProductId === targetId || comboProductIds.length !== settings.comboProductIds.length) {
           await tx.storeSettings.update({
             where: { id: settings.id },
             data: {
-              ...(settings.heartProductId === id ? { heartProductId: null } : {}),
-              ...(settings.featuredProductId === id ? { featuredProductId: null } : {}),
+              ...(settings.heartProductId === targetId ? { heartProductId: null } : {}),
+              ...(settings.featuredProductId === targetId ? { featuredProductId: null } : {}),
               ...(comboProductIds.length !== settings.comboProductIds.length ? { comboProductIds } : {}),
             },
           });
         }
       }
-      await tx.productVariant.deleteMany({ where: { productId: id } });
-      await tx.product.delete({ where: { id } });
+      await tx.productVariant.deleteMany({ where: { productId: targetId } });
+      await tx.product.delete({ where: { id: targetId } });
       return existing;
     });
-    revalidatePath("/admin/products"); revalidatePath("/admin/settings"); revalidatePath("/products"); revalidatePath(`/products/${product.slug}`); revalidatePath("/");
+    revalidatePath("/admin/products"); revalidatePath("/admin/settings"); revalidatePath("/products"); revalidatePath(`/products/${product.slug}`); revalidatePath("/"); revalidatePath("/", "layout");
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") return NextResponse.json({ error: "Product not found." }, { status: 404 });

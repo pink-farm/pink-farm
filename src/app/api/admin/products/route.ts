@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       // Product creation succeeds even if optional category synchronization is temporarily unavailable.
     }
 
-    revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath("/");
+    revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath("/"); revalidatePath("/", "layout");
     return NextResponse.json({ success: true, productId: created.id });
   } catch (error) {
     const result = classifyAdminProductError(error);

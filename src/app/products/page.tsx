@@ -4,9 +4,11 @@ import { FadeIn } from "@/components/ui/MotionWrappers";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
 
-export const instant = false;
+import { connection } from "next/server";
+
 
 export default async function ProductsPage() {
+  await connection();
   const [allProducts, settings] = await Promise.all([getStoreProducts({ includeUnavailable: false }), getStoreSettings()]);
   const products = allProducts.filter((p) => p.isAvailable !== false);
   const maxDiscount = Math.max(settings.comboTier1Discount || 11, settings.comboTier2Discount || 15);

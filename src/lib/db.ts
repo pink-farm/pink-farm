@@ -3,8 +3,8 @@ import { PrismaClient } from "@prisma/client";
 // Store reads have safe local fallbacks, so don't hold the storefront open
 // while MongoDB is unreachable. The cooldown also prevents each route from
 // retrying a failed Atlas connection on every request.
-const DB_QUERY_TIMEOUT_MS = 2_000;
-const DB_RETRY_COOLDOWN_MS = 30_000;
+const DB_QUERY_TIMEOUT_MS = 8_000;
+const DB_RETRY_COOLDOWN_MS = 5_000;
 let databaseUnavailableUntil = 0;
 let lastDatabaseWarningAt = 0;
 

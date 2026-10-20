@@ -43,7 +43,7 @@ export interface StoreProduct {
 
 export const FALLBACK_PRODUCTS: StoreProduct[] = [
   {
-    id: "17941128-e66d-415e-a2ac-359f8c474148",
+    id: "6ad62b968609b9f88c080426",
     name: "Premium Raw Phool Makhana",
     slug: "premium-raw-phool-makhana",
     shortDescription: "Handpicked, light & wholesome",
@@ -72,7 +72,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     variants: [
       {
         id: "bd351ab6-2af0-4a21-ada8-3cd5a15ccc3d",
-        productId: "17941128-e66d-415e-a2ac-359f8c474148",
+        productId: "6ad62b968609b9f88c080426",
         name: "200 gms",
         packSize: "200 gms",
         price: 37425,
@@ -83,7 +83,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     ],
   },
   {
-    id: "e885c11e-9676-41f6-9b76-bc3a864f5210",
+    id: "6ace66660e17322c6617b388",
     name: "Peri Peri Makhana",
     slug: "peri-peri-makhana",
     shortDescription: "A spicy kick in every crunchy bite.",
@@ -112,7 +112,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     variants: [
       {
         id: "30af76d7-7145-43b9-8b1b-cff270c3e240",
-        productId: "e885c11e-9676-41f6-9b76-bc3a864f5210",
+        productId: "6ace66660e17322c6617b388",
         name: "70 gms",
         packSize: "70 gms",
         price: 18900,
@@ -123,7 +123,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     ],
   },
   {
-    id: "caa0c62d-6b47-4bb2-b8f7-7b2683c26e86",
+    id: "6ace66670e17322c6617b38b",
     name: "Punjabi Tadka Makhana",
     slug: "punjabi-tadka-makhana",
     shortDescription: "Desi tadka, bold flavour, perfect crunch.",
@@ -152,7 +152,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     variants: [
       {
         id: "adb26549-0d45-4868-baaf-a15e7efbd1df",
-        productId: "caa0c62d-6b47-4bb2-b8f7-7b2683c26e86",
+        productId: "6ace66670e17322c6617b38b",
         name: "70 gms",
         packSize: "70 gms",
         price: 18900,
@@ -163,7 +163,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     ],
   },
   {
-    id: "87993055-e73f-43bf-8fab-3b575c4ea418",
+    id: "6ace66670e17322c6617b38e",
     name: "Pudina Makhana",
     slug: "pudina-makhana",
     shortDescription: "Refreshing mint with a chatpata twist.",
@@ -192,7 +192,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     variants: [
       {
         id: "b877b820-9f21-49c2-8c4a-03b26482d25b",
-        productId: "87993055-e73f-43bf-8fab-3b575c4ea418",
+        productId: "6ace66670e17322c6617b38e",
         name: "70 gms",
         packSize: "70 gms",
         price: 18900,
@@ -203,7 +203,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     ],
   },
   {
-    id: "99035279-5432-4b47-85c0-4439e418684e",
+    id: "6ace66670e17322c6617b391",
     name: "Caramel Gud Makhana",
     slug: "caramel-gud-makhana",
     shortDescription: "Makhana meets the goodness of gud.",
@@ -232,7 +232,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     variants: [
       {
         id: "4cd1eb9f-31a7-4a15-b400-d5b88ccbd868",
-        productId: "99035279-5432-4b47-85c0-4439e418684e",
+        productId: "6ace66670e17322c6617b391",
         name: "70 gms",
         packSize: "70 gms",
         price: 20700,
@@ -243,7 +243,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     ],
   },
   {
-    id: "dc0dd925-8619-4721-ab89-3b178ac967cb",
+    id: "6ace66680e17322c6617b394",
     name: "Himalayan Pink Salted Makhana",
     slug: "himalayan-pink-salted-makhana",
     shortDescription: "Simply salted, perfectly crunchy.",
@@ -272,7 +272,7 @@ export const FALLBACK_PRODUCTS: StoreProduct[] = [
     variants: [
       {
         id: "ae43c275-8693-47fd-81cf-568ba65e4fd6",
-        productId: "dc0dd925-8619-4721-ab89-3b178ac967cb",
+        productId: "6ace66680e17322c6617b394",
         name: "70 gms",
         packSize: "70 gms",
         price: 18000,

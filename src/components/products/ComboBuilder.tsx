@@ -293,9 +293,8 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
                       alt={product.name}
                       fill
                       sizes="(max-width: 640px) 50vw, 20vw"
-                      className={`object-cover transition-transform duration-500 ${
-                        count > 0 ? "scale-105" : "group-hover:scale-105"
-                      }`}
+                      className="object-cover"
+                      unoptimized={Boolean(product.imageUrl?.startsWith("data:"))}
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-white/10 text-3xl">
@@ -410,6 +409,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
                           alt={item.product.name}
                           fill
                           className="object-cover"
+                          unoptimized={Boolean(item.product.imageUrl?.startsWith("data:"))}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-xl">
