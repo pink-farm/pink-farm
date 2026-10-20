@@ -68,8 +68,12 @@ function withMongoTimeouts(connectionString: string): string {
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-export async function queryDatabase<T>(operation: () => Promise<T>, timeoutMs = DB_QUERY_TIMEOUT_MS): Promise<T> {
-  if (performance.now() < databaseUnavailableUntil) {
+export async function queryDatabase<T>(
+  operation: () => Promise<T>,
+  timeoutMs = DB_QUERY_TIMEOUT_MS,
+  options: { isolateCooldown?: boolean } = {},
+): Promise<T> {
+  if (!options.isolateCooldown && performance.now() < databaseUnavailableUntil) {
     throw new Error("Database is temporarily unavailable");
   }
 
@@ -84,10 +88,10 @@ export async function queryDatabase<T>(operation: () => Promise<T>, timeoutMs = 
         );
       }),
     ]);
-    databaseUnavailableUntil = 0;
+    if (!options.isolateCooldown) databaseUnavailableUntil = 0;
     return result;
   } catch (error) {
-    databaseUnavailableUntil = performance.now() + DB_RETRY_COOLDOWN_MS;
+    if (!options.isolateCooldown) databaseUnavailableUntil = performance.now() + DB_RETRY_COOLDOWN_MS;
     if (performance.now() - lastDatabaseWarningAt >= DB_RETRY_COOLDOWN_MS) {
       console.warn("MongoDB is unavailable; serving fallback store data.");
       lastDatabaseWarningAt = performance.now();

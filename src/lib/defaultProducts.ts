@@ -423,6 +423,7 @@ export async function getStoreSettings() {
         where: { id: "default" },
       }),
       8_000,
+      { isolateCooldown: true },
     );
     if (settings) return settings;
   } catch {

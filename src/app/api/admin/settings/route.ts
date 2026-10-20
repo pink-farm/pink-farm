@@ -85,6 +85,7 @@ export async function GET() {
         where: { id: "default" },
       }),
       8_000,
+      { isolateCooldown: true },
     );
 
     if (settings) {
