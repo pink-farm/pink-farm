@@ -16,18 +16,37 @@ export function MakhanaNavigationLoader() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Frame-0 initial loading is handled instantaneously by layout.tsx SSR splash.
-  // isNavigating is activated smoothly during client-side route transitions.
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [isNavigating, setIsNavigating] = useState(true);
+  const [progress, setProgress] = useState(30);
 
   const startTimestampRef = useRef<number>(0);
   const currentPathnameRef = useRef<string>(pathname);
-  const isNavigatingRef = useRef<boolean>(false);
+  const isNavigatingRef = useRef<boolean>(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const initialProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Play lotus animation smoothly on initial website load
+  useEffect(() => {
+    startTimestampRef.current = Date.now();
+    isNavigatingRef.current = true;
+
+    initialProgressTimerRef.current = setTimeout(() => {
+      setProgress(100);
+    }, 400);
+
+    dismissTimerRef.current = setTimeout(() => {
+      setIsNavigating(false);
+      isNavigatingRef.current = false;
+      setProgress(0);
+    }, 700);
+
+    return () => {
+      if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    };
+  }, []);
 
   const startNavigation = useCallback((waitForRoute = false) => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -237,10 +256,10 @@ export function MakhanaNavigationLoader() {
         {isNavigating && (
           <motion.div
             key="navigation-lotus-overlay"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.28, ease: "easeInOut" } }}
-            transition={{ duration: 0.12, ease: "easeOut" }}
+            exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeOut" } }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             style={{
               transform: "translateZ(0)",
               willChange: "opacity",
