@@ -1422,10 +1422,10 @@ export function CustomerAccountClient() {
                   <div className="p-4 rounded-2xl bg-brand-cream/20 border border-brand-green/10 flex items-center justify-between">
                     <div>
                       <div className="font-bold text-brand-charcoal text-sm">
-                        Passwordless Login with Phone OTP
+                        Passwordless Login with Email OTP
                       </div>
                       <p className="text-xs text-brand-charcoal/60 mt-0.5">
-                        Your account is secured via one-time SMS verification sent to {customer.profile.phone}.
+                        Your account is secured via one-time email verification sent to {customer.profile.email}.
                       </p>
                     </div>
                     <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full flex items-center gap-1">
@@ -1461,7 +1461,7 @@ export function CustomerAccountClient() {
                     <div>
                       <div className="font-bold text-red-600 text-sm">Sign Out of Pink Farm</div>
                       <div className="text-xs text-brand-charcoal/60">
-                        You can sign back in at any time with your verified phone number.
+                        You can sign back in at any time with your verified email address.
                       </div>
                     </div>
                     <button
