@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { upload } from "@vercel/blob/client";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Store,
@@ -388,6 +389,8 @@ export default function StoreSettingsPage() {
   const [heroVideoError, setHeroVideoError] = useState("");
   const [heroVideoStatus, setHeroVideoStatus] = useState("");
   const [heroVideoSaving, setHeroVideoSaving] = useState(false);
+  const [heroVideoUploading, setHeroVideoUploading] = useState(false);
+  const [heroVideoProgress, setHeroVideoProgress] = useState(0);
 
   // Coupons
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -704,7 +707,7 @@ export default function StoreSettingsPage() {
     }
   };
 
-  const handleHeroVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeroVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
@@ -715,25 +718,38 @@ export default function StoreSettingsPage() {
       setHeroVideoError("Choose an MP4 or WebM video.");
       return;
     }
-    if (file.size > 2.5 * 1024 * 1024) {
-      setHeroVideoError("This upload is over 2.5 MB. Add a direct HTTPS MP4/WebM link for larger videos.");
+    if (file.size > 50 * 1024 * 1024) {
+      setHeroVideoError("This video is over the 50 MB upload limit.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setHeroVideo(reader.result);
-        setHeroVideoStatus("Preview ready. Save the video settings to publish it.");
-      } else {
-        setHeroVideoError("Could not read this video file.");
-      }
-    };
-    reader.onerror = () => setHeroVideoError("Could not read this video file.");
-    reader.readAsDataURL(file);
+    setHeroVideoUploading(true);
+    setHeroVideoProgress(0);
+    setHeroVideoStatus("Starting secure upload…");
+    try {
+      const extension = file.type === "video/webm" ? "webm" : "mp4";
+      const blob = await upload(`hero-background.${extension}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/settings/hero-video/upload",
+        multipart: true,
+        onUploadProgress: ({ percentage }) => {
+          const progress = Math.round(percentage);
+          setHeroVideoProgress(progress);
+          setHeroVideoStatus(`Uploading video… ${progress}%`);
+        },
+      });
+      setHeroVideo(blob.url);
+      setHeroVideoStatus("Upload complete. Publishing video…");
+      await saveHeroVideoSettings(blob.url, heroVideoOpacity);
+    } catch (error) {
+      setHeroVideoError(error instanceof Error ? error.message : "Video upload failed. Please try again.");
+      setHeroVideoStatus("");
+    } finally {
+      setHeroVideoUploading(false);
+    }
   };
 
-  const saveHeroVideoSettings = async (video = heroVideo, opacity = heroVideoOpacity) => {
+  const saveHeroVideoSettings = async (video = heroVideo, opacity = heroVideoOpacity): Promise<boolean> => {
     setHeroVideoSaving(true);
     setHeroVideoError("");
     setHeroVideoStatus("");
@@ -750,8 +766,10 @@ export default function StoreSettingsPage() {
       setHeroVideoOpacity(opacity);
       useSettingsStore.getState().setSettings({ heroVideo: video, heroVideoOpacity: opacity });
       setHeroVideoStatus(video ? "Hero video saved and live on the homepage." : "Hero video removed from the homepage.");
+      return true;
     } catch (error) {
       setHeroVideoError(error instanceof Error ? error.message : "Could not save hero video settings.");
+      return false;
     } finally {
       setHeroVideoSaving(false);
     }
@@ -1516,10 +1534,11 @@ export default function StoreSettingsPage() {
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]">
                 <div className="space-y-4">
                   <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-brand-green/30 bg-brand-green/[0.04] px-4 py-4 text-sm font-semibold text-brand-green transition-colors hover:bg-brand-green/10">
-                    <Upload size={16} /> Upload MP4 or WebM
-                    <input type="file" accept="video/mp4,video/webm,.mp4,.webm" className="sr-only" onChange={handleHeroVideoUpload} />
+                    {heroVideoUploading ? <RefreshCw size={16} className="animate-spin" /> : <Upload size={16} />}
+                    {heroVideoUploading ? `Uploading… ${heroVideoProgress}%` : "Upload MP4 or WebM (up to 50 MB)"}
+                    <input type="file" accept="video/mp4,video/webm,.mp4,.webm" className="sr-only" disabled={heroVideoUploading || heroVideoSaving} onChange={(event) => void handleHeroVideoUpload(event)} />
                   </label>
-                  <p className="text-[11px] leading-relaxed text-stone-500">Uploads are limited to 2.5 MB for reliable publishing. For larger videos, paste a direct HTTPS link to an MP4 or WebM hosted on your video/CDN service.</p>
+                  <p className="text-[11px] leading-relaxed text-stone-500">Videos upload directly to secure object storage with progress and retry support. A public Vercel Blob store must be connected to this project. You can also paste a direct HTTPS MP4/WebM URL.</p>
 
                   <div className="space-y-1.5">
                     <label htmlFor="hero-video-url" className="block text-xs font-bold text-stone-700">Or use a hosted video URL</label>
@@ -1558,12 +1577,12 @@ export default function StoreSettingsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <button type="button" disabled={heroVideoSaving} onClick={() => void saveHeroVideoSettings()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-green px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-brand-green/90 disabled:cursor-not-allowed disabled:opacity-60">
+                    <button type="button" disabled={heroVideoSaving || heroVideoUploading} onClick={() => void saveHeroVideoSettings()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-green px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-brand-green/90 disabled:cursor-not-allowed disabled:opacity-60">
                       {heroVideoSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
                       {heroVideoSaving ? "Saving…" : "Save video settings"}
                     </button>
                     {heroVideo && (
-                      <button type="button" disabled={heroVideoSaving} onClick={() => void saveHeroVideoSettings("", heroVideoOpacity)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 px-4 py-2.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60">
+                      <button type="button" disabled={heroVideoSaving || heroVideoUploading} onClick={() => void saveHeroVideoSettings("", heroVideoOpacity)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 px-4 py-2.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60">
                         <Trash2 size={14} /> Remove video
                       </button>
                     )}
