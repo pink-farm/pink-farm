@@ -112,6 +112,40 @@ export async function POST(request: Request) {
     }
     const body = parsed.value as Record<string, unknown>;
 
+    if (body.action === "saveHeroBubbleImage") {
+      const fields = {
+        center: "heroMainImage",
+        topRight: "heroGheeImage",
+        bottomLeft: "heroAlmondsImage",
+      } as const;
+      const field = fields[body.position as keyof typeof fields];
+      const image = body.image;
+      if (!field || typeof image !== "string" || !isSafeHeroImage(image)) {
+        return NextResponse.json({ error: "Choose a valid bubble image and try again." }, { status: 400 });
+      }
+
+      try {
+        const settings = await prisma.storeSettings.upsert({
+          where: { id: "default" },
+          update: { [field]: image },
+          create: { id: "default", [field]: image },
+          select: { id: true, [field]: true },
+        });
+        revalidatePath("/");
+        revalidatePath("/admin/settings");
+        return NextResponse.json({ success: true, settings });
+      } catch (error) {
+        logServerError("security.admin.settings.hero_image_persist_failed", error);
+        const code = error && typeof error === "object" && "code" in error && typeof error.code === "string"
+          ? error.code
+          : undefined;
+        return NextResponse.json({
+          error: "Bubble image could not be saved to the database.",
+          ...(code ? { code } : {}),
+        }, { status: 503 });
+      }
+    }
+
     const heroImages = [
       ["heroMainImage", body.heroMainImage],
       ["heroGheeImage", body.heroGheeImage],

@@ -378,7 +378,7 @@ export default function StoreSettingsPage() {
   const [saveError, setSaveError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [heroImageError, setHeroImageError] = useState("");
-  const [heroImagesChanged, setHeroImagesChanged] = useState(false);
+  const [heroImageStatus, setHeroImageStatus] = useState("");
 
   // Coupons
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -636,7 +636,45 @@ export default function StoreSettingsPage() {
     setHeroImageError("");
     try {
       setImage(await compressHeroImage(file));
-      setHeroImagesChanged(true);
+    } catch (error) {
+      setHeroImageError(error instanceof Error ? error.message : "Could not process this image.");
+    }
+  };
+
+  const saveHeroBubbleImage = async (position: "center" | "topRight" | "bottomLeft", image: string) => {
+    setHeroImageError("");
+    setHeroImageStatus("Saving bubble image to the database…");
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "saveHeroBubbleImage", position, image }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Could not save this bubble image.");
+      const field = position === "center" ? "heroMainImage" : position === "topRight" ? "heroGheeImage" : "heroAlmondsImage";
+      useSettingsStore.getState().setSettings({ [field]: image });
+      setHeroImageStatus("Bubble image saved to the database.");
+      return true;
+    } catch (error) {
+      setHeroImageStatus("");
+      setHeroImageError(error instanceof Error ? error.message : "Could not save this bubble image.");
+      return false;
+    }
+  };
+
+  const handleBubbleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    position: "center" | "topRight" | "bottomLeft",
+    setImage: (image: string) => void,
+  ) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    try {
+      const image = await compressHeroImage(file);
+      if (await saveHeroBubbleImage(position, image)) setImage(image);
     } catch (error) {
       setHeroImageError(error instanceof Error ? error.message : "Could not process this image.");
     }
@@ -731,7 +769,6 @@ export default function StoreSettingsPage() {
       const result = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(result.error || "Could not save settings.");
       useSettingsStore.getState().setSettings(result.settings || payload);
-      setHeroImagesChanged(false);
       setSaveSuccess(true);
       setStatusMessage("Store settings saved live across your website!");
     } catch (error) {
@@ -780,6 +817,7 @@ export default function StoreSettingsPage() {
   const heroImageFields = [
     {
       key: "main",
+      position: "center" as const,
       label: "Center",
       image: heroMainImage,
       setImage: setHeroMainImage,
@@ -787,6 +825,7 @@ export default function StoreSettingsPage() {
     },
     {
       key: "ghee",
+      position: "topRight" as const,
       label: "Top right",
       image: heroGheeImage,
       setImage: setHeroGheeImage,
@@ -794,6 +833,7 @@ export default function StoreSettingsPage() {
     },
     {
       key: "almonds",
+      position: "bottomLeft" as const,
       label: "Bottom left",
       image: heroAlmondsImage,
       setImage: setHeroAlmondsImage,
@@ -1325,8 +1365,8 @@ export default function StoreSettingsPage() {
                   <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">
                     Homepage Floating Bubble Images
                   </h3>
-                  <p className="text-xs text-stone-500">
-                    The three floating circular images displayed in the main hero header on the homepage.
+                    <p className="text-xs text-stone-500">
+                    Bubble uploads and resets are saved to the database immediately.
                   </p>
                 </div>
               </div>
@@ -1349,17 +1389,15 @@ export default function StoreSettingsPage() {
                             type="file"
                             accept="image/*"
                             className="sr-only"
-                            onChange={(event) => void handleHeroImageUpload(event, field.setImage)}
+                            onChange={(event) => void handleBubbleImageUpload(event, field.position, field.setImage)}
                           />
                         </label>
                         {field.image !== field.defaultImage && (
                           <button
                             type="button"
-                            onClick={() => {
-                              field.setImage(field.defaultImage);
-                              setHeroImagesChanged(true);
-                              setHeroImageError("");
-                            }}
+                            onClick={() => void saveHeroBubbleImage(field.position, field.defaultImage).then((saved) => {
+                              if (saved) field.setImage(field.defaultImage);
+                            })}
                             className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-stone-500 hover:bg-stone-200/60 transition-colors cursor-pointer"
                           >
                             <RotateCcw size={11} /> Reset to Default
@@ -1371,11 +1409,7 @@ export default function StoreSettingsPage() {
                 ))}
               </div>
 
-              {heroImagesChanged && (
-                <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs font-medium leading-5 text-amber-900">
-                  Your bubble preview has changed. Click <strong>Save Changes</strong> to publish it on the homepage.
-                </p>
-              )}
+              {heroImageStatus && <p role="status" className="text-xs font-medium text-emerald-700">{heroImageStatus}</p>}
               {heroImageError && <p role="alert" className="text-xs font-medium text-rose-700">{heroImageError}</p>}
             </div>
           </div>
