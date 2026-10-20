@@ -20,6 +20,8 @@ export async function GET(request: Request) {
       lon: String(longitude),
       format: "json",
       addressdetails: "1",
+      // Request the most detailed street/building result Nominatim provides.
+      zoom: "18",
     }).toString();
 
     // 1. Try OpenStreetMap Nominatim reverse geocoder
@@ -35,10 +37,11 @@ export async function GET(request: Request) {
       const data = await nominatimRes.json();
       if (data && data.address) {
         const addr = data.address;
-        const road = addr.road || addr.pedestrian || addr.street || addr.residential || "";
-        const houseNumber = addr.house_number || addr.building || "";
-        const suburb = addr.suburb || addr.neighbourhood || addr.subdivision || addr.quarter || "";
-        const city = addr.city || addr.town || addr.village || addr.state_district || addr.county || "";
+        const road = addr.road || addr.pedestrian || addr.street || addr.residential || addr.footway || "";
+        const houseNumber = addr.house_number || "";
+        const building = addr.building && addr.building !== "yes" ? addr.building : (addr.amenity || addr.shop || "");
+        const suburb = addr.suburb || addr.neighbourhood || addr.city_district || addr.quarter || addr.hamlet || "";
+        const city = addr.city || addr.town || addr.village || addr.municipality || addr.state_district || addr.county || "";
         const state = addr.state || "";
         let pinCode = addr.postcode || "";
 
@@ -47,8 +50,11 @@ export async function GET(request: Request) {
           pinCode = pinCode.replace(/\s+/g, "").slice(0, 6);
         }
 
-        const addressLine1 = [houseNumber, road].filter(Boolean).join(", ") || suburb || "";
-        const addressLine2 = suburb && addressLine1 !== suburb ? suburb : (addr.amenity || addr.shop || "");
+        // Only put actual house/building/street information in address line 1.
+        // Village and neighborhood names belong in the area field.
+        const streetAddress = [houseNumber, building, road].filter(Boolean).join(", ");
+        const addressLine1 = streetAddress;
+        const addressLine2 = [suburb, addr.village, addr.postcode_area].filter(Boolean).join(", ");
 
         return NextResponse.json({
           success: true,
@@ -57,6 +63,7 @@ export async function GET(request: Request) {
           state,
           addressLine1,
           addressLine2,
+          hasStreetAddress: Boolean(streetAddress),
           displayName: data.display_name,
         });
       }
@@ -73,8 +80,11 @@ export async function GET(request: Request) {
         pinCode: bdcData.postcode ? bdcData.postcode.replace(/\s+/g, "").slice(0, 6) : "",
         city: bdcData.city || bdcData.locality || "",
         state: bdcData.principalSubdivision || "",
-        addressLine1: bdcData.locality || "",
-        addressLine2: "",
+        // BigDataCloud provides locality-level results, not house/street
+        // addresses. Keep its locality in the area field.
+        addressLine1: "",
+        addressLine2: bdcData.locality || "",
+        hasStreetAddress: false,
         displayName: `${bdcData.locality || ""}, ${bdcData.city || ""}, ${bdcData.principalSubdivision || ""}`,
       });
     }

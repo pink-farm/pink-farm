@@ -128,6 +128,8 @@ export function CheckoutClient() {
   // Automatic Location Tracking states
   const [isLocating, setIsLocating] = useState(false);
   const [locationSuccess, setLocationSuccess] = useState<string | null>(null);
+  const [locationIsApproximate, setLocationIsApproximate] = useState(false);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
   // Autofill helpers
@@ -238,6 +240,8 @@ export function CheckoutClient() {
     setIsLocating(true);
     setLocationError(null);
     setLocationSuccess(null);
+    setLocationIsApproximate(false);
+    setLocationAccuracy(null);
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -247,26 +251,26 @@ export function CheckoutClient() {
           const data = await res.json();
 
           if (res.ok && data.success) {
-            if (data.addressLine1) {
-              setValue("addressLine1", data.addressLine1, { shouldValidate: true });
-            }
-            if (data.addressLine2) {
-              setValue("addressLine2", data.addressLine2, { shouldValidate: true });
-            }
-            if (data.city) {
-              setValue("city", data.city, { shouldValidate: true });
-            }
-            if (data.state) {
-              setValue("state", data.state, { shouldValidate: true });
-            }
-            if (data.pinCode) {
-              setValue("pinCode", data.pinCode, { shouldValidate: true });
-              setPinLookupSuccess(`${data.city}, ${data.state}`);
-            }
+            // Always replace address fields so a previous saved address is
+            // never mistaken for the result of this GPS lookup.
+            setValue("addressLine1", data.addressLine1 || "", { shouldValidate: true });
+            setValue("addressLine2", data.addressLine2 || "", { shouldValidate: true });
+            setValue("city", data.city || "", { shouldValidate: true });
+            setValue("state", data.state || "", { shouldValidate: true });
+            setValue("pinCode", data.pinCode || "", { shouldValidate: true });
+            setPinLookupSuccess(data.city && data.state ? `${data.city}, ${data.state}` : null);
 
-            const summary = data.displayName || `${data.addressLine1 ? data.addressLine1 + ", " : ""}${data.city}, ${data.state}`;
+            const gpsAccuracy = Math.round(position.coords.accuracy);
+            const summary = [data.addressLine1, data.addressLine2, data.city, data.state, data.pinCode].filter(Boolean).join(", ");
+            const hasStreetAddress = Boolean(data.hasStreetAddress && data.addressLine1);
+            setLocationAccuracy(gpsAccuracy);
+            setLocationIsApproximate(!hasStreetAddress || gpsAccuracy > 100);
             setLocationSuccess(summary);
-            setTimeout(() => setLocationSuccess(null), 8000);
+            setTimeout(() => {
+              setLocationSuccess(null);
+              setLocationIsApproximate(false);
+              setLocationAccuracy(null);
+            }, 10000);
           } else {
             setLocationError("Could not pinpoint exact address details. Please verify your address below.");
           }
@@ -290,8 +294,10 @@ export function CheckoutClient() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 30000,
+        // Wait for a fresh, more accurate fix; cached positions can point to a
+        // nearby road or neighborhood instead of the current delivery point.
+        timeout: 25000,
+        maximumAge: 0,
       }
     );
   };
@@ -608,7 +614,7 @@ export function CheckoutClient() {
                   </span>
                 </h3>
                 <p className="text-xs text-brand-charcoal/75">
-                  Tap to automatically fetch your current street address &amp; PIN code
+                  Finds your GPS position and fills address details available for that spot
                 </p>
               </div>
             </div>
@@ -635,11 +641,15 @@ export function CheckoutClient() {
 
           {/* Location Success or Error Notifications */}
           {locationSuccess && (
-            <div className="mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-800 flex items-start gap-2 animate-fadeIn">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className={`mb-5 p-3 rounded-xl border text-xs flex items-start gap-2 animate-fadeIn ${locationIsApproximate ? "bg-amber-50 border-amber-300 text-amber-900" : "bg-emerald-50 border-emerald-300 text-emerald-800"}`}>
+              {locationIsApproximate ? <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" /> : <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
               <div className="flex-1">
-                <span className="font-bold">Location Auto-Filled Successfully!</span>
-                <p className="text-[11px] text-emerald-700 mt-0.5 leading-snug">{locationSuccess}</p>
+                <span className="font-bold">{locationIsApproximate ? "GPS location found — address needs review" : "Address details found"}</span>
+                <p className={`text-[11px] mt-0.5 leading-snug ${locationIsApproximate ? "text-amber-800" : "text-emerald-700"}`}>
+                  {locationSuccess}
+                  {locationAccuracy !== null && ` (GPS accuracy about ${locationAccuracy} m)`}
+                  {locationIsApproximate && " The village/area is in Landmark / Area. Enter your house or street above if it is not listed; map data may not include building-level addresses."}
+                </p>
               </div>
             </div>
           )}
