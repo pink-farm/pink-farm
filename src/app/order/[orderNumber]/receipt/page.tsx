@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import PrintControls from "@/app/admin/(authenticated)/orders/[id]/slip/PrintControls";
@@ -43,6 +44,25 @@ export default async function CustomerReceiptPage({
   }
   const customerSession = await getCustomerSession();
   if (!canAccessOrderReference(orderNumber, customerSession?.userId, order.customerId)) notFound();
+
+  if (order.paymentStatus !== "PAID" || order.fulfillmentStatus === "CANCELLED") {
+    return (
+      <main className="mx-auto flex min-h-[55vh] max-w-xl items-center justify-center px-4 py-12 text-center">
+        <div className="w-full rounded-3xl border border-amber-200 bg-white p-7 shadow-sm sm:p-10">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-700" aria-hidden="true">₹</div>
+          <h1 className="font-serif text-2xl font-bold text-brand-green">Receipt unavailable</h1>
+          <p className="mt-3 text-sm leading-6 text-brand-charcoal/75">
+            {order.fulfillmentStatus === "CANCELLED"
+              ? "This order was cancelled, so a payment receipt cannot be issued."
+              : "A receipt will be available after payment is completed and confirmed."}
+          </p>
+          <Link href={`/order/${encodeURIComponent(order.orderNumber)}`} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-green px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-green-light">
+            Back to order details
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   const orderDate = new Date(order.createdAt).toLocaleDateString("en-IN", {
     day: "numeric",

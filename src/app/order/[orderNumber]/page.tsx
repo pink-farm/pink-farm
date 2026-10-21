@@ -2,7 +2,8 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { CheckCircle2, Clock, Printer, Star, Truck, ExternalLink } from "lucide-react";
+import { ReceiptAction } from "@/components/orders/ReceiptAction";
+import { CheckCircle2, Clock, Star, Truck, ExternalLink } from "lucide-react";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
 import { getCustomerSession } from "@/lib/auth";
 import { canAccessOrderReference } from "@/lib/session-policy.mjs";
@@ -243,12 +244,11 @@ export default async function OrderPage({
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-        <Button asChild variant="outline" className="border-brand-green w-full sm:w-auto text-xs sm:text-sm h-11 sm:h-12">
-          <Link href={`/order/${order.orderNumber}/receipt`} target="_blank">
-            <Printer className="w-4 h-4 mr-2" />
-            Print Receipt / Invoice
-          </Link>
-        </Button>
+        <ReceiptAction
+          orderNumber={order.orderNumber}
+          paymentStatus={order.paymentStatus}
+          fulfillmentStatus={order.fulfillmentStatus}
+        />
         <Button asChild className="bg-brand-green text-white hover:bg-brand-green-light w-full sm:w-auto text-xs sm:text-sm h-11 sm:h-12">
           <Link href="/products">Continue Shopping</Link>
         </Button>
