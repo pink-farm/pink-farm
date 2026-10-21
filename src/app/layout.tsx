@@ -52,6 +52,7 @@ import { BottomAnnouncementBar } from "@/components/layout/BottomAnnouncementBar
 import { LuxuryScrollProgressBar } from "@/components/ui/MotionWrappers";
 import { SettingsSync } from "@/components/layout/SettingsSync";
 import { MakhanaNavigationLoader } from "@/components/ui/MakhanaNavigationLoader";
+import { CartPersistenceSync } from "@/components/cart/CartPersistenceSync";
 
 export const instant = false;
 
@@ -88,6 +89,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-brand-ivory text-brand-charcoal">
+        <CartPersistenceSync />
         {/* Instant First-Paint Brand Splash Curtain: Eliminates any half-loaded flash before React hydrates */}
         <div
           id="pinkfarm-initial-curtain"

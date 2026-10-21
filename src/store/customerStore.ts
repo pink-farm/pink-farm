@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { activateCustomerCartPersistence, deactivateCustomerCartPersistence } from "@/store/cartStore";
 
 export interface CustomerAddress {
   id: string;
@@ -83,6 +84,7 @@ export const useCustomerStore = create<CustomerStoreState>()(
       preferences: DEFAULT_PREFERENCES,
 
       loginCustomer: (customProfile) => {
+        activateCustomerCartPersistence();
         set(() => ({
           isLoggedIn: true,
           profile: {
@@ -94,14 +96,18 @@ export const useCustomerStore = create<CustomerStoreState>()(
         }));
       },
 
-      hydrateCustomer: (data) => set({
-        isLoggedIn: true,
-        profile: { ...DEFAULT_PROFILE, ...data.profile },
-        addresses: data.addresses,
-        preferences: { ...DEFAULT_PREFERENCES, ...data.preferences },
-      }),
+      hydrateCustomer: (data) => {
+        activateCustomerCartPersistence();
+        set({
+          isLoggedIn: true,
+          profile: { ...DEFAULT_PROFILE, ...data.profile },
+          addresses: data.addresses,
+          preferences: { ...DEFAULT_PREFERENCES, ...data.preferences },
+        });
+      },
 
       logoutCustomer: () => {
+        deactivateCustomerCartPersistence();
         set({
           isLoggedIn: false,
           profile: DEFAULT_PROFILE,

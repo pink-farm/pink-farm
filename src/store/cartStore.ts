@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export interface CartItem {
   id: string; // Product ID
@@ -30,6 +29,107 @@ interface CartStore {
   clearCart: () => void;
 }
 
+const CART_STORAGE_KEY = "pink-farm-cart";
+
+function isCartItem(value: unknown): value is CartItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<CartItem>;
+  return typeof item.id === "string"
+    && typeof item.name === "string"
+    && typeof item.slug === "string"
+    && typeof item.price === "number"
+    && typeof item.quantity === "number";
+}
+
+/** Load the existing cart format, but only after the server confirms a customer session. */
+export function loadCustomerCart() {
+  if (typeof window === "undefined") return { items: [] as CartItem[], appliedCoupon: null as AppliedCoupon | null };
+  try {
+    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return { items: [] as CartItem[], appliedCoupon: null as AppliedCoupon | null };
+    const parsed = JSON.parse(raw) as { state?: { items?: unknown; appliedCoupon?: unknown } };
+    const state = parsed.state;
+    const items = Array.isArray(state?.items) ? state.items.filter(isCartItem) : [];
+    const coupon = state?.appliedCoupon;
+    const appliedCoupon = coupon && typeof coupon === "object"
+      && typeof (coupon as AppliedCoupon).code === "string"
+      && typeof (coupon as AppliedCoupon).discount === "number"
+      && typeof (coupon as AppliedCoupon).message === "string"
+      ? coupon as AppliedCoupon
+      : null;
+    return { items, appliedCoupon };
+  } catch {
+    return { items: [] as CartItem[], appliedCoupon: null as AppliedCoupon | null };
+  }
+}
+
+export function saveCustomerCart(state: Pick<CartStore, "items" | "appliedCoupon">) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ state, version: 0 }));
+  } catch {
+    // Storage can be unavailable or full; the in-memory cart remains usable.
+  }
+}
+
+export function removeCustomerCart() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(CART_STORAGE_KEY);
+  } catch {
+    // Ignore storage failures; the in-memory cart is still cleared.
+  }
+}
+
+let customerCartPersistenceEnabled = false;
+let customerCartPersistenceRevision = 0;
+
+export function getCustomerCartPersistenceRevision() {
+  return customerCartPersistenceRevision;
+}
+
+/** Initialize persistence from a server-verified session, unless a newer auth event occurred. */
+export function initializeCustomerCartPersistence(
+  isCustomer: boolean | null,
+  expectedRevision: number
+) {
+  if (customerCartPersistenceRevision !== expectedRevision) return;
+  customerCartPersistenceRevision += 1;
+
+  if (isCustomer === true) {
+    customerCartPersistenceEnabled = true;
+    useCartStore.setState(loadCustomerCart());
+    saveCustomerCart(useCartStore.getState());
+    return;
+  }
+
+  customerCartPersistenceEnabled = false;
+  useCartStore.getState().clearCart();
+  if (isCustomer === false) removeCustomerCart();
+}
+
+/** Called after a customer sign-in or authenticated profile refresh. */
+export function activateCustomerCartPersistence() {
+  customerCartPersistenceRevision += 1;
+  const currentCart = useCartStore.getState();
+  if (currentCart.items.length === 0 && !currentCart.appliedCoupon) {
+    const savedCart = loadCustomerCart();
+    if (savedCart.items.length > 0 || savedCart.appliedCoupon) {
+      useCartStore.setState(savedCart);
+    }
+  }
+  customerCartPersistenceEnabled = true;
+  saveCustomerCart(useCartStore.getState());
+}
+
+/** Called on customer sign-out. */
+export function deactivateCustomerCartPersistence() {
+  customerCartPersistenceRevision += 1;
+  customerCartPersistenceEnabled = false;
+  removeCustomerCart();
+  useCartStore.getState().clearCart();
+}
+
 function matchCartItem(
   item: { id: string; variantId?: string; variantName?: string },
   targetId: string,
@@ -45,7 +145,6 @@ function matchCartItem(
 }
 
 export const useCartStore = create<CartStore>()(
-  persist(
     (set) => ({
       items: [],
       appliedCoupon: null,
@@ -89,9 +188,9 @@ export const useCartStore = create<CartStore>()(
           return { items: updatedItems };
         }),
       clearCart: () => set({ items: [], appliedCoupon: null }),
-    }),
-    {
-      name: "pink-farm-cart",
-    }
-  )
+    })
 );
+
+useCartStore.subscribe((state) => {
+  if (customerCartPersistenceEnabled) saveCustomerCart(state);
+});
