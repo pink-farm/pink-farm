@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const contentSecurityPolicy = (formAction: string) =>
-  `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action ${formAction}; frame-src 'self' https://*.razorpay.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.razorpay.com` +
-  `; connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://api.postalpincode.in https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com https://vercel.com https://*.blob.vercel-storage.com; upgrade-insecure-requests`;
+  `default-src 'self' https://razorpay.com https://*.razorpay.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action ${formAction} https://razorpay.com https://*.razorpay.com; frame-src 'self' https://razorpay.com https://*.razorpay.com; child-src 'self' https://razorpay.com https://*.razorpay.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data: https://razorpay.com https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://razorpay.com https://*.razorpay.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://razorpay.com https://*.razorpay.com; worker-src 'self' blob: https://razorpay.com https://*.razorpay.com` +
+  `; connect-src 'self' https://razorpay.com https://*.razorpay.com https://api.postalpincode.in https://vercel.com https://*.blob.vercel-storage.com; upgrade-insecure-requests`;
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -31,6 +31,8 @@ const nextConfig: NextConfig = {
       headers: [
         // Razorpay may POST checkout form data to a bank-owned HTTPS endpoint for NetBanking.
         { key: "Content-Security-Policy", value: contentSecurityPolicy("'self' https:") },
+        // Keep Razorpay's cross-origin payment popups connected to the checkout window.
+        { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
       ],
     }];
   },
