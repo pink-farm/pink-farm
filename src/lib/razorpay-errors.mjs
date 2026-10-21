@@ -1,4 +1,24 @@
 const SAFE_PROVIDER_CODE = /^[A-Z][A-Z0-9_]{0,63}$/;
+const SAFE_PROVIDER_DETAIL = /^[a-z][a-z0-9_]{0,63}$/;
+
+/** Extract only stable, non-sensitive fields from a browser Checkout failure. */
+export function getRazorpayPaymentFailureDiagnostics(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const error = value.error && typeof value.error === "object" && !Array.isArray(value.error)
+    ? value.error
+    : value;
+  const code = typeof error.code === "string" && SAFE_PROVIDER_CODE.test(error.code) ? error.code : undefined;
+  const source = typeof error.source === "string" && SAFE_PROVIDER_DETAIL.test(error.source) ? error.source : undefined;
+  const step = typeof error.step === "string" && SAFE_PROVIDER_DETAIL.test(error.step) ? error.step : undefined;
+  const reason = typeof error.reason === "string" && SAFE_PROVIDER_DETAIL.test(error.reason) ? error.reason : undefined;
+
+  return {
+    ...(code ? { code } : {}),
+    ...(source ? { source } : {}),
+    ...(step ? { step } : {}),
+    ...(reason ? { reason } : {}),
+  };
+}
 
 /** Extract only stable, non-sensitive Razorpay diagnostics from SDK errors. */
 export function getRazorpayErrorDiagnostics(error) {

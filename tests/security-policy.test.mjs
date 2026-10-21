@@ -15,7 +15,7 @@ import { AdminProductInputError, classifyAdminProductError } from "../src/lib/ad
 import { logServerError } from "../src/lib/server-log.mjs";
 import { getCouponInputErrorMessage } from "../src/lib/admin-coupon-errors.mjs";
 import { resolveAdminEmail } from "../src/lib/admin-identity.mjs";
-import { classifyRazorpayOrderError, getRazorpayErrorDiagnostics } from "../src/lib/razorpay-errors.mjs";
+import { classifyRazorpayOrderError, getRazorpayErrorDiagnostics, getRazorpayPaymentFailureDiagnostics } from "../src/lib/razorpay-errors.mjs";
 import { readFile } from "node:fs/promises";
 import { verifyRazorpayWebhookSignature } from "../src/lib/razorpay-webhook.mjs";
 import { createHmac } from "node:crypto";
@@ -159,13 +159,38 @@ test("Razorpay failures log only safe provider diagnostics and map auth, outage,
   assert.deepEqual(getRazorpayErrorDiagnostics({ statusCode: 999, code: "private data" }), {});
 });
 
-test("production CSP explicitly permits Razorpay Checkout without a wildcard script source", async () => {
+test("production CSP permits Razorpay resources and bank form submissions", async () => {
   const config = await readFile(new URL("../next.config.ts", import.meta.url), "utf8");
-  assert.match(config, /script-src[^`]*https:\/\/checkout\.razorpay\.com/);
-  assert.match(config, /script-src[^`]*https:\/\/cdn\.razorpay\.com/);
-  assert.doesNotMatch(config, /script-src[^`]*\*/);
-  assert.match(config, /connect-src 'self' https:\/\/api\.razorpay\.com https:\/\/checkout\.razorpay\.com https:\/\/api\.postalpincode\.in/);
+  assert.match(config, /default-src 'self' https:\/\/razorpay\.com https:\/\/\*\.razorpay\.com/);
+  assert.match(config, /script-src[^`]*https:\/\/\*\.razorpay\.com/);
+  assert.match(config, /connect-src[^`]*https:\/\/\*\.razorpay\.com/);
+  assert.match(config, /form-action \$\{formAction\} https:\/\/razorpay\.com https:\/\/\*\.razorpay\.com/);
+  assert.match(config, /checkout \? "https:" : "https:\/\/razorpay\.com https:\/\/\*\.razorpay\.com"/);
+  assert.match(config, /frame-src 'self' \$\{paymentFrames\}; child-src 'self' \$\{paymentFrames\}/);
+  assert.match(config, /contentSecurityPolicy\("'self' https:", true\)/);
+  assert.match(config, /Cross-Origin-Opener-Policy", value: "same-origin-allow-popups"/);
   assert.doesNotMatch(config, /connect-src[^`]*https:\s*;/);
+});
+
+test("Razorpay payment failure logs keep only safe diagnostic codes", () => {
+  assert.deepEqual(getRazorpayPaymentFailureDiagnostics({ error: {
+    code: "GATEWAY_ERROR",
+    source: "gateway",
+    step: "payment_authentication",
+    reason: "payment_failed",
+    description: "private payment detail",
+    metadata: { email: "customer@example.com" },
+  } }), {
+    code: "GATEWAY_ERROR",
+    source: "gateway",
+    step: "payment_authentication",
+    reason: "payment_failed",
+  });
+  assert.deepEqual(getRazorpayPaymentFailureDiagnostics({ error: {
+    code: "bad code",
+    source: "RazorPay",
+    reason: "private details",
+  } }), {});
 });
 
 test("Razorpay webhook signature checks the exact raw body and rejects malformed signatures", () => {
