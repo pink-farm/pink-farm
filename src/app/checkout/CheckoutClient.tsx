@@ -36,9 +36,18 @@ type RazorpayPaymentResult = {
   razorpay_signature: string;
 };
 
+type RazorpayPaymentFailure = {
+  error?: {
+    code?: unknown;
+    source?: unknown;
+    step?: unknown;
+    reason?: unknown;
+  };
+};
+
 type RazorpayCheckout = {
   open: () => void;
-  on: (event: "payment.failed", handler: () => void) => void;
+  on: (event: "payment.failed", handler: (failure: RazorpayPaymentFailure) => void) => void;
 };
 
 type RazorpayCheckoutOptions = {
@@ -470,7 +479,22 @@ export function CheckoutClient() {
           },
         },
       });
-      razorpay.on("payment.failed", () => {
+      razorpay.on("payment.failed", (failure) => {
+        void fetch("/api/checkout/payment-failed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: responseData.orderId,
+            razorpayOrderId: responseData.razorpayOrderId,
+            cancelToken: responseData.cancelToken,
+            failure: {
+              code: failure?.error?.code,
+              source: failure?.error?.source,
+              step: failure?.error?.step,
+              reason: failure?.error?.reason,
+            },
+          }),
+        }).catch(() => {});
         setError("Payment was not completed. Your cart is still here. Please try again or choose another payment method.");
         setIsProcessing(false);
       });
