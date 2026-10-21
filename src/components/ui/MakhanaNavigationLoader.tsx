@@ -23,9 +23,12 @@ export function MakhanaNavigationLoader() {
   const currentPathnameRef = useRef<string>(pathname);
   const isNavigatingRef = useRef<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const initialProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Minimum time (in ms) the lotus bloom loader remains visible to ensure
+  // a complete, luxurious bloom experience without cutting off abruptly on fast routes like "/"
+  const MIN_BLOOM_DURATION_MS = 1100;
 
   // 1. Initial Page Load: Smoothly dismiss the server-rendered HTML curtain once React hydrates
   useEffect(() => {
@@ -45,55 +48,63 @@ export function MakhanaNavigationLoader() {
     }
   }, []);
 
-  const startNavigation = useCallback((waitForRoute = false) => {
+  const startNavigation = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
-    if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
     startTimestampRef.current = Date.now();
     isNavigatingRef.current = true;
     setIsNavigating(true);
-    setProgress(35);
+    setProgress(30);
 
-    // Increment progress bar smoothly
+    // Increment progress bar smoothly up to 88% while waiting for page
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 90) {
+        if (prev >= 88) {
           if (timerRef.current) clearInterval(timerRef.current);
-          return 90;
+          return 88;
         }
-        return prev + 12;
+        return prev + 10;
       });
-    }, 90);
+    }, 80);
 
-    // Generous safety fallback (6s) so slow server routes never end prematurely
+    // Generous safety fallback (7s) so slow server routes never end prematurely
     safetyTimeoutRef.current = setTimeout(() => {
+      if (timerRef.current) clearInterval(timerRef.current);
       setIsNavigating(false);
       isNavigatingRef.current = false;
       setProgress(0);
-    }, 6000);
+    }, 7000);
   }, []);
 
   const completeNavigation = useCallback(() => {
+    if (!isNavigatingRef.current) return;
+
     if (timerRef.current) clearInterval(timerRef.current);
-    if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
-    setProgress(100);
+    // Calculate how long the loader has been active
+    const elapsed = Date.now() - startTimestampRef.current;
+    const remainingTime = Math.max(0, MIN_BLOOM_DURATION_MS - elapsed);
 
-    // Keep lotus visible for 300ms to finish its bloom, then dissolve smoothly into the new page (ZERO GAP)
+    // Guarantee the lotus has time to bloom gracefully before dissolving
     dismissTimerRef.current = setTimeout(() => {
-      setIsNavigating(false);
-      isNavigatingRef.current = false;
-      setProgress(0);
-    }, 300);
+      setProgress(100);
+
+      // Give 200ms for progress bar to hit 100% and bloom to peak, then dissolve smoothly into new page
+      setTimeout(() => {
+        setIsNavigating(false);
+        isNavigatingRef.current = false;
+        setTimeout(() => setProgress(0), 350);
+      }, 200);
+    }, remainingTime);
   }, []);
 
   // Listen for the new route to be mounted into the DOM via template.tsx
   useEffect(() => {
     const handleRouteMounted = () => {
+      if (!isNavigatingRef.current) return;
       currentPathnameRef.current = window.location.pathname;
       window.scrollTo(0, 0);
       completeNavigation();
@@ -110,7 +121,7 @@ export function MakhanaNavigationLoader() {
     if (currentPathnameRef.current !== pathname) {
       currentPathnameRef.current = pathname;
       if (!isNavigatingRef.current) {
-        startNavigation(false);
+        startNavigation();
       }
       setProgress((prev) => Math.max(prev, 90));
     }
@@ -119,7 +130,7 @@ export function MakhanaNavigationLoader() {
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
     window.pinkfarmNavigate = (url: string) => {
-      startNavigation(true);
+      startNavigation();
       router.push(url);
     };
 
@@ -133,7 +144,7 @@ export function MakhanaNavigationLoader() {
     const handleDocumentClick = (e: MouseEvent) => {
       if (e.button !== 0) return; // Only primary left clicks
 
-      const target = (e.target as HTMLElement)?.closest("a");
+      const target = e.target instanceof Element ? e.target.closest("a") : null;
       if (!target) return;
 
       if (target.hasAttribute("download")) return;
@@ -176,20 +187,19 @@ export function MakhanaNavigationLoader() {
         return;
       }
 
-      // Instantly bring up lotus loader to cover the 2-3s server route fetching
-      startNavigation(true);
+      // Instantly bring up lotus loader to cover route transition
+      startNavigation();
     };
 
     // Custom events for manual triggers
-    const handleCustomStart = (event: Event) => {
-      const waitForRoute = (event as CustomEvent<{ waitForRoute?: boolean }>).detail?.waitForRoute === true;
-      startNavigation(waitForRoute);
+    const handleCustomStart = () => {
+      startNavigation();
     };
     const handleCustomStop = () => completeNavigation();
 
     // Listen to browser Back / Forward buttons
     const handlePopState = () => {
-      startNavigation(true);
+      startNavigation();
     };
 
     // Use CAPTURE phase so we intercept before any child prevents default
@@ -204,7 +214,6 @@ export function MakhanaNavigationLoader() {
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);
       if (timerRef.current) clearInterval(timerRef.current);
-      if (initialProgressTimerRef.current) clearTimeout(initialProgressTimerRef.current);
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
       if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
     };
@@ -233,15 +242,14 @@ export function MakhanaNavigationLoader() {
         </div>
       )}
 
-      {/* 2. Smooth Lotus Transition (Covers screen smoothly, renders next page behind it, dissolves out) */}
+      {/* 2. Instant-on, Silky-dissolve Lotus Transition (covers screen instantly, holds full bloom, dissolves into new page) */}
       <AnimatePresence>
         {isNavigating && (
           <motion.div
             key="navigation-lotus-overlay"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.32, ease: "easeOut" }}
+            animate={{ opacity: 1, transition: { duration: 0.12, ease: "easeOut" } }}
+            exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeOut" } }}
             style={{
               transform: "translateZ(0)",
               willChange: "opacity",

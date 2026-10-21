@@ -58,7 +58,6 @@ export function LotusLoader({
             height={height}
             loading="eager"
             priority={true}
-            decoding="async"
             unoptimized
             className="w-full h-full object-contain pointer-events-none select-none"
           />
