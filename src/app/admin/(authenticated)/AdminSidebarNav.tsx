@@ -248,11 +248,6 @@ export function AdminSidebarNav() {
           <LogoutButton />
         </div>
       </aside>
-
-      {/* Mobile Floating Quick Sign-Out Button (always fixed at bottom-left, zero scroll) */}
-      <div className="md:hidden fixed bottom-4 left-4 z-40 print:hidden">
-        <LogoutButton compact />
-      </div>
     </>
   );
 }

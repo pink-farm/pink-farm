@@ -956,7 +956,7 @@ export default function StoreSettingsPage() {
 
   return (
     <motion.div
-      className="max-w-6xl mx-auto space-y-6 pb-20"
+      className="max-w-6xl mx-auto space-y-6 pb-28 sm:pb-24"
       initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.35, ease: "easeOut" }}
@@ -1783,7 +1783,7 @@ export default function StoreSettingsPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="block text-xs font-bold text-stone-700">Tier Name</label>
                       <input
@@ -1797,22 +1797,22 @@ export default function StoreSettingsPage() {
 
                     <div className="space-y-1">
                       <label className="block text-xs font-bold text-stone-700">Emoji Icon</label>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <input
                           type="text"
                           value={comboTier1Emoji}
                           onChange={(e) => setComboTier1Emoji(e.target.value)}
                           placeholder="🌿"
                           maxLength={6}
-                          className="w-16 px-2.5 py-2 text-center rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                          className="w-14 px-2 py-2 text-center rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm shrink-0"
                         />
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1">
                           {["🌿", "🌱", "✨", "🌸", "🥜"].map((em) => (
                             <button
                               key={em}
                               type="button"
                               onClick={() => setComboTier1Emoji(em)}
-                              className="text-sm p-1 rounded-md hover:bg-stone-200/60 cursor-pointer"
+                              className="text-sm p-1 rounded-md hover:bg-stone-200/60 cursor-pointer transition-colors"
                             >
                               {em}
                             </button>
@@ -1821,36 +1821,38 @@ export default function StoreSettingsPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="block text-xs font-bold text-stone-700">Required Items Count</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={20}
-                        value={comboTier1Count}
-                        onChange={(e) => setComboTier1Count(e.target.value)}
-                        placeholder="3"
-                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-xs font-bold text-stone-700">Discount Percentage (%)</label>
-                      <div className="relative">
+                    <div className="grid grid-cols-2 gap-3 sm:col-span-2">
+                      <div className="space-y-1">
+                        <label className="block text-xs font-bold text-stone-700">Required Items Count</label>
                         <input
                           type="number"
                           min={1}
-                          max={99}
-                          value={comboTier1Discount}
-                          onChange={(e) => setComboTier1Discount(e.target.value)}
-                          placeholder="11"
-                          className="w-full px-3 py-2 pr-7 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                          max={20}
+                          value={comboTier1Count}
+                          onChange={(e) => setComboTier1Count(e.target.value)}
+                          placeholder="3"
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
                         />
-                        <span className="absolute right-3 top-2 text-stone-400 text-xs font-bold">%</span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-bold text-stone-700">Discount Percentage (%)</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min={1}
+                            max={99}
+                            value={comboTier1Discount}
+                            onChange={(e) => setComboTier1Discount(e.target.value)}
+                            placeholder="11"
+                            className="w-full px-3 py-2 pr-7 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                          />
+                          <span className="absolute right-3 top-2 text-stone-400 text-xs font-bold">%</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-1 col-span-2">
+                    <div className="space-y-1 sm:col-span-2">
                       <label className="block text-xs font-bold text-stone-700">Badge Text</label>
                       <input
                         type="text"
@@ -1861,7 +1863,7 @@ export default function StoreSettingsPage() {
                       />
                     </div>
 
-                    <div className="space-y-1 col-span-2">
+                    <div className="space-y-1 sm:col-span-2">
                       <label className="block text-xs font-bold text-stone-700">Tagline / Instruction</label>
                       <input
                         type="text"
@@ -1891,7 +1893,7 @@ export default function StoreSettingsPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="block text-xs font-bold text-stone-700">Tier Name</label>
                       <input
@@ -1905,22 +1907,22 @@ export default function StoreSettingsPage() {
 
                     <div className="space-y-1">
                       <label className="block text-xs font-bold text-stone-700">Emoji Icon</label>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <input
                           type="text"
                           value={comboTier2Emoji}
                           onChange={(e) => setComboTier2Emoji(e.target.value)}
                           placeholder="🌸"
                           maxLength={6}
-                          className="w-16 px-2.5 py-2 text-center rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                          className="w-14 px-2 py-2 text-center rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm shrink-0"
                         />
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1">
                           {["🌸", "🌿", "🔥", "⭐", "🎁"].map((em) => (
                             <button
                               key={em}
                               type="button"
                               onClick={() => setComboTier2Emoji(em)}
-                              className="text-sm p-1 rounded-md hover:bg-stone-200/60 cursor-pointer"
+                              className="text-sm p-1 rounded-md hover:bg-stone-200/60 cursor-pointer transition-colors"
                             >
                               {em}
                             </button>
@@ -1929,36 +1931,38 @@ export default function StoreSettingsPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="block text-xs font-bold text-stone-700">Required Items Count</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={20}
-                        value={comboTier2Count}
-                        onChange={(e) => setComboTier2Count(e.target.value)}
-                        placeholder="5"
-                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-xs font-bold text-stone-700">Discount Percentage (%)</label>
-                      <div className="relative">
+                    <div className="grid grid-cols-2 gap-3 sm:col-span-2">
+                      <div className="space-y-1">
+                        <label className="block text-xs font-bold text-stone-700">Required Items Count</label>
                         <input
                           type="number"
                           min={1}
-                          max={99}
-                          value={comboTier2Discount}
-                          onChange={(e) => setComboTier2Discount(e.target.value)}
-                          placeholder="15"
-                          className="w-full px-3 py-2 pr-7 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                          max={20}
+                          value={comboTier2Count}
+                          onChange={(e) => setComboTier2Count(e.target.value)}
+                          placeholder="5"
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
                         />
-                        <span className="absolute right-3 top-2 text-stone-400 text-xs font-bold">%</span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-bold text-stone-700">Discount Percentage (%)</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min={1}
+                            max={99}
+                            value={comboTier2Discount}
+                            onChange={(e) => setComboTier2Discount(e.target.value)}
+                            placeholder="15"
+                            className="w-full px-3 py-2 pr-7 rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-brand-green text-sm"
+                          />
+                          <span className="absolute right-3 top-2 text-stone-400 text-xs font-bold">%</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-1 col-span-2">
+                    <div className="space-y-1 sm:col-span-2">
                       <label className="block text-xs font-bold text-stone-700">Badge Text</label>
                       <input
                         type="text"
@@ -1969,7 +1973,7 @@ export default function StoreSettingsPage() {
                       />
                     </div>
 
-                    <div className="space-y-1 col-span-2">
+                    <div className="space-y-1 sm:col-span-2">
                       <label className="block text-xs font-bold text-stone-700">Tagline / Instruction</label>
                       <input
                         type="text"
