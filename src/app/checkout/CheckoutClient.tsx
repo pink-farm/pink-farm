@@ -221,6 +221,11 @@ export function CheckoutClient() {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [reset, isLoggedIn]);
 
+  // Preload Razorpay checkout script so user clicks trigger payment without network delay
+  useEffect(() => {
+    void loadRazorpayCheckout().catch(() => {});
+  }, []);
+
   // Real-time Postal PIN Code lookup for auto-filling City & State
   useEffect(() => {
     if (!pinCodeValue || pinCodeValue.length !== 6 || !/^[1-9][0-9]{5}$/.test(pinCodeValue)) {
