@@ -165,7 +165,9 @@ test("production CSP permits Razorpay resources and bank form submissions", asyn
   assert.match(config, /script-src[^`]*https:\/\/\*\.razorpay\.com/);
   assert.match(config, /connect-src[^`]*https:\/\/\*\.razorpay\.com/);
   assert.match(config, /form-action \$\{formAction\} https:\/\/razorpay\.com https:\/\/\*\.razorpay\.com/);
-  assert.match(config, /contentSecurityPolicy\("'self' https:"\)/);
+  assert.match(config, /checkout \? "https:" : "https:\/\/razorpay\.com https:\/\/\*\.razorpay\.com"/);
+  assert.match(config, /frame-src 'self' \$\{paymentFrames\}; child-src 'self' \$\{paymentFrames\}/);
+  assert.match(config, /contentSecurityPolicy\("'self' https:", true\)/);
   assert.match(config, /Cross-Origin-Opener-Policy", value: "same-origin-allow-popups"/);
   assert.doesNotMatch(config, /connect-src[^`]*https:\s*;/);
 });
