@@ -59,6 +59,8 @@ type RazorpayCheckoutOptions = {
   order_id: string;
   prefill: { name: string; contact: string };
   theme: { color: string };
+  redirect?: boolean;
+  callback_url?: string;
   handler: (response: RazorpayPaymentResult) => void | Promise<void>;
   modal: { ondismiss: () => void };
 };
@@ -425,6 +427,8 @@ export function CheckoutClient() {
         order_id: responseData.razorpayOrderId,
         prefill: { name: data.fullName, contact: data.mobile },
         theme: { color: "#246b45" },
+        redirect: true,
+        callback_url: typeof window !== "undefined" ? `${window.location.origin}/api/razorpay/callback` : undefined,
         handler: async (payment) => {
           paymentVerificationStarted = true;
           try {

@@ -9,9 +9,7 @@ import { canAccessOrderReference } from "@/lib/session-policy.mjs";
 import { resolveTrackingUrl } from "@/lib/tracking";
 import type { Prisma } from "@prisma/client";
 import { logServerError } from "@/lib/server-log.mjs";
-
-
-
+import { OrderSuccessEffect } from "@/components/checkout/OrderSuccessEffect";
 export const instant = false;
 
 export default async function OrderPage({
@@ -41,6 +39,7 @@ export default async function OrderPage({
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-16 max-w-3xl min-w-0 w-full pb-24 sm:pb-16">
+      <OrderSuccessEffect isPaid={isSuccess} />
       <div className="bg-white p-6 sm:p-8 md:p-12 rounded-3xl shadow-sm border border-brand-green-light/10 text-center mb-8 min-w-0">
         {isSuccess ? (
           <div className="flex flex-col items-center">
