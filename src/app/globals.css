@@ -101,20 +101,20 @@
 }
 
 @keyframes hero-gold-shimmer {
-  0%, 15% {
-    background-position: 200% center;
+  from {
+    background-position: 100% center;
   }
-  65%, 100% {
-    background-position: -200% center;
+  to {
+    background-position: 0% center;
   }
 }
 
 @keyframes hero-forest-shimmer {
-  0%, 15% {
-    background-position: 200% center;
+  from {
+    background-position: 100% center;
   }
-  65%, 100% {
-    background-position: -200% center;
+  to {
+    background-position: 0% center;
   }
 }
 
@@ -122,21 +122,28 @@
   background: linear-gradient(
     110deg,
     #967035 0%,
-    #967035 25%,
-    #B88E4C 38%,
-    #F3D89A 47%,
-    #FFF8E7 50%,
-    #F3D89A 53%,
-    #B88E4C 62%,
-    #967035 75%,
+    #967035 15%,
+    #B88E4C 20%,
+    #F5DE9C 23.5%,
+    #FFFDF5 25%,
+    #F5DE9C 26.5%,
+    #B88E4C 30%,
+    #967035 35%,
+    #967035 65%,
+    #B88E4C 70%,
+    #F5DE9C 73.5%,
+    #FFFDF5 75%,
+    #F5DE9C 76.5%,
+    #B88E4C 80%,
+    #967035 85%,
     #967035 100%
   );
-  background-size: 260% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
-  animation: hero-gold-shimmer 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: hero-gold-shimmer 12s linear infinite;
   will-change: background-position;
 }
 
@@ -144,21 +151,28 @@
   background: linear-gradient(
     110deg,
     #132B22 0%,
-    #132B22 25%,
-    #1F4637 38%,
-    #3E7963 47%,
-    #72B99D 50%,
-    #3E7963 53%,
-    #1F4637 62%,
-    #132B22 75%,
+    #132B22 15%,
+    #1F4839 20%,
+    #3F7C66 23.5%,
+    #8EE0BD 25%,
+    #3F7C66 26.5%,
+    #1F4839 30%,
+    #132B22 35%,
+    #132B22 65%,
+    #1F4839 70%,
+    #3F7C66 73.5%,
+    #8EE0BD 75%,
+    #3F7C66 76.5%,
+    #1F4839 80%,
+    #132B22 85%,
     #132B22 100%
   );
-  background-size: 260% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
-  animation: hero-forest-shimmer 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: hero-forest-shimmer 12s linear infinite;
   will-change: background-position;
 }
 
