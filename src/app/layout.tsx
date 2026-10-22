@@ -6,18 +6,10 @@ export const metadata: Metadata = {
   title: "Pink Farm — Premium Makhana & Everyday Favourites",
   description: "Discover thoughtfully selected everyday favourites, with Makhana at the heart of Pink Farm. Goodness That Feels Like Home.",
   icons: {
-    icon: [
-      { url: "/icon-48x48.png", sizes: "48x48", type: "image/png" },
-      { url: "/icon-96x96.png", sizes: "96x96", type: "image/png" },
-      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon.ico" },
-    ],
+    icon: [{ url: "/icon-192x192.png", sizes: "192x192", type: "image/png" }],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
-    shortcut: "/favicon.ico",
   },
   manifest: "/site.webmanifest",
   openGraph: {
@@ -75,14 +67,6 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="preload" as="image" href="/images/lotus-loader.webp" type="image/webp" />
-        <link rel="icon" type="image/png" sizes="48x48" href="/icon-48x48.png" />
-        <link rel="icon" type="image/png" sizes="96x96" href="/icon-96x96.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
