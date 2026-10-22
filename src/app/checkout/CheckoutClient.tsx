@@ -885,7 +885,7 @@ export function CheckoutClient() {
 
       {/* Order Summary & Payment */}
       <div className="flex-1 min-w-0">
-        <div className="bg-brand-cream p-4 sm:p-6 md:p-8 rounded-3xl sticky top-24 border border-brand-green-light/10 shadow-sm min-w-0">
+        <div className="bg-brand-cream p-4 sm:p-6 md:p-8 rounded-3xl lg:sticky lg:top-24 border border-brand-green-light/10 shadow-sm min-w-0 [transform:translateZ(0)] [backface-visibility:hidden]">
           <h2 className="font-serif text-xl sm:text-2xl text-brand-green mb-5 sm:mb-6 font-bold">Review &amp; Place Order</h2>
           
           <div className="space-y-3 mb-4 max-h-60 sm:max-h-72 overflow-y-auto pr-1 min-w-0">
@@ -973,7 +973,7 @@ export function CheckoutClient() {
             type="submit"
             form="checkout-form"
             size="lg" 
-            className="w-full text-base h-14 shadow-md hover:shadow-lg transition-all font-bold cursor-pointer"
+            className="w-full text-base h-14 shadow-md hover:shadow-lg transition-colors font-bold cursor-pointer [transform:translateZ(0)] [backface-visibility:hidden]"
             disabled={isProcessing || !isAcceptingOrders}
           >
             {isProcessing ? (
