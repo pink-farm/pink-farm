@@ -14,11 +14,11 @@ interface HeroSectionProps {
 
 export function HeroSection({ storeSettings }: HeroSectionProps) {
   // Configurable & replaceable hero images (uses admin upload if valid custom image, else default premium photography)
-  const isCustomMain = storeSettings?.heroMainImage && 
+  const isCustomMain = storeSettings?.heroMainImage &&
     !storeSettings.heroMainImage.includes("festive") &&
     storeSettings.heroMainImage !== "/images/makhana_sig.jpg";
 
-  const isCustomSecondary = storeSettings?.heroGheeImage && 
+  const isCustomSecondary = storeSettings?.heroGheeImage &&
     !storeSettings.heroGheeImage.includes("festive") &&
     storeSettings.heroGheeImage !== "/images/ghee.jpg";
 
@@ -38,11 +38,11 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
     >
 
       {/* Subtle Ambient Background Hearth Glow */}
-      <div 
-        aria-hidden="true" 
+      <div
+        aria-hidden="true"
         className="absolute inset-0 pointer-events-none overflow-hidden z-0"
       >
-        <div 
+        <div
           className="absolute -top-32 right-[-10%] w-[58rem] h-[58rem] rounded-full blur-[140px] opacity-40 pointer-events-none"
           style={{
             background: "radial-gradient(circle, #EADBCA 0%, rgba(234, 219, 195, 0.4) 50%, transparent 75%)"
@@ -60,16 +60,16 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
       {/* Main Container */}
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
-          
+
           {/* ================= LEFT COLUMN: EDITORIAL TYPOGRAPHY & BRAND ================= */}
           <div className="lg:col-span-6 xl:col-span-6 flex flex-col items-start text-left space-y-6 sm:space-y-7 z-20">
-            
+
             {/* Headline with Luxury Animated Light Shine */}
             <div className="space-y-1 sm:space-y-1.5 w-full">
               <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-semibold leading-[1.08] tracking-tight block">
                 <span className="hero-forest-shine">Goodness That</span>
               </h1>
-              <span 
+              <span
                 className="font-serif italic font-normal text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] leading-[1.12] tracking-normal block select-text drop-shadow-[0_2px_12px_rgba(180,135,60,0.18)]"
               >
                 <span className="hero-gold-shine">Feels Like Home.</span>
@@ -95,7 +95,7 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
             {/* Feature Strip (NATURAL • ORGANIC • HANDCRAFTED) */}
             <div className="pt-6 sm:pt-7 w-full border-t border-[#E3D6C3]/80">
               <div className="flex flex-wrap items-center gap-6 sm:gap-9 text-[#68553D]">
-                
+
                 {/* 1. NATURAL */}
                 <div className="flex items-center gap-2.5 group cursor-default">
                   <div className="w-8 h-8 rounded-full bg-[#EFE3CF] flex items-center justify-center text-[#7F6440] transition-transform duration-300 group-hover:scale-110 shadow-xs">
@@ -105,7 +105,7 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                       <line x1="17.5" y1="15" x2="9" y2="15" />
                     </svg>
                   </div>
-                  <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">NATURAL</span>
+                  <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">PURE</span>
                 </div>
 
                 {/* 2. ORGANIC */}
@@ -118,7 +118,7 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                       <path d="M12 5a3 3 0 0 0-3-3c0 2 1.5 3 3 3z" />
                     </svg>
                   </div>
-                  <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">ORGANIC</span>
+                  <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">PREMIUM</span>
                 </div>
 
                 {/* 3. HANDCRAFTED */}
@@ -129,7 +129,7 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                       <path d="M12 5v4" />
                     </svg>
                   </div>
-                  <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">HANDCRAFTED</span>
+                  <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">TRUSTED</span>
                 </div>
 
               </div>
@@ -139,12 +139,12 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
 
           {/* ================= RIGHT COLUMN: EXACT REFERENCE IMAGE COMPOSITION ================= */}
           <div className="lg:col-span-6 xl:col-span-6 relative flex items-center justify-center mt-6 lg:mt-0">
-            
+
             {/* The Composition Stage Container (Shifted left by ~5% for optimal visual balance) */}
             <div className="relative w-full max-w-[510px] lg:-translate-x-6">
-              
+
               {/* 1. Subtle Beige Circular Shape Behind Main Image */}
-              <div 
+              <div
                 aria-hidden="true"
                 className="absolute -top-12 -right-8 sm:-top-16 sm:-right-10 w-[380px] sm:w-[470px] lg:w-[500px] aspect-square rounded-full pointer-events-none z-0"
                 style={{
@@ -154,8 +154,8 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
 
               {/* 2. Harmonious Blooming Botanical Golden Lotus Illustration
                      Positioned behind the images (z-0), smoothly breathing in a synchronized 8s cycle */}
-              <motion.div 
-                aria-hidden="true" 
+              <motion.div
+                aria-hidden="true"
                 animate={{
                   scale: [1, 1.025, 0.99, 1],
                   y: [0, -5, 3, 0],
@@ -213,7 +213,7 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
               </div>
 
               {/* 5. Luxury Golden 4-Point Starlight Twinkle Animation */}
-              <motion.div 
+              <motion.div
                 aria-hidden="true"
                 animate={{
                   scale: [1, 1.25, 0.95, 1.2, 1],
@@ -231,8 +231,8 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                 <div className="absolute inset-0 rounded-full blur-[6px] bg-[#E8C582]/40 scale-125" />
 
                 {/* Crisp 4-Pointed Star SVG */}
-                <svg 
-                  viewBox="0 0 40 40" 
+                <svg
+                  viewBox="0 0 40 40"
                   className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-[0_2px_8px_rgba(201,160,92,0.45)]"
                   fill="none"
                 >
