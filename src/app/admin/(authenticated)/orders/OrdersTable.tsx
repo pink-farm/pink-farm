@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, CheckCircle, Clock, Printer, ShoppingBag, SlidersHorizontal, X } from "lucide-react";
-import Link from "next/link";
+import { CalendarDays, CheckCircle, Clock, ShoppingBag, SlidersHorizontal, X } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { FulfillmentStatusSelect } from "./FulfillmentStatusSelect";
+import { AdminSlipAction } from "./AdminSlipAction";
 
 type Order = Prisma.OrderGetPayload<{ include: { items: true } }>;
 type RangeMode = "day" | "week" | "month" | "range";
@@ -179,9 +179,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
                   <td className="px-6 py-4"><FulfillmentStatusSelect orderId={order.id} orderNumber={order.orderNumber} customerName={order.customerName} initialStatus={order.fulfillmentStatus} initialTrackingNumber={order.trackingNumber} initialCarrierName={order.carrierName} initialTrackingUrl={order.trackingUrl} /></td>
                   <td className="px-6 py-4 text-right font-bold text-gray-900">₹{(order.totalAmount / 100).toFixed(2)}</td>
                   <td className="px-6 py-4 text-center">
-                    <Link href={`/admin/orders/${order.id}/slip`} target="_blank" className="inline-flex items-center gap-1.5 rounded-xl bg-brand-green/10 px-3 py-1.5 text-xs font-bold text-brand-green shadow-sm transition-all hover:bg-brand-green hover:text-white" title="Print Dispatch Receipt / Packaging Slip">
-                      <Printer size={13} /><span>Print Slip</span>
-                    </Link>
+                    <AdminSlipAction orderId={order.id} paymentStatus={order.paymentStatus} fulfillmentStatus={order.fulfillmentStatus} />
                   </td>
                 </tr>
               ))}

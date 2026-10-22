@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import PrintControls from "./PrintControls";
@@ -38,6 +39,28 @@ export default async function OrderSlipPage({
 
   if (!order) {
     notFound();
+  }
+
+  const isCancelled = order.fulfillmentStatus.toUpperCase() === "CANCELLED";
+  if (order.paymentStatus.toUpperCase() !== "PAID" || isCancelled) {
+    const unavailableMessage = isCancelled
+      ? "This order was cancelled, so its dispatch slip cannot be generated."
+      : order.paymentStatus.toUpperCase() === "PENDING"
+        ? "Payment is still pending. The dispatch slip can be generated after payment is confirmed."
+        : order.paymentStatus.toUpperCase() === "CANCELLED" || order.paymentStatus.toUpperCase() === "CANCELED"
+          ? "This payment was cancelled, so the dispatch slip cannot be generated."
+          : `Payment is ${order.paymentStatus.toLowerCase()}. The dispatch slip can only be generated for paid orders.`;
+
+    return (
+      <main className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center px-4 py-12">
+        <section role="alert" className="w-full rounded-2xl border border-amber-200 bg-white p-7 text-center shadow-lg">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-700" aria-hidden="true">!</div>
+          <h1 className="mt-4 text-xl font-bold text-brand-green">Slip unavailable</h1>
+          <p className="mt-2 text-sm leading-6 text-gray-600">{unavailableMessage}</p>
+          <Link href="/admin/orders" className="mt-6 inline-flex rounded-xl bg-brand-green px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-green/90">Back to orders</Link>
+        </section>
+      </main>
+    );
   }
 
   const orderDate = new Date(order.createdAt).toLocaleDateString("en-IN", {

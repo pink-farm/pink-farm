@@ -7,13 +7,13 @@ import {
   ShoppingBag,
   Clock,
   Package,
-  Printer,
   Calendar,
   ArrowUpRight,
   ChevronDown,
   Search,
 } from "lucide-react";
 import { OrderHistoryClearControl } from "./OrderHistoryClearControl";
+import { AdminSlipAction } from "./orders/AdminSlipAction";
 
 export type TimePeriod = "today" | "weekly" | "monthly" | "yearly" | "all";
 
@@ -464,15 +464,7 @@ export function DashboardOverview({ initialOrders, lowStockCount }: DashboardOve
                     ₹{(order.totalAmount / 100).toFixed(2)}
                   </td>
                   <td className="py-3.5 px-5 text-center">
-                    <Link
-                      href={`/admin/orders/${order.id}/slip`}
-                      target="_blank"
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-brand-green/10 text-brand-green hover:bg-brand-green hover:text-white transition-all shadow-2xs"
-                      title="Print Dispatch Receipt / Packaging Slip"
-                    >
-                      <Printer size={12} />
-                      <span>Slip</span>
-                    </Link>
+                    <AdminSlipAction orderId={order.id} paymentStatus={order.paymentStatus} fulfillmentStatus={order.fulfillmentStatus} compact />
                   </td>
                 </tr>
               ))}
