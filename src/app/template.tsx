@@ -13,7 +13,10 @@ export default function Template({ children }: { children: React.ReactNode }) {
       raf2 = requestAnimationFrame(() => {
         window.dispatchEvent(
           new CustomEvent("pinkfarm:route:mounted", {
-            detail: { pathname },
+            detail: {
+              pathname,
+              url: typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname,
+            },
           })
         );
       });

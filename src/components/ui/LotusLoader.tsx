@@ -53,15 +53,13 @@ export function LotusLoader({
             backfaceVisibility: "hidden",
           }}
         >
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             key={navKey ? `lotus-loader-${navKey}` : "lotus-loader-default"}
             src={navKey ? `/images/lotus-loader.webp?t=${navKey}` : "/images/lotus-loader.webp"}
             alt="Pink Farm Lotus Bloom"
             width={width}
             height={height}
-            loading="eager"
-            priority={true}
-            unoptimized
             className="w-full h-full object-contain pointer-events-none select-none"
           />
         </div>

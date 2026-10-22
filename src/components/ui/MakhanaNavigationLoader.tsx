@@ -20,17 +20,19 @@ export function MakhanaNavigationLoader() {
   const [progress, setProgress] = useState(0);
   const [navKey, setNavKey] = useState<number>(() => Date.now());
 
-  const startTimestampRef = useRef<number>(0);
-  const currentPathnameRef = useRef<string>(pathname);
+  const initialUrlRef = useRef<string>("");
   const isNavigatingRef = useRef<boolean>(false);
   const isCompletingRef = useRef<boolean>(false);
+  const routeMountedRef = useRef<boolean>(false);
+  const minTimeElapsedRef = useRef<boolean>(false);
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const minTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Minimum time (in ms) the lotus bloom loader remains visible to ensure
-  // a complete, luxurious bloom experience without cutting off abruptly on fast routes like "/"
-  const MIN_BLOOM_DURATION_MS = 1850;
+  // Minimum time (in ms) the lotus bloom loader remains visible so transitions feel polished and intentional
+  const MIN_BLOOM_DURATION_MS = 1050;
 
   // 1. Initial Page Load: Smoothly dismiss the server-rendered HTML curtain once React hydrates
   useEffect(() => {
@@ -44,22 +46,56 @@ export function MakhanaNavigationLoader() {
         }, 550);
       };
 
-      // Allow 650ms on first load so user gets the full bloom before smooth reveal
-      const timer = setTimeout(dismissCurtain, 650);
+      const timer = setTimeout(dismissCurtain, 600);
       return () => clearTimeout(timer);
     }
   }, []);
 
+  // Attempt dismissal: ONLY dissolves when BOTH the new page is in the DOM AND min bloom time is reached
+  const attemptDismissal = useCallback(() => {
+    if (!isNavigatingRef.current || isCompletingRef.current) return;
+
+    // CRITICAL: Must wait until the new page has actually mounted into the DOM!
+    if (!routeMountedRef.current || !minTimeElapsedRef.current) {
+      return;
+    }
+
+    isCompletingRef.current = true;
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (minTimerRef.current) clearTimeout(minTimerRef.current);
+    if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+
+    setProgress(100);
+
+    // Smoothly dissolve overlay to reveal the new page already fully loaded underneath
+    dismissTimerRef.current = setTimeout(() => {
+      setIsNavigating(false);
+      isNavigatingRef.current = false;
+      isCompletingRef.current = false;
+      if (typeof window !== "undefined") {
+        initialUrlRef.current = window.location.pathname + window.location.search;
+      }
+      setTimeout(() => setProgress(0), 300);
+    }, 220);
+  }, []);
+
   const startNavigation = useCallback((targetUrl?: string) => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (minTimerRef.current) clearTimeout(minTimerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
     const now = Date.now();
-    startTimestampRef.current = now;
+    if (typeof window !== "undefined") {
+      initialUrlRef.current = window.location.pathname + window.location.search;
+    }
     setNavKey(now);
     isNavigatingRef.current = true;
     isCompletingRef.current = false;
+    routeMountedRef.current = false;
+    minTimeElapsedRef.current = false;
+
     setIsNavigating(true);
     setProgress(30);
 
@@ -70,79 +106,67 @@ export function MakhanaNavigationLoader() {
           if (timerRef.current) clearInterval(timerRef.current);
           return 88;
         }
-        return prev + 8;
+        return prev + 6;
       });
-    }, 90);
+    }, 100);
 
-    // Generous safety fallback (8s) so slow server routes never hang indefinitely
+    // Minimum bloom display timer
+    minTimerRef.current = setTimeout(() => {
+      minTimeElapsedRef.current = true;
+      attemptDismissal();
+    }, MIN_BLOOM_DURATION_MS);
+
+    // Generous safety fallback (10s) in case a catastrophic network error occurs
     safetyTimeoutRef.current = setTimeout(() => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      setProgress(100);
-      setTimeout(() => {
-        setIsNavigating(false);
-        isNavigatingRef.current = false;
-        setTimeout(() => setProgress(0), 300);
-      }, 150);
-    }, 8000);
-  }, []);
+      routeMountedRef.current = true;
+      minTimeElapsedRef.current = true;
+      attemptDismissal();
+    }, 10000);
+  }, [attemptDismissal]);
 
-  const completeNavigation = useCallback(() => {
-    if (!isNavigatingRef.current || isCompletingRef.current) return;
-    isCompletingRef.current = true;
-
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
-
-    // Calculate how long the loader has been active
-    const elapsed = Date.now() - startTimestampRef.current;
-    // Allow the complete, magnificent bloom cycle to unfold before dissolving
-    const remainingTime = Math.max(0, MIN_BLOOM_DURATION_MS - elapsed);
-
-    dismissTimerRef.current = setTimeout(() => {
-      setProgress(100);
-
-      // Smoothly dissolve overlay into the newly loaded page
-      setTimeout(() => {
-        setIsNavigating(false);
-        isNavigatingRef.current = false;
-        currentPathnameRef.current = window.location.pathname;
-        setTimeout(() => setProgress(0), 300);
-      }, 180);
-    }, remainingTime);
-  }, []);
-
-  // When pathname changes, it signifies that the new route has arrived from the server!
-  // Complete the navigation smoothly and NEVER restart.
-  useEffect(() => {
-    if (currentPathnameRef.current !== pathname) {
-      if (isNavigatingRef.current) {
-        completeNavigation();
-      } else {
-        currentPathnameRef.current = pathname;
-      }
-    }
-  }, [pathname, completeNavigation]);
-
-  // Listen for the new route to be mounted into the DOM via template.tsx
+  // Listener A: When template.tsx fires pinkfarm:route:mounted, the new route is fully painted in the DOM!
   useEffect(() => {
     const handleRouteMounted = (e: Event) => {
       if (!isNavigatingRef.current) return;
-      const customEvent = e as CustomEvent<{ pathname?: string }>;
-      // If the event provides the new pathname, verify it matches
-      if (customEvent.detail?.pathname && customEvent.detail.pathname === currentPathnameRef.current) {
-        // Still on old page, do not dismiss yet
+      const customEvent = e as CustomEvent<{ pathname?: string; url?: string }>;
+      const arrivedUrl = customEvent.detail?.url || customEvent.detail?.pathname || (typeof window !== "undefined" ? window.location.pathname : "");
+
+      // If the URL is still the initial URL where we started, the new page has not arrived yet!
+      if (initialUrlRef.current && arrivedUrl === initialUrlRef.current) {
         return;
       }
+
       window.scrollTo(0, 0);
-      completeNavigation();
+      routeMountedRef.current = true;
+      attemptDismissal();
     };
 
     window.addEventListener("pinkfarm:route:mounted", handleRouteMounted);
     return () => {
       window.removeEventListener("pinkfarm:route:mounted", handleRouteMounted);
     };
-  }, [completeNavigation]);
+  }, [attemptDismissal]);
+
+  // Listener B: React pathname/searchParams hook changes as backup
+  useEffect(() => {
+    if (!isNavigatingRef.current) {
+      if (typeof window !== "undefined") {
+        initialUrlRef.current = window.location.pathname + window.location.search;
+      }
+      return;
+    }
+
+    const currentUrl = typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname;
+    if (initialUrlRef.current && currentUrl !== initialUrlRef.current) {
+      // The router has committed the new route - wait 2 animation frames to ensure layout paint
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          routeMountedRef.current = true;
+          attemptDismissal();
+        });
+      });
+    }
+  }, [pathname, searchParams, attemptDismissal]);
 
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
@@ -205,14 +229,18 @@ export function MakhanaNavigationLoader() {
       }
 
       // Instantly bring up lotus loader to cover route transition
-      startNavigation();
+      startNavigation(destinationUrl.pathname + destinationUrl.search);
     };
 
     // Custom events for manual triggers
     const handleCustomStart = () => {
       startNavigation();
     };
-    const handleCustomStop = () => completeNavigation();
+    const handleCustomStop = () => {
+      routeMountedRef.current = true;
+      minTimeElapsedRef.current = true;
+      attemptDismissal();
+    };
 
     // Listen to browser Back / Forward buttons
     const handlePopState = () => {
@@ -231,10 +259,11 @@ export function MakhanaNavigationLoader() {
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);
       if (timerRef.current) clearInterval(timerRef.current);
+      if (minTimerRef.current) clearTimeout(minTimerRef.current);
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
       if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
     };
-  }, [router, startNavigation, completeNavigation]);
+  }, [router, startNavigation, attemptDismissal]);
 
   return (
     <>
@@ -259,14 +288,14 @@ export function MakhanaNavigationLoader() {
         </div>
       )}
 
-      {/* 2. Instant-on, Silky-dissolve Lotus Transition (covers screen instantly, holds full bloom, dissolves into new page) */}
+      {/* 2. Instant-on, Silky-dissolve Lotus Transition (covers screen until new route is mounted) */}
       <AnimatePresence>
         {isNavigating && (
           <motion.div
             key="navigation-lotus-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.12, ease: "easeOut" } }}
-            exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeOut" } }}
+            exit={{ opacity: 0, transition: { duration: 0.28, ease: "easeOut" } }}
             style={{
               transform: "translateZ(0)",
               willChange: "opacity",
@@ -275,6 +304,8 @@ export function MakhanaNavigationLoader() {
             className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] select-none"
           >
             <MakhanaLoader
+              key={navKey}
+              navKey={navKey}
               size="xl"
               text="Loading Freshness..."
               subtext="Every bite crafted with love"
