@@ -10,6 +10,7 @@ export interface LotusLoaderProps {
   subtext?: string;
   className?: string;
   speedSec?: number;
+  navKey?: number | string;
 }
 
 const SIZES = {
@@ -26,6 +27,7 @@ export function LotusLoader({
   text = "Loading Freshness...",
   subtext = "Crafted with pure care",
   className = "",
+  navKey,
 }: LotusLoaderProps) {
   const { width, height, textClass } = SIZES[size] || SIZES.lg;
 
@@ -52,7 +54,8 @@ export function LotusLoader({
           }}
         >
           <Image
-            src="/images/lotus-loader.webp"
+            key={navKey ? `lotus-loader-${navKey}` : "lotus-loader-default"}
+            src={navKey ? `/images/lotus-loader.webp?t=${navKey}` : "/images/lotus-loader.webp"}
             alt="Pink Farm Lotus Bloom"
             width={width}
             height={height}

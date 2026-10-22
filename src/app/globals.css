@@ -180,6 +180,46 @@
   will-change: background-position;
 }
 
+@keyframes hero-rose-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+.hero-rose-shine {
+  background: linear-gradient(
+    110deg,
+    #7A1C3E 0%,
+    #7A1C3E 10%,
+    #A82B59 16%,
+    #E86095 22%,
+    #FFF0F5 25%,
+    #E86095 28%,
+    #A82B59 34%,
+    #7A1C3E 40%,
+    #7A1C3E 60%,
+    #A82B59 66%,
+    #E86095 72%,
+    #FFF0F5 75%,
+    #E86095 78%,
+    #A82B59 84%,
+    #7A1C3E 90%,
+    #7A1C3E 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  animation: hero-rose-shimmer 12s linear infinite;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: background-position;
+}
+
 @keyframes draw-line {
   0% { stroke-dasharray: 0, 300; opacity: 0; fill: transparent; }
   10% { opacity: 1; }

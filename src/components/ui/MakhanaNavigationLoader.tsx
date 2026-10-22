@@ -18,17 +18,19 @@ export function MakhanaNavigationLoader() {
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [navKey, setNavKey] = useState<number>(() => Date.now());
 
   const startTimestampRef = useRef<number>(0);
   const currentPathnameRef = useRef<string>(pathname);
   const isNavigatingRef = useRef<boolean>(false);
+  const isCompletingRef = useRef<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Minimum time (in ms) the lotus bloom loader remains visible to ensure
   // a complete, luxurious bloom experience without cutting off abruptly on fast routes like "/"
-  const MIN_BLOOM_DURATION_MS = 1100;
+  const MIN_BLOOM_DURATION_MS = 1850;
 
   // 1. Initial Page Load: Smoothly dismiss the server-rendered HTML curtain once React hydrates
   useEffect(() => {
@@ -53,10 +55,13 @@ export function MakhanaNavigationLoader() {
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
-    startTimestampRef.current = Date.now();
+    const now = Date.now();
+    startTimestampRef.current = now;
+    setNavKey(now);
     isNavigatingRef.current = true;
+    isCompletingRef.current = false;
     setIsNavigating(true);
-    setProgress(35);
+    setProgress(30);
 
     // Increment progress bar smoothly up to 88% while waiting for page
     timerRef.current = setInterval(() => {
@@ -82,7 +87,8 @@ export function MakhanaNavigationLoader() {
   }, []);
 
   const completeNavigation = useCallback(() => {
-    if (!isNavigatingRef.current) return;
+    if (!isNavigatingRef.current || isCompletingRef.current) return;
+    isCompletingRef.current = true;
 
     if (timerRef.current) clearInterval(timerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
@@ -90,8 +96,8 @@ export function MakhanaNavigationLoader() {
 
     // Calculate how long the loader has been active
     const elapsed = Date.now() - startTimestampRef.current;
-    // Allow a smooth, comfortable minimum duration (450ms) so it never flashes or jitters
-    const remainingTime = Math.max(0, 450 - elapsed);
+    // Allow the complete, magnificent bloom cycle to unfold before dissolving
+    const remainingTime = Math.max(0, MIN_BLOOM_DURATION_MS - elapsed);
 
     dismissTimerRef.current = setTimeout(() => {
       setProgress(100);
