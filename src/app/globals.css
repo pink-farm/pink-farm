@@ -192,22 +192,22 @@
 .hero-rose-shine {
   background: linear-gradient(
     110deg,
-    #7A1C3E 0%,
-    #7A1C3E 10%,
-    #A82B59 16%,
-    #E86095 22%,
-    #FFF0F5 25%,
-    #E86095 28%,
-    #A82B59 34%,
-    #7A1C3E 40%,
-    #7A1C3E 60%,
-    #A82B59 66%,
-    #E86095 72%,
-    #FFF0F5 75%,
-    #E86095 78%,
-    #A82B59 84%,
-    #7A1C3E 90%,
-    #7A1C3E 100%
+    #5A2E3E 0%,
+    #5A2E3E 10%,
+    #8A455C 16%,
+    #C47592 22%,
+    #FFF6F9 25%,
+    #C47592 28%,
+    #8A455C 34%,
+    #5A2E3E 40%,
+    #5A2E3E 60%,
+    #8A455C 66%,
+    #C47592 72%,
+    #FFF6F9 75%,
+    #C47592 78%,
+    #8A455C 84%,
+    #5A2E3E 90%,
+    #5A2E3E 100%
   );
   background-size: 200% 100%;
   -webkit-background-clip: text;
