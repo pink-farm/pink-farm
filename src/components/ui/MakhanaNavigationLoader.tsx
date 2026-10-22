@@ -48,7 +48,7 @@ export function MakhanaNavigationLoader() {
     }
   }, []);
 
-  const startNavigation = useCallback(() => {
+  const startNavigation = useCallback((targetUrl?: string) => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
@@ -56,7 +56,7 @@ export function MakhanaNavigationLoader() {
     startTimestampRef.current = Date.now();
     isNavigatingRef.current = true;
     setIsNavigating(true);
-    setProgress(30);
+    setProgress(35);
 
     // Increment progress bar smoothly up to 88% while waiting for page
     timerRef.current = setInterval(() => {
@@ -65,17 +65,20 @@ export function MakhanaNavigationLoader() {
           if (timerRef.current) clearInterval(timerRef.current);
           return 88;
         }
-        return prev + 10;
+        return prev + 8;
       });
-    }, 80);
+    }, 90);
 
-    // Generous safety fallback (7s) so slow server routes never end prematurely
+    // Generous safety fallback (8s) so slow server routes never hang indefinitely
     safetyTimeoutRef.current = setTimeout(() => {
       if (timerRef.current) clearInterval(timerRef.current);
-      setIsNavigating(false);
-      isNavigatingRef.current = false;
-      setProgress(0);
-    }, 7000);
+      setProgress(100);
+      setTimeout(() => {
+        setIsNavigating(false);
+        isNavigatingRef.current = false;
+        setTimeout(() => setProgress(0), 300);
+      }, 150);
+    }, 8000);
   }, []);
 
   const completeNavigation = useCallback(() => {
@@ -83,29 +86,48 @@ export function MakhanaNavigationLoader() {
 
     if (timerRef.current) clearInterval(timerRef.current);
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
     // Calculate how long the loader has been active
     const elapsed = Date.now() - startTimestampRef.current;
-    const remainingTime = Math.max(0, MIN_BLOOM_DURATION_MS - elapsed);
+    // Allow a smooth, comfortable minimum duration (450ms) so it never flashes or jitters
+    const remainingTime = Math.max(0, 450 - elapsed);
 
-    // Guarantee the lotus has time to bloom gracefully before dissolving
     dismissTimerRef.current = setTimeout(() => {
       setProgress(100);
 
-      // Give 200ms for progress bar to hit 100% and bloom to peak, then dissolve smoothly into new page
+      // Smoothly dissolve overlay into the newly loaded page
       setTimeout(() => {
         setIsNavigating(false);
         isNavigatingRef.current = false;
-        setTimeout(() => setProgress(0), 350);
-      }, 200);
+        currentPathnameRef.current = window.location.pathname;
+        setTimeout(() => setProgress(0), 300);
+      }, 180);
     }, remainingTime);
   }, []);
 
+  // When pathname changes, it signifies that the new route has arrived from the server!
+  // Complete the navigation smoothly and NEVER restart.
+  useEffect(() => {
+    if (currentPathnameRef.current !== pathname) {
+      if (isNavigatingRef.current) {
+        completeNavigation();
+      } else {
+        currentPathnameRef.current = pathname;
+      }
+    }
+  }, [pathname, completeNavigation]);
+
   // Listen for the new route to be mounted into the DOM via template.tsx
   useEffect(() => {
-    const handleRouteMounted = () => {
+    const handleRouteMounted = (e: Event) => {
       if (!isNavigatingRef.current) return;
-      currentPathnameRef.current = window.location.pathname;
+      const customEvent = e as CustomEvent<{ pathname?: string }>;
+      // If the event provides the new pathname, verify it matches
+      if (customEvent.detail?.pathname && customEvent.detail.pathname === currentPathnameRef.current) {
+        // Still on old page, do not dismiss yet
+        return;
+      }
       window.scrollTo(0, 0);
       completeNavigation();
     };
@@ -116,21 +138,10 @@ export function MakhanaNavigationLoader() {
     };
   }, [completeNavigation]);
 
-  // When pathname or searchParams change, ensure progress reaches final stretch without premature dismissal
-  useEffect(() => {
-    if (currentPathnameRef.current !== pathname) {
-      currentPathnameRef.current = pathname;
-      if (!isNavigatingRef.current) {
-        startNavigation();
-      }
-      setProgress((prev) => Math.max(prev, 90));
-    }
-  }, [pathname, searchParams, startNavigation]);
-
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
     window.pinkfarmNavigate = (url: string) => {
-      startNavigation();
+      startNavigation(url);
       router.push(url);
     };
 
