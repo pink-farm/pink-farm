@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Store,
@@ -20,8 +19,6 @@ import {
   RefreshCw,
   Power,
   ImagePlus,
-  Video,
-  Upload,
   RotateCcw,
   TicketPercent,
   Trash2,
@@ -145,12 +142,10 @@ export default function StoreSettingsPage() {
   const [bottomAnnouncementText, setBottomAnnouncementText] = useState(DEFAULT_SETTINGS.bottomAnnouncementText);
   const [bottomAnnouncementEnabled, setBottomAnnouncementEnabled] = useState(DEFAULT_SETTINGS.bottomAnnouncementEnabled);
 
-  // Floating bubble images
+  // Hero images
   const [heroMainImage, setHeroMainImage] = useState(DEFAULT_SETTINGS.heroMainImage);
   const [heroGheeImage, setHeroGheeImage] = useState(DEFAULT_SETTINGS.heroGheeImage);
   const [heroAlmondsImage, setHeroAlmondsImage] = useState(DEFAULT_SETTINGS.heroAlmondsImage);
-  const [heroVideo, setHeroVideo] = useState(DEFAULT_SETTINGS.heroVideo);
-  const [heroVideoOpacity, setHeroVideoOpacity] = useState(DEFAULT_SETTINGS.heroVideoOpacity);
 
   // Product List from API
   const [products, setProducts] = useState<StoreProduct[]>([]);
@@ -386,11 +381,6 @@ export default function StoreSettingsPage() {
   const [statusMessage, setStatusMessage] = useState("");
   const [heroImageError, setHeroImageError] = useState("");
   const [heroImageStatus, setHeroImageStatus] = useState("");
-  const [heroVideoError, setHeroVideoError] = useState("");
-  const [heroVideoStatus, setHeroVideoStatus] = useState("");
-  const [heroVideoSaving, setHeroVideoSaving] = useState(false);
-  const [heroVideoUploading, setHeroVideoUploading] = useState(false);
-  const [heroVideoProgress, setHeroVideoProgress] = useState(0);
 
   // Coupons
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -422,8 +412,6 @@ export default function StoreSettingsPage() {
       setHeroMainImage(storeSettings.heroMainImage);
       setHeroGheeImage(storeSettings.heroGheeImage);
       setHeroAlmondsImage(storeSettings.heroAlmondsImage);
-      setHeroVideo(storeSettings.heroVideo);
-      setHeroVideoOpacity(storeSettings.heroVideoOpacity);
       setHeartProductId(storeSettings.heartProductId);
       setHeartProductTitle(storeSettings.heartProductTitle);
       setHeartProductTagline(storeSettings.heartProductTagline);
@@ -498,8 +486,6 @@ export default function StoreSettingsPage() {
           if (typeof data.heroMainImage === "string") setHeroMainImage(data.heroMainImage);
           if (typeof data.heroGheeImage === "string") setHeroGheeImage(data.heroGheeImage);
           if (typeof data.heroAlmondsImage === "string") setHeroAlmondsImage(data.heroAlmondsImage);
-          if (typeof data.heroVideo === "string") setHeroVideo(data.heroVideo);
-          if (typeof data.heroVideoOpacity === "number") setHeroVideoOpacity(data.heroVideoOpacity);
           if (typeof data.heartProductId === "string") setHeartProductId(data.heartProductId);
           if (typeof data.heartProductTitle === "string") setHeartProductTitle(data.heartProductTitle);
           if (typeof data.heartProductTagline === "string")
@@ -707,74 +693,6 @@ export default function StoreSettingsPage() {
     }
   };
 
-  const handleHeroVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
-    event.currentTarget.value = "";
-    if (!file) return;
-    setHeroVideoError("");
-    setHeroVideoStatus("");
-
-    if (!/^video\/(mp4|webm)$/i.test(file.type)) {
-      setHeroVideoError("Choose an MP4 or WebM video.");
-      return;
-    }
-    if (file.size > 50 * 1024 * 1024) {
-      setHeroVideoError("This video is over the 50 MB upload limit.");
-      return;
-    }
-
-    setHeroVideoUploading(true);
-    setHeroVideoProgress(0);
-    setHeroVideoStatus("Starting secure upload…");
-    try {
-      const extension = file.type === "video/webm" ? "webm" : "mp4";
-      const blob = await upload(`hero-background.${extension}`, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/settings/hero-video/upload",
-        multipart: true,
-        onUploadProgress: ({ percentage }: { percentage: number }) => {
-          const progress = Math.round(percentage);
-          setHeroVideoProgress(progress);
-          setHeroVideoStatus(`Uploading video… ${progress}%`);
-        },
-      });
-      setHeroVideo(blob.url);
-      setHeroVideoStatus("Upload complete. Publishing video…");
-      await saveHeroVideoSettings(blob.url, heroVideoOpacity);
-    } catch (error) {
-      setHeroVideoError(error instanceof Error ? error.message : "Video upload failed. Please try again.");
-      setHeroVideoStatus("");
-    } finally {
-      setHeroVideoUploading(false);
-    }
-  };
-
-  const saveHeroVideoSettings = async (video = heroVideo, opacity = heroVideoOpacity): Promise<boolean> => {
-    setHeroVideoSaving(true);
-    setHeroVideoError("");
-    setHeroVideoStatus("");
-    try {
-      const response = await fetch("/api/admin/settings/hero-video", {
-        method: "POST",
-        cache: "no-store",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ video, opacity }),
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || "Could not save hero video settings.");
-      setHeroVideo(video);
-      setHeroVideoOpacity(opacity);
-      useSettingsStore.getState().setSettings({ heroVideo: video, heroVideoOpacity: opacity });
-      setHeroVideoStatus(video ? "Hero video saved and live on the homepage." : "Hero video removed from the homepage.");
-      return true;
-    } catch (error) {
-      setHeroVideoError(error instanceof Error ? error.message : "Could not save hero video settings.");
-      return false;
-    } finally {
-      setHeroVideoSaving(false);
-    }
-  };
-
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsSaving(true);
@@ -920,26 +838,24 @@ export default function StoreSettingsPage() {
     {
       key: "main",
       position: "center" as const,
-      label: "Center",
-      image: heroMainImage,
+      label: "Main Showcase Image",
+      dimensions: "1000 × 800 (Landscape)",
+      description: "Primary hero photograph with elegant arched top-right corner.",
+      image: heroMainImage || DEFAULT_SETTINGS.heroMainImage,
       setImage: setHeroMainImage,
       defaultImage: DEFAULT_SETTINGS.heroMainImage,
+      previewClass: "w-full h-44 sm:h-52 rounded-2xl rounded-tr-[2.25rem]",
     },
     {
-      key: "ghee",
+      key: "secondary",
       position: "topRight" as const,
-      label: "Top right",
-      image: heroGheeImage,
+      label: "Secondary Inset Image",
+      dimensions: "400 × 400 (Square)",
+      description: "Overlapping card showing farm harvest and pure ingredients.",
+      image: heroGheeImage || DEFAULT_SETTINGS.heroGheeImage,
       setImage: setHeroGheeImage,
       defaultImage: DEFAULT_SETTINGS.heroGheeImage,
-    },
-    {
-      key: "almonds",
-      position: "bottomLeft" as const,
-      label: "Bottom left",
-      image: heroAlmondsImage,
-      setImage: setHeroAlmondsImage,
-      defaultImage: DEFAULT_SETTINGS.heroAlmondsImage,
+      previewClass: "w-44 h-44 sm:w-52 sm:h-52 rounded-2xl",
     },
   ];
 
@@ -1457,55 +1373,71 @@ export default function StoreSettingsPage() {
               </div>
             </div>
 
-            {/* Card 1C: Homepage Hero Bubble Images */}
-            <div className="bg-white rounded-2xl p-5 sm:p-7 border border-stone-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5 transition-all hover:border-stone-300">
+            {/* Card 1C: Homepage Hero Images */}
+            <div id="settings-hero-images" className="bg-white rounded-2xl p-5 sm:p-7 border border-stone-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5 transition-all hover:border-stone-300 scroll-mt-24">
               <div className="flex items-center gap-2.5 pb-3 border-b border-stone-100">
                 <div className="w-9 h-9 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0">
                   <ImagePlus size={18} />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">
-                    Homepage Floating Bubble Images
+                    Homepage Hero Images
                   </h3>
-                    <p className="text-xs text-stone-500">
-                    Bubble uploads and resets are saved to the database immediately.
+                  <p className="text-xs text-stone-500">
+                    Hero image uploads and resets are saved to the database immediately.
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {heroImageFields.map((field) => (
                   <div
                     key={field.key}
-                    className="flex flex-col items-center text-center gap-3 rounded-2xl border border-stone-200/80 p-4 bg-stone-50/50 hover:bg-stone-50 transition-colors"
+                    className="flex flex-col items-center text-center gap-4 rounded-2xl border border-stone-200/80 p-5 bg-stone-50/50 hover:bg-stone-50 transition-colors"
                   >
-                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-brand-pink-accent/40 bg-white shadow-sm">
-                      <Image key={`${field.key}-${field.image.slice(0, 80)}`} src={field.image} alt={`${field.label} hero bubble preview`} width={80} height={80} unoptimized className="h-full w-full object-cover" />
+                    <div className="space-y-1 w-full text-center">
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-stone-800 uppercase tracking-wide">{field.label}</span>
+                        <span className="text-[10px] font-semibold bg-stone-200/70 text-stone-600 px-2 py-0.5 rounded-full">{field.dimensions}</span>
+                      </div>
+                      <p className="text-[11px] text-stone-500">{field.description}</p>
                     </div>
-                    <div className="space-y-1 w-full">
-                      <p className="text-xs font-bold text-stone-800 truncate">{field.label}</p>
-                      <div className="flex flex-col gap-1.5 pt-1">
-                        <label className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-brand-green/10 px-3 py-1.5 text-xs font-semibold text-brand-green hover:bg-brand-green/20 transition-colors">
-                          <ImagePlus size={13} /> Upload Photo
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="sr-only"
-                            onChange={(event) => void handleBubbleImageUpload(event, field.position, field.setImage)}
-                          />
-                        </label>
-                        {field.image !== field.defaultImage && (
+
+                    <div className={`relative shrink-0 overflow-hidden border-2 border-brand-pink-accent/40 bg-white shadow-sm ${field.previewClass}`}>
+                      <Image
+                        key={`${field.key}-${field.image.slice(0, 80)}`}
+                        src={field.image}
+                        alt={`${field.label} hero preview`}
+                        fill
+                        unoptimized
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+
+                    <div className="space-y-2 w-full pt-1">
+                      <label className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-brand-green/10 px-4 py-2 text-xs font-semibold text-brand-green hover:bg-brand-green/20 transition-colors w-full sm:w-auto">
+                        <ImagePlus size={14} /> Upload Photo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={(event) => void handleBubbleImageUpload(event, field.position, field.setImage)}
+                        />
+                      </label>
+
+                      {field.image !== field.defaultImage && (
+                        <div>
                           <button
                             type="button"
                             onClick={() => void saveHeroBubbleImage(field.position, field.defaultImage).then((saved) => {
                               if (saved) field.setImage(field.defaultImage);
                             })}
-                            className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-stone-500 hover:bg-stone-200/60 transition-colors cursor-pointer"
+                            className="inline-flex items-center justify-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium text-stone-500 hover:bg-stone-200/60 transition-colors cursor-pointer"
                           >
                             <RotateCcw size={11} /> Reset to Default
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1513,106 +1445,6 @@ export default function StoreSettingsPage() {
 
               {heroImageStatus && <p role="status" className="text-xs font-medium text-emerald-700">{heroImageStatus}</p>}
               {heroImageError && <p role="alert" className="text-xs font-medium text-rose-700">{heroImageError}</p>}
-            </div>
-
-            <div id="settings-hero-video" className="bg-white rounded-2xl p-5 sm:p-7 border border-stone-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5 scroll-mt-24">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-green/10 text-brand-green">
-                    <Video size={19} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900">Homepage Hero Background Video</h3>
-                    <p className="mt-1 text-xs text-stone-500">Add a subtle looping video behind the hero content. The text and product images stay above it.</p>
-                  </div>
-                </div>
-                <span className={`w-fit rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${heroVideo ? "bg-emerald-100 text-emerald-800" : "bg-stone-100 text-stone-500"}`}>
-                  {heroVideo ? "Video enabled" : "Using current background"}
-                </span>
-              </div>
-
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]">
-                <div className="space-y-4">
-                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-brand-green/30 bg-brand-green/[0.04] px-4 py-4 text-sm font-semibold text-brand-green transition-colors hover:bg-brand-green/10">
-                    {heroVideoUploading ? <RefreshCw size={16} className="animate-spin" /> : <Upload size={16} />}
-                    {heroVideoUploading ? `Uploading… ${heroVideoProgress}%` : "Upload MP4 or WebM (up to 50 MB)"}
-                    <input type="file" accept="video/mp4,video/webm,.mp4,.webm" className="sr-only" disabled={heroVideoUploading || heroVideoSaving} onChange={(event) => void handleHeroVideoUpload(event)} />
-                  </label>
-                  <p className="text-[11px] leading-relaxed text-stone-500">Videos upload directly to secure object storage with progress and retry support. A public Vercel Blob store must be connected to this project. You can also paste a direct HTTPS MP4/WebM URL.</p>
-
-                  <div className="space-y-1.5">
-                    <label htmlFor="hero-video-url" className="block text-xs font-bold text-stone-700">Or use a hosted video URL</label>
-                    <input
-                      id="hero-video-url"
-                      type="url"
-                      value={heroVideo.startsWith("data:") ? "" : heroVideo}
-                      onChange={(event) => {
-                        setHeroVideo(event.target.value.trim());
-                        setHeroVideoError("");
-                        setHeroVideoStatus("");
-                      }}
-                      placeholder="https://cdn.example.com/hero-video.mp4"
-                      maxLength={2048}
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm transition-all focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/15"
-                    />
-                    <p className="text-[10px] text-stone-400">Use a direct .mp4 or .webm file URL. YouTube watch links are not supported as background video sources.</p>
-                  </div>
-
-                  <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <label htmlFor="hero-video-opacity" className="text-xs font-bold text-stone-700">Video opacity</label>
-                      <span className="rounded-lg bg-white px-2.5 py-1 text-xs font-bold tabular-nums text-brand-green shadow-sm">{heroVideoOpacity}%</span>
-                    </div>
-                    <input
-                      id="hero-video-opacity"
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={heroVideoOpacity}
-                      onChange={(event) => setHeroVideoOpacity(Number(event.target.value))}
-                      className="h-2 w-full cursor-pointer accent-brand-green"
-                    />
-                    <div className="flex justify-between text-[10px] text-stone-400"><span>Subtle</span><span>Full strength</span></div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <button type="button" disabled={heroVideoSaving || heroVideoUploading} onClick={() => void saveHeroVideoSettings()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-green px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-brand-green/90 disabled:cursor-not-allowed disabled:opacity-60">
-                      {heroVideoSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                      {heroVideoSaving ? "Saving…" : "Save video settings"}
-                    </button>
-                    {heroVideo && (
-                      <button type="button" disabled={heroVideoSaving || heroVideoUploading} onClick={() => void saveHeroVideoSettings("", heroVideoOpacity)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 px-4 py-2.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60">
-                        <Trash2 size={14} /> Remove video
-                      </button>
-                    )}
-                  </div>
-                  {heroVideoStatus && <p role="status" className="text-xs font-medium text-emerald-700">{heroVideoStatus}</p>}
-                  {heroVideoError && <p role="alert" className="text-xs font-medium text-rose-700">{heroVideoError}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-stone-500">
-                    <span>Background preview</span><span>Text contrast overlay included</span>
-                  </div>
-                  <div className="relative aspect-video overflow-hidden rounded-2xl border border-stone-200 bg-[radial-gradient(at_0%_0%,#f7e1d7,transparent_65%),radial-gradient(at_100%_100%,#9db4a0,transparent_65%),#fff5e6] shadow-inner">
-                    {heroVideo ? (
-                      <video key={heroVideo} src={heroVideo} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" style={{ opacity: heroVideoOpacity / 100 }} />
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-stone-500">
-                        <Video size={25} className="opacity-50" />
-                        <span className="text-xs font-medium">No background video selected</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-white/35" />
-                    <div className="absolute inset-0 flex flex-col justify-center p-5 sm:p-7">
-                      <p className="max-w-[75%] font-serif text-xl font-semibold leading-tight text-brand-green drop-shadow-sm sm:text-3xl">Goodness That<br /><span className="italic font-light">Feels Like Home.</span></p>
-                      <span className="mt-3 w-fit rounded-full bg-brand-green px-3 py-1 text-[10px] font-semibold text-white">Shop Now</span>
-                    </div>
-                  </div>
-                  <p className="text-[10px] leading-relaxed text-stone-400">Muted, looping, and inline playback are enabled for a calm, autoplay-friendly experience.</p>
-                </div>
-              </div>
             </div>
           </div>
         )}

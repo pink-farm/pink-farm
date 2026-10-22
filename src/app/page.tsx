@@ -17,7 +17,7 @@ import {
 import { formatPrice } from "@/lib/utils";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
-import { HeroVideoBackground } from "@/components/home/HeroVideoBackground";
+import { HeroSection } from "@/components/home/HeroSection";
 
 export const instant = false;
 export default async function Home() {
@@ -29,113 +29,10 @@ export default async function Home() {
     : null) || homepageProducts.find((p) => p.category.toLowerCase() === 'makhana') || homepageProducts[0] || products[0];
 
   return (
-    <div className="flex flex-col gap-8 md:gap-12 pb-28 sm:pb-20 overflow-x-hidden min-w-0">
+    <div className="flex flex-col pb-28 sm:pb-20 overflow-x-hidden min-w-0">
       
       {/* C. HERO SECTION */}
-      <section className="relative w-full overflow-hidden bg-brand-ivory pt-24 pb-16 md:pt-28 md:pb-20">
-        <HeroVideoBackground
-          videoUrl={storeSettings.heroVideo}
-          opacity={storeSettings.heroVideoOpacity}
-        />
-        {/* Dynamic Abstract CSS Mesh Background */}
-        <div 
-          className={`absolute inset-0 z-0 ${storeSettings.heroVideo ? "opacity-35" : "animate-mesh opacity-90"}`}
-          style={{
-            backgroundImage: 'radial-gradient(at 0% 0%, rgba(247, 225, 215, 0.95) 0px, transparent 60%), radial-gradient(at 100% 0%, rgba(157, 180, 160, 0.8) 0px, transparent 60%), radial-gradient(at 100% 100%, rgba(255, 245, 230, 0.9) 0px, transparent 60%), radial-gradient(at 0% 100%, rgba(240, 210, 220, 0.8) 0px, transparent 60%)',
-            backgroundSize: '200% 200%'
-          }}
-        />
-        {/* Soft Warm Luxury Vignette Overlay (Hardware accelerated, zero compositor stall) */}
-        <div className="absolute inset-0 opacity-[0.12] pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#F7E1D7]/20 to-[#1A4031]/10" />
-
-        <div className="container relative z-10 mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-12">
-          {/* Left Text Column */}
-          <div className="flex-1 space-y-8 max-w-2xl relative z-20">
-            
-            <FadeIn direction="up" delay={0}>
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl leading-[1.1] tracking-tight">
-                <span className="bg-[linear-gradient(110deg,#1A4031_0%,#1A4031_10%,#2A614C_19%,#54A982_23%,#8EE2B6_25%,#54A982_27%,#2A614C_31%,#1A4031_40%,#1A4031_60%,#2A614C_69%,#54A982_73%,#8EE2B6_75%,#54A982_77%,#2A614C_81%,#1A4031_90%,#1A4031_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block drop-shadow-sm">
-                  Goodness That <br/><span className="italic font-light">Feels Like Home.</span>
-                </span>
-              </h1>
-            </FadeIn>
-            
-            <FadeIn direction="up" delay={0.08}>
-              <p className="text-lg md:text-xl opacity-90 leading-relaxed">
-                <span className="bg-[linear-gradient(110deg,#2D2D2D_0%,#2D2D2D_10%,#484848_19%,#7A7A7A_23%,#A8A8A8_25%,#7A7A7A_27%,#484848_31%,#2D2D2D_40%,#2D2D2D_60%,#484848_69%,#7A7A7A_73%,#A8A8A8_75%,#7A7A7A_77%,#484848_81%,#2D2D2D_90%,#2D2D2D_100%)] bg-[length:200%_100%] text-transparent bg-clip-text animate-text-gradient inline-block">
-                  Discover thoughtfully selected everyday favourites, with premium quality at the heart of Pink Farm. Direct from farms to your family.
-                </span>
-              </p>
-            </FadeIn>
-            
-            <FadeIn direction="up" delay={0.15}>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <ScaleOnTap>
-                  <ShimmerSheen className="rounded-full">
-                    <Button asChild size="lg" className="w-full sm:w-auto text-base rounded-full px-8 py-6 shadow-md hover:shadow-xl border-0 text-white bg-[linear-gradient(110deg,#1A4031_0%,#1A4031_10%,#255E47_19%,#3B8E67_23%,#56B887_25%,#3B8E67_27%,#255E47_31%,#1A4031_40%,#1A4031_60%,#255E47_69%,#3B8E67_73%,#56B887_75%,#3B8E67_77%,#255E47_81%,#1A4031_90%,#1A4031_100%)] bg-[length:200%_100%] animate-text-gradient transition-transform duration-300">
-                      <Link href="/products">Shop Now</Link>
-                    </Button>
-                  </ShimmerSheen>
-                </ScaleOnTap>
-              </div>
-            </FadeIn>
-          </div>
-
-          {/* Right Visual Column - FLOATING IMAGES WITH LUXURY GLOW & MOTION */}
-          <div className="flex-1 hidden md:flex relative h-[500px] w-full justify-center items-center z-10">
-            {/* Center Main Floating Image with GlowPulse */}
-            <FloatingElement amplitude={14} duration={7} delay={0} className="absolute z-30">
-              <HoverCard lift={-6}>
-                <GlowPulse color="rgba(230, 184, 192, 0.45)">
-                  <div className="shadow-2xl rounded-full overflow-hidden border-4 sm:border-6 md:border-8 border-brand-ivory/60 w-[220px] h-[220px] sm:w-[270px] sm:h-[270px] md:w-[320px] md:h-[320px] relative transition-transform duration-700 hover:scale-105">
-                    <Image 
-                      src={storeSettings.heroMainImage || "/images/makhana_sig.jpg"}
-                      alt="Signature Makhana" 
-                      fill
-                      sizes="(min-width: 768px) 320px, 220px"
-                      className="object-cover"
-                      priority
-                      unoptimized={Boolean(storeSettings.heroMainImage?.startsWith("data:"))}
-                    />
-                  </div>
-                </GlowPulse>
-              </HoverCard>
-            </FloatingElement>
-            
-            {/* Top Right Floating Image */}
-            <FloatingElement amplitude={18} duration={8} delay={1} className="absolute -top-2 -right-2 sm:top-2 sm:right-4 md:top-4 md:right-8 z-20">
-              <HoverCard lift={-5}>
-                <div className="shadow-xl rounded-full overflow-hidden border-2 sm:border-4 border-brand-ivory/50 opacity-95 w-[130px] h-[130px] sm:w-[160px] sm:h-[160px] md:w-[190px] md:h-[190px] relative transition-transform duration-700 hover:scale-105">
-                  <Image 
-                    src={storeSettings.heroGheeImage || "/images/ghee.jpg"}
-                    alt="Premium Ghee" 
-                    fill
-                    sizes="(min-width: 768px) 190px, 130px"
-                    className="object-cover"
-                    unoptimized={Boolean(storeSettings.heroGheeImage?.startsWith("data:"))}
-                  />
-                </div>
-              </HoverCard>
-            </FloatingElement>
-
-            {/* Bottom Left Floating Image */}
-            <FloatingElement amplitude={16} duration={6.5} delay={0.5} className="absolute -bottom-2 -left-2 sm:bottom-2 sm:left-4 md:bottom-4 md:left-8 z-40">
-              <HoverCard lift={-5}>
-                <div className="shadow-2xl rounded-full overflow-hidden border-2 sm:border-4 border-brand-ivory/50 opacity-95 w-[140px] h-[140px] sm:w-[170px] sm:h-[170px] md:w-[220px] md:h-[220px] relative transition-transform duration-700 hover:scale-105">
-                  <Image 
-                    src={storeSettings.heroAlmondsImage || "/images/almonds.jpg"}
-                    alt="Premium Almonds" 
-                    fill
-                    sizes="(min-width: 768px) 220px, 140px"
-                    className="object-cover"
-                    unoptimized={Boolean(storeSettings.heroAlmondsImage?.startsWith("data:"))}
-                  />
-                </div>
-              </HoverCard>
-            </FloatingElement>
-          </div>
-        </div>
-      </section>
+      <HeroSection storeSettings={storeSettings} />
 
       {/* D. INFINITE MARQUEE TICKER */}
       <div className="w-full bg-brand-green text-brand-ivory py-3 overflow-hidden flex whitespace-nowrap border-y border-brand-green-light/30">
@@ -144,7 +41,8 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* D. TRUST HIGHLIGHTS */}
+      <div className="flex flex-col gap-8 md:gap-12 mt-8 md:mt-12">
+        {/* D. TRUST HIGHLIGHTS */}
       <section className="container mx-auto px-4">
         <FadeIn>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-y border-brand-green-light/20 py-10">
@@ -496,6 +394,7 @@ export default async function Home() {
         </FadeIn>
       </section>
 
+      </div>
     </div>
   );
 }

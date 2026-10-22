@@ -12,8 +12,8 @@
   --color-brand-charcoal: #2D2D2D;
   --color-brand-champagne: #E8D8C8;
 
-  --font-serif: Georgia, "Times New Roman", serif;
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 
@@ -100,6 +100,68 @@
   will-change: background-position;
 }
 
+@keyframes hero-gold-shimmer {
+  0%, 15% {
+    background-position: 200% center;
+  }
+  65%, 100% {
+    background-position: -200% center;
+  }
+}
+
+@keyframes hero-forest-shimmer {
+  0%, 15% {
+    background-position: 200% center;
+  }
+  65%, 100% {
+    background-position: -200% center;
+  }
+}
+
+.hero-gold-shine {
+  background: linear-gradient(
+    110deg,
+    #967035 0%,
+    #967035 25%,
+    #B88E4C 38%,
+    #F3D89A 47%,
+    #FFF8E7 50%,
+    #F3D89A 53%,
+    #B88E4C 62%,
+    #967035 75%,
+    #967035 100%
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  animation: hero-gold-shimmer 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: background-position;
+}
+
+.hero-forest-shine {
+  background: linear-gradient(
+    110deg,
+    #132B22 0%,
+    #132B22 25%,
+    #1F4637 38%,
+    #3E7963 47%,
+    #72B99D 50%,
+    #3E7963 53%,
+    #1F4637 62%,
+    #132B22 75%,
+    #132B22 100%
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  animation: hero-forest-shimmer 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: background-position;
+}
+
 @keyframes draw-line {
   0% { stroke-dasharray: 0, 300; opacity: 0; fill: transparent; }
   10% { opacity: 1; }
@@ -168,6 +230,17 @@
   100% { left: 200%; }
 }
 
+@keyframes goldShimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-gold-shimmer {
+  background-size: 200% auto;
+  animation: goldShimmer 7s linear infinite;
+}
+
+
 @keyframes pf-underline-draw {
   to { transform: scaleX(1); }
 }
@@ -205,7 +278,7 @@ html:has(:target) {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
   max-width: 100%;
@@ -214,7 +287,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-serif), Georgia, serif;
 }
 
 ::selection {
