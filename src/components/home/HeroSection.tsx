@@ -82,10 +82,10 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
             </p>
 
             {/* Action Button */}
-            <div className="pt-0.5 sm:pt-1 flex items-center w-full xs:w-auto">
+            <div className="pt-0.5 sm:pt-1 flex items-center">
               <Link
                 href="/products"
-                className="group relative inline-flex items-center justify-center gap-2.5 px-7 py-3 sm:px-8 sm:py-3.5 rounded-full bg-[#0F281E] hover:bg-[#193F30] text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 shadow-[0_10px_24px_rgba(15,40,30,0.22)] hover:shadow-[0_14px_30px_rgba(15,40,30,0.32)] hover:-translate-y-0.5 active:translate-y-0 w-full xs:w-auto"
+                className="group relative inline-flex items-center justify-center gap-2.5 px-7 py-3 sm:px-8 sm:py-3.5 rounded-full bg-[#0F281E] hover:bg-[#193F30] text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 shadow-[0_10px_24px_rgba(15,40,30,0.22)] hover:shadow-[0_14px_30px_rgba(15,40,30,0.32)] hover:-translate-y-0.5 active:translate-y-0"
               >
                 <span>SHOP NOW</span>
                 <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
