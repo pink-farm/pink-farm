@@ -101,42 +101,42 @@
 }
 
 @keyframes hero-gold-shimmer {
-  from {
-    background-position: 100% center;
+  0% {
+    background-position: 200% 0;
   }
-  to {
-    background-position: 0% center;
+  100% {
+    background-position: 0% 0;
   }
 }
 
 @keyframes hero-forest-shimmer {
-  from {
-    background-position: 100% center;
+  0% {
+    background-position: 200% 0;
   }
-  to {
-    background-position: 0% center;
+  100% {
+    background-position: 0% 0;
   }
 }
 
 .hero-gold-shine {
   background: linear-gradient(
     110deg,
-    #967035 0%,
-    #967035 15%,
-    #B88E4C 20%,
-    #F5DE9C 23.5%,
+    #8C6527 0%,
+    #8C6527 10%,
+    #B88E4C 16%,
+    #EED38A 22%,
     #FFFDF5 25%,
-    #F5DE9C 26.5%,
-    #B88E4C 30%,
-    #967035 35%,
-    #967035 65%,
-    #B88E4C 70%,
-    #F5DE9C 73.5%,
+    #EED38A 28%,
+    #B88E4C 34%,
+    #8C6527 40%,
+    #8C6527 60%,
+    #B88E4C 66%,
+    #EED38A 72%,
     #FFFDF5 75%,
-    #F5DE9C 76.5%,
-    #B88E4C 80%,
-    #967035 85%,
-    #967035 100%
+    #EED38A 78%,
+    #B88E4C 84%,
+    #8C6527 90%,
+    #8C6527 100%
   );
   background-size: 200% 100%;
   -webkit-background-clip: text;
@@ -144,28 +144,30 @@
   -webkit-text-fill-color: transparent;
   display: inline-block;
   animation: hero-gold-shimmer 12s linear infinite;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   will-change: background-position;
 }
 
 .hero-forest-shine {
   background: linear-gradient(
     110deg,
-    #132B22 0%,
-    #132B22 15%,
-    #1F4839 20%,
-    #3F7C66 23.5%,
-    #8EE0BD 25%,
-    #3F7C66 26.5%,
-    #1F4839 30%,
-    #132B22 35%,
-    #132B22 65%,
-    #1F4839 70%,
-    #3F7C66 73.5%,
-    #8EE0BD 75%,
-    #3F7C66 76.5%,
-    #1F4839 80%,
-    #132B22 85%,
-    #132B22 100%
+    #142C23 0%,
+    #142C23 10%,
+    #275A47 16%,
+    #4EA382 22%,
+    #A7F3D0 25%,
+    #4EA382 28%,
+    #275A47 34%,
+    #142C23 40%,
+    #142C23 60%,
+    #275A47 66%,
+    #4EA382 72%,
+    #A7F3D0 75%,
+    #4EA382 78%,
+    #275A47 84%,
+    #142C23 90%,
+    #142C23 100%
   );
   background-size: 200% 100%;
   -webkit-background-clip: text;
@@ -173,6 +175,8 @@
   -webkit-text-fill-color: transparent;
   display: inline-block;
   animation: hero-forest-shimmer 12s linear infinite;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   will-change: background-position;
 }
 

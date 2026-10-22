@@ -92,11 +92,11 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
               </Link>
             </div>
 
-            {/* Feature Strip (NATURAL • ORGANIC • HANDCRAFTED) */}
+            {/* Feature Strip (PURE • PREMIUM • TRUSTED) */}
             <div className="pt-6 sm:pt-7 w-full border-t border-[#E3D6C3]/80">
               <div className="flex flex-wrap items-center gap-6 sm:gap-9 text-[#68553D]">
 
-                {/* 1. NATURAL */}
+                {/* 1. PURE */}
                 <div className="flex items-center gap-2.5 group cursor-default">
                   <div className="w-8 h-8 rounded-full bg-[#EFE3CF] flex items-center justify-center text-[#7F6440] transition-transform duration-300 group-hover:scale-110 shadow-xs">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -108,25 +108,22 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                   <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">PURE</span>
                 </div>
 
-                {/* 2. ORGANIC */}
+                {/* 2. PREMIUM */}
                 <div className="flex items-center gap-2.5 group cursor-default">
                   <div className="w-8 h-8 rounded-full bg-[#EFE3CF] flex items-center justify-center text-[#7F6440] transition-transform duration-300 group-hover:scale-110 shadow-xs">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22v-9" />
-                      <path d="M12 13c-2.5-3-6-3-8 0 3.5 1.5 6 1 8 0z" />
-                      <path d="M12 9c2.5-3 6-3 8 0-3.5 1.5-6 1-8 0z" />
-                      <path d="M12 5a3 3 0 0 0-3-3c0 2 1.5 3 3 3z" />
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                     </svg>
                   </div>
                   <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">PREMIUM</span>
                 </div>
 
-                {/* 3. HANDCRAFTED */}
+                {/* 3. TRUSTED */}
                 <div className="flex items-center gap-2.5 group cursor-default">
                   <div className="w-8 h-8 rounded-full bg-[#EFE3CF] flex items-center justify-center text-[#7F6440] transition-transform duration-300 group-hover:scale-110 shadow-xs">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                      <path d="M12 5v4" />
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                      <path d="m9 12 2 2 4-4" />
                     </svg>
                   </div>
                   <span className="font-bold text-xs uppercase tracking-widest text-[#453D32]">TRUSTED</span>
