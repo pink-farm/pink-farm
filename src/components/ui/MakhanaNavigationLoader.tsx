@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { MakhanaLoader } from "./MakhanaLoader";
+import { MakhanaLoader, preloadLotusBlob } from "./LotusLoader";
 
 declare global {
   interface Window {
@@ -18,8 +18,10 @@ export function MakhanaNavigationLoader() {
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [navKey, setNavKey] = useState<number>(() => Date.now());
 
   const initialUrlRef = useRef<string>("");
+  const targetUrlRef = useRef<string>("");
   const isNavigatingRef = useRef<boolean>(false);
   const isCompletingRef = useRef<boolean>(false);
   const routeMountedRef = useRef<boolean>(false);
@@ -31,7 +33,12 @@ export function MakhanaNavigationLoader() {
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Minimum time (in ms) the lotus bloom loader remains visible so transitions feel polished and intentional
-  const MIN_BLOOM_DURATION_MS = 1050;
+  const MIN_BLOOM_DURATION_MS = 1650;
+
+  // Preload lotus blob into memory on initial mount
+  useEffect(() => {
+    preloadLotusBlob();
+  }, []);
 
   // 1. Initial Page Load: Smoothly dismiss the server-rendered HTML curtain once React hydrates
   useEffect(() => {
@@ -54,7 +61,7 @@ export function MakhanaNavigationLoader() {
   const attemptDismissal = useCallback(() => {
     if (!isNavigatingRef.current || isCompletingRef.current) return;
 
-    // CRITICAL: Must wait until the new page has actually mounted into the DOM!
+    // CRITICAL: Must wait until BOTH the new page has actually mounted into the DOM AND min bloom time is reached!
     if (!routeMountedRef.current || !minTimeElapsedRef.current) {
       return;
     }
@@ -72,11 +79,12 @@ export function MakhanaNavigationLoader() {
       setIsNavigating(false);
       isNavigatingRef.current = false;
       isCompletingRef.current = false;
+      targetUrlRef.current = "";
       if (typeof window !== "undefined") {
         initialUrlRef.current = window.location.pathname + window.location.search;
       }
       setTimeout(() => setProgress(0), 300);
-    }, 220);
+    }, 240);
   }, []);
 
   const startNavigation = useCallback((targetUrl?: string) => {
@@ -85,9 +93,12 @@ export function MakhanaNavigationLoader() {
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
+    const now = Date.now();
     if (typeof window !== "undefined") {
       initialUrlRef.current = window.location.pathname + window.location.search;
     }
+    targetUrlRef.current = targetUrl || "";
+    setNavKey(now);
     isNavigatingRef.current = true;
     isCompletingRef.current = false;
     routeMountedRef.current = false;
@@ -155,13 +166,14 @@ export function MakhanaNavigationLoader() {
 
     const currentUrl = typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname;
     if (initialUrlRef.current && currentUrl !== initialUrlRef.current) {
-      // The router has committed the new route - wait 2 animation frames to ensure layout paint
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
+      // Backup fallback in case pinkfarm:route:mounted was delayed: wait 350ms to allow layout paint
+      const fallbackTimer = setTimeout(() => {
+        if (!routeMountedRef.current) {
           routeMountedRef.current = true;
           attemptDismissal();
-        });
-      });
+        }
+      }, 350);
+      return () => clearTimeout(fallbackTimer);
     }
   }, [pathname, searchParams, attemptDismissal]);
 
@@ -301,6 +313,8 @@ export function MakhanaNavigationLoader() {
             className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] select-none"
           >
             <MakhanaLoader
+              key={navKey}
+              navKey={navKey}
               size="xl"
               text="Loading Freshness..."
               subtext="Every bite crafted with love"

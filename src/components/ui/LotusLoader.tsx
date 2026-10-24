@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export interface LotusLoaderProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
@@ -20,14 +20,58 @@ const SIZES = {
   xl: { width: 260, height: 260, textClass: "text-xl" },
 };
 
+// Singleton in-memory Blob cache for zero-bandwidth, zero-lag frame-0 animation restart
+let cachedLotusBlob: Blob | null = null;
+let blobFetchPromise: Promise<Blob | null> | null = null;
+
+export async function preloadLotusBlob(): Promise<Blob | null> {
+  if (typeof window === "undefined") return null;
+  if (cachedLotusBlob) return cachedLotusBlob;
+  if (!blobFetchPromise) {
+    blobFetchPromise = fetch("/images/lotus-loader.webp")
+      .then((res) => (res.ok ? res.blob() : null))
+      .then((blob) => {
+        if (blob) cachedLotusBlob = blob;
+        return blob;
+      })
+      .catch((err) => {
+        console.warn("Could not preload lotus blob:", err);
+        return null;
+      });
+  }
+  return blobFetchPromise;
+}
+
 export function LotusLoader({
   size = "lg",
   fullScreen = false,
   text = "Loading Freshness...",
   subtext = "Crafted with pure care",
   className = "",
+  navKey,
 }: LotusLoaderProps) {
   const { width, height, textClass } = SIZES[size] || SIZES.lg;
+  const [blobUrl, setBlobUrl] = useState<string>("");
+
+  useEffect(() => {
+    let active = true;
+    let createdUrl = "";
+
+    preloadLotusBlob().then((blob) => {
+      if (!active || !blob) return;
+      createdUrl = URL.createObjectURL(blob);
+      setBlobUrl(createdUrl);
+    });
+
+    return () => {
+      active = false;
+      if (createdUrl) {
+        URL.revokeObjectURL(createdUrl);
+      }
+    };
+  }, [navKey]);
+
+  const imgSrc = blobUrl || "/images/lotus-loader.webp";
 
   const content = (
     <div
@@ -40,8 +84,6 @@ export function LotusLoader({
         className="relative flex items-center justify-center"
         style={{ width: `${width}px`, height: `${height}px` }}
       >
-
-
         {/* Pure Transparent Seamless Looping Lotus Bloom with Hardware Acceleration */}
         <div
           className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none"
@@ -53,7 +95,8 @@ export function LotusLoader({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/lotus-loader.webp"
+            key={navKey ? `lotus-loader-${navKey}` : "lotus-loader-default"}
+            src={imgSrc}
             alt="Pink Farm Lotus Bloom"
             width={width}
             height={height}

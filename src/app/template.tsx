@@ -8,23 +8,27 @@ export default function Template({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Wait for the browser to complete layout and initial paint of the new route
+    let timeoutId: NodeJS.Timeout;
     let raf2: number;
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
-        window.dispatchEvent(
-          new CustomEvent("pinkfarm:route:mounted", {
-            detail: {
-              pathname,
-              url: typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname,
-            },
-          })
-        );
+        timeoutId = setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent("pinkfarm:route:mounted", {
+              detail: {
+                pathname,
+                url: typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname,
+              },
+            })
+          );
+        }, 60);
       });
     });
 
     return () => {
       cancelAnimationFrame(raf1);
       if (raf2) cancelAnimationFrame(raf2);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [pathname]);
 
