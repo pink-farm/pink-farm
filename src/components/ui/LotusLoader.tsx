@@ -55,8 +55,7 @@ export function LotusLoader({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            key={navKey ? `lotus-loader-${navKey}` : "lotus-loader-default"}
-            src={navKey ? `/images/lotus-loader.webp?t=${navKey}` : "/images/lotus-loader.webp"}
+            src="/images/lotus-loader.webp"
             alt="Pink Farm Lotus Bloom"
             width={width}
             height={height}

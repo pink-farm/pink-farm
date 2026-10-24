@@ -18,7 +18,6 @@ export function MakhanaNavigationLoader() {
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [navKey, setNavKey] = useState<number>(() => Date.now());
 
   const initialUrlRef = useRef<string>("");
   const isNavigatingRef = useRef<boolean>(false);
@@ -86,11 +85,9 @@ export function MakhanaNavigationLoader() {
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
-    const now = Date.now();
     if (typeof window !== "undefined") {
       initialUrlRef.current = window.location.pathname + window.location.search;
     }
-    setNavKey(now);
     isNavigatingRef.current = true;
     isCompletingRef.current = false;
     routeMountedRef.current = false;
@@ -304,8 +301,6 @@ export function MakhanaNavigationLoader() {
             className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDFBF7] select-none"
           >
             <MakhanaLoader
-              key={navKey}
-              navKey={navKey}
               size="xl"
               text="Loading Freshness..."
               subtext="Every bite crafted with love"
