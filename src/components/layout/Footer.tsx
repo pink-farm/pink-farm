@@ -38,11 +38,11 @@ export function Footer() {
               width={180} 
               height={180} 
               quality={100}
-              className="w-[80px] h-[80px] md:w-[95px] md:h-[95px] object-contain -translate-y-[5%] drop-shadow-md -mr-1 md:-mr-2"
+              className="w-[80px] h-[80px] md:w-[95px] md:h-[95px] object-contain -translate-y-[5%] drop-shadow-md -mr-1 md:-mr-2 shrink-0"
             />
             <div className="flex flex-col min-w-0">
               <h3 
-                className="font-serif text-3xl md:text-4xl font-extrabold text-brand-ivory tracking-tight leading-none break-words inline-flex items-baseline"
+                className="font-serif text-3xl md:text-4xl font-extrabold text-brand-ivory tracking-tight leading-none whitespace-nowrap inline-flex items-baseline"
                 style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
               >
                 {(() => {
@@ -54,7 +54,7 @@ export function Footer() {
                         <span className="relative inline-block">
                           {name.slice(-1)}
                           <span 
-                            className="absolute top-0.5 md:top-1 right-0 text-[9px] md:text-[10px] font-sans font-bold text-white tracking-wider leading-none select-none drop-shadow-sm"
+                            className="absolute top-[2.5px] md:top-[3px] right-0 text-[5px] md:text-[5.5px] font-sans font-medium text-white tracking-normal leading-none select-none pointer-events-none"
                             aria-label="Trademark"
                           >
                             TM
@@ -66,7 +66,7 @@ export function Footer() {
                   return (
                     <>
                       <span>{name}</span>
-                      <sup className="text-[9px] md:text-[10px] font-sans font-bold text-white ml-0.5 select-none">
+                      <sup className="text-[5px] md:text-[5.5px] font-sans font-medium text-white ml-0.5 select-none pointer-events-none">
                         TM
                       </sup>
                     </>
