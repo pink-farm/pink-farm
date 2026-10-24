@@ -42,27 +42,51 @@ export function Footer() {
             />
             <div className="flex flex-col min-w-0">
               <h3 
-                className="font-serif text-3xl md:text-4xl font-extrabold text-brand-ivory tracking-tight leading-none break-words"
+                className="font-serif text-3xl md:text-4xl font-extrabold text-brand-ivory tracking-tight leading-none break-words inline-flex items-baseline"
                 style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
               >
-                {storeName || "Pink Farm"}
+                {(() => {
+                  const name = storeName || "Pink Farm";
+                  if (name.toLowerCase().endsWith("m")) {
+                    return (
+                      <>
+                        <span>{name.slice(0, -1)}</span>
+                        <span className="relative inline-block">
+                          {name.slice(-1)}
+                          <span 
+                            className="absolute top-0.5 md:top-1 right-0 text-[9px] md:text-[10px] font-sans font-bold text-white tracking-wider leading-none select-none drop-shadow-sm"
+                            aria-label="Trademark"
+                          >
+                            TM
+                          </span>
+                        </span>
+                      </>
+                    );
+                  }
+                  return (
+                    <>
+                      <span>{name}</span>
+                      <sup className="text-[9px] md:text-[10px] font-sans font-bold text-white ml-0.5 select-none">
+                        TM
+                      </sup>
+                    </>
+                  );
+                })()}
               </h3>
               <span className="text-[11px] md:text-xs text-brand-champagne/90 tracking-wider font-medium mt-1">
                 By Suvana Organics
               </span>
             </div>
           </div>
-          <p className="opacity-90 mb-4 leading-relaxed">
-            Goodness that feels like home. Discover thoughtfully selected everyday favourites, with premium Makhana at our heart.
-          </p>
+
           {businessAddress && (
-            <p className="text-xs opacity-75 leading-relaxed">
+            <p className="text-xs opacity-80 leading-relaxed mb-4">
               📍 {businessAddress}
             </p>
           )}
 
           {/* FSSAI Food Safety License / Registration Badge */}
-          <div className="mt-4 pt-3 border-t border-brand-green-light/25">
+          <div className="pt-3 border-t border-brand-green-light/25">
             <a
               href="https://foscos.fssai.gov.in/"
               target="_blank"
