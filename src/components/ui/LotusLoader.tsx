@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 
 export interface LotusLoaderProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
@@ -27,7 +26,6 @@ export function LotusLoader({
   text = "Loading Freshness...",
   subtext = "Crafted with pure care",
   className = "",
-  navKey,
 }: LotusLoaderProps) {
   const { width, height, textClass } = SIZES[size] || SIZES.lg;
 
