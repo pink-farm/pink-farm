@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 
+import { motion } from "framer-motion";
+
 export interface LotusLoaderProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   fullScreen?: boolean;
@@ -57,14 +59,24 @@ export function LotusLoader({
     let active = true;
     let createdUrl = "";
 
-    preloadLotusBlob().then((blob) => {
-      if (!active || !blob) return;
-      createdUrl = URL.createObjectURL(blob);
-      setBlobUrl(createdUrl);
-    });
+    const refreshBlob = () => {
+      preloadLotusBlob().then((blob) => {
+        if (!active || !blob) return;
+        if (createdUrl) URL.revokeObjectURL(createdUrl);
+        createdUrl = URL.createObjectURL(blob);
+        setBlobUrl(createdUrl);
+      });
+    };
+
+    refreshBlob();
+
+    // The lotus bloom duration is ~5.1s. On slow connections (e.g. slow 4G),
+    // loop smoothly by refreshing the blob URL every 5100ms so it blooms continuously without freezing
+    const loopTimer = setInterval(refreshBlob, 5100);
 
     return () => {
       active = false;
+      clearInterval(loopTimer);
       if (createdUrl) {
         URL.revokeObjectURL(createdUrl);
       }
@@ -84,8 +96,17 @@ export function LotusLoader({
         className="relative flex items-center justify-center"
         style={{ width: `${width}px`, height: `${height}px` }}
       >
-        {/* Pure Transparent Seamless Looping Lotus Bloom with Hardware Acceleration */}
-        <div
+        {/* Pure Transparent Seamless Looping Lotus Bloom with Hardware Acceleration and Organic Breathing */}
+        <motion.div
+          animate={{
+            scale: [1, 1.05, 1],
+            opacity: [0.96, 1, 0.96],
+          }}
+          transition={{
+            duration: 2.8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
           className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none"
           style={{
             transform: "translateZ(0)",
@@ -102,7 +123,7 @@ export function LotusLoader({
             height={height}
             className="w-full h-full object-contain pointer-events-none select-none"
           />
-        </div>
+        </motion.div>
       </div>
 
       {/* Typography matching luxury Pink Farm brand */}

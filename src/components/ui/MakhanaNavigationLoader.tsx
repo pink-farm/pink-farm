@@ -22,6 +22,7 @@ export function MakhanaNavigationLoader() {
 
   const initialUrlRef = useRef<string>("");
   const targetUrlRef = useRef<string>("");
+  const initialMainSignatureRef = useRef<string>("");
   const isNavigatingRef = useRef<boolean>(false);
   const isCompletingRef = useRef<boolean>(false);
   const routeMountedRef = useRef<boolean>(false);
@@ -80,6 +81,7 @@ export function MakhanaNavigationLoader() {
       isNavigatingRef.current = false;
       isCompletingRef.current = false;
       targetUrlRef.current = "";
+      initialMainSignatureRef.current = "";
       if (typeof window !== "undefined") {
         initialUrlRef.current = window.location.pathname + window.location.search;
       }
@@ -96,6 +98,8 @@ export function MakhanaNavigationLoader() {
     const now = Date.now();
     if (typeof window !== "undefined") {
       initialUrlRef.current = window.location.pathname + window.location.search;
+      const mainEl = document.querySelector("main");
+      initialMainSignatureRef.current = mainEl ? mainEl.innerText.slice(0, 300) : "";
     }
     targetUrlRef.current = targetUrl || "";
     setNavKey(now);
@@ -105,18 +109,18 @@ export function MakhanaNavigationLoader() {
     minTimeElapsedRef.current = false;
 
     setIsNavigating(true);
-    setProgress(30);
+    setProgress(35);
 
-    // Increment progress bar smoothly up to 88% while waiting for page
+    // Continuous smooth progress bar: climbs to 78% quickly, then gently creeps up to 98%
+    // so it NEVER freezes even on slow 4G network requests
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 88) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          return 88;
-        }
-        return prev + 6;
+        if (prev < 78) return prev + 6;
+        if (prev < 90) return prev + 1.5;
+        if (prev < 96) return prev + 0.4;
+        return Math.min(prev + 0.08, 98.5);
       });
-    }, 100);
+    }, 110);
 
     // Minimum bloom display timer
     minTimerRef.current = setTimeout(() => {
@@ -124,15 +128,15 @@ export function MakhanaNavigationLoader() {
       attemptDismissal();
     }, MIN_BLOOM_DURATION_MS);
 
-    // Generous safety fallback (10s) in case a catastrophic network error occurs
+    // Generous safety fallback (20s) for slow mobile connections
     safetyTimeoutRef.current = setTimeout(() => {
       routeMountedRef.current = true;
       minTimeElapsedRef.current = true;
       attemptDismissal();
-    }, 10000);
+    }, 20000);
   }, [attemptDismissal]);
 
-  // Listener A: When template.tsx fires pinkfarm:route:mounted, the new route is fully painted in the DOM!
+  // Listener A: When template.tsx fires pinkfarm:route:mounted, verify DOM content arrival
   useEffect(() => {
     const handleRouteMounted = (e: Event) => {
       if (!isNavigatingRef.current) return;
@@ -141,6 +145,14 @@ export function MakhanaNavigationLoader() {
 
       // If the URL is still the initial URL where we started, the new page has not arrived yet!
       if (initialUrlRef.current && arrivedUrl === initialUrlRef.current) {
+        return;
+      }
+
+      // Verify that <main> content has actually updated from the initial page
+      const mainEl = document.querySelector("main");
+      const currentSignature = mainEl ? mainEl.innerText.slice(0, 300) : "";
+      if (initialMainSignatureRef.current && currentSignature === initialMainSignatureRef.current) {
+        // Content has not swapped yet, wait for DOM mutation observer
         return;
       }
 
@@ -155,27 +167,52 @@ export function MakhanaNavigationLoader() {
     };
   }, [attemptDismissal]);
 
-  // Listener B: React pathname/searchParams hook changes as backup
+  // Listener B: MutationObserver on <main> ensures the overlay remains active
+  // throughout slow 4G streaming until the destination page's DOM has actually painted!
   useEffect(() => {
-    if (!isNavigatingRef.current) {
-      if (typeof window !== "undefined") {
-        initialUrlRef.current = window.location.pathname + window.location.search;
-      }
-      return;
-    }
+    if (!isNavigating) return;
 
-    const currentUrl = typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname;
-    if (initialUrlRef.current && currentUrl !== initialUrlRef.current) {
-      // Backup fallback in case pinkfarm:route:mounted was delayed: wait 350ms to allow layout paint
-      const fallbackTimer = setTimeout(() => {
-        if (!routeMountedRef.current) {
+    const mainEl = document.querySelector("main");
+    if (!mainEl) return;
+
+    const checkAndComplete = () => {
+      if (!isNavigatingRef.current || routeMountedRef.current) return;
+
+      const currentUrl = typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname;
+      if (initialUrlRef.current && currentUrl === initialUrlRef.current) {
+        return;
+      }
+
+      const currentSignature = mainEl.innerText.slice(0, 300);
+      if (initialMainSignatureRef.current && currentSignature === initialMainSignatureRef.current) {
+        // Still showing old page content while server is streaming
+        return;
+      }
+
+      // DOM content has genuinely updated to the destination page!
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
           routeMountedRef.current = true;
           attemptDismissal();
-        }
-      }, 350);
-      return () => clearTimeout(fallbackTimer);
-    }
-  }, [pathname, searchParams, attemptDismissal]);
+        });
+      });
+    };
+
+    const observer = new MutationObserver(checkAndComplete);
+    observer.observe(mainEl, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    // Also check on interval as safety fallback in case DOM mutations batched silently
+    const pollTimer = setInterval(checkAndComplete, 150);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(pollTimer);
+    };
+  }, [isNavigating, pathname, attemptDismissal]);
 
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
