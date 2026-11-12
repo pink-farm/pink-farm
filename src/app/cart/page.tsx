@@ -74,7 +74,14 @@ export default function CartPage() {
               >
                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-brand-cream relative overflow-hidden flex-shrink-0">
                   {item.imageUrl ? (
-                    <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.name}
+                      fill
+                      sizes="(max-width: 640px) 96px, 128px"
+                      unoptimized={Boolean(item.imageUrl?.startsWith("data:"))}
+                      className="object-cover"
+                    />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-xs text-brand-green/30">Image</div>
                   )}

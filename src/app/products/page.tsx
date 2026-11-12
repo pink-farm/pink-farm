@@ -3,10 +3,13 @@ import { ProductListClient } from "./ProductListClient";
 import { FadeIn } from "@/components/ui/MotionWrappers";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getCachedStoreProducts, getCachedStoreSettings } from "@/lib/cachedStore";
+import { pickComboProductData, pickProductCardData } from "@/lib/mediaUrl";
 
 export default async function ProductsPage() {
   const [allProducts, settings] = await Promise.all([getCachedStoreProducts({ includeUnavailable: false }), getCachedStoreSettings()]);
   const products = allProducts.filter((p) => p.isAvailable !== false);
+  const cardProducts = products.map(pickProductCardData);
+  const comboProducts = products.map(pickComboProductData);
   const maxDiscount = Math.max(settings.comboTier1Discount || 11, settings.comboTier2Discount || 15);
   const showCombo = settings.comboEnabled !== false;
 
@@ -37,14 +40,14 @@ export default async function ProductsPage() {
 
         <Suspense fallback={<div className="py-12 text-center text-sm font-semibold text-brand-green">Loading products...</div>}>
           <ProductListClient
-            initialProducts={products}
+            initialProducts={cardProducts}
             initialCategories={settings.storeCategories}
           />
         </Suspense>
       </div>
 
       {/* MAKE YOUR OWN COMBO SECTION */}
-      {showCombo && <ComboBuilder products={products} />}
+      {showCombo && <ComboBuilder products={comboProducts} />}
     </div>
   );
 }

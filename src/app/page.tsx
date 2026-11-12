@@ -16,11 +16,13 @@ import {
 import { formatPrice } from "@/lib/utils";
 import ComboBuilder from "@/components/products/ComboBuilder";
 import { getCachedStoreProducts, getCachedStoreSettings } from "@/lib/cachedStore";
+import { pickComboProductData } from "@/lib/mediaUrl";
 import { HeroSection } from "@/components/home/HeroSection";
 
 export default async function Home() {
   const [products, storeSettings] = await Promise.all([getCachedStoreProducts(), getCachedStoreSettings()]);
   const homepageProducts = products.filter((p) => p.isFeatured);
+  const comboProducts = products.map(pickComboProductData);
   const featuredProduct = (storeSettings.featuredProductId
     ? products.find((p) => p.id === storeSettings.featuredProductId || p.slug === storeSettings.featuredProductId)
     : null) || homepageProducts.find((p) => p.category.toLowerCase() === 'makhana') || homepageProducts[0] || products[0];
@@ -29,7 +31,12 @@ export default async function Home() {
     <div className="flex flex-col pb-28 sm:pb-20 overflow-x-hidden min-w-0">
       
       {/* C. HERO SECTION */}
-      <HeroSection storeSettings={storeSettings} />
+      <HeroSection
+        storeSettings={{
+          heroMainImage: storeSettings.heroMainImage,
+          heroGheeImage: storeSettings.heroGheeImage,
+        }}
+      />
 
       {/* D. INFINITE MARQUEE TICKER */}
       <div className="w-full bg-brand-green text-brand-ivory py-3 overflow-hidden flex whitespace-nowrap border-y border-brand-green-light/30">
@@ -89,7 +96,7 @@ export default async function Home() {
                             src={product.imageUrl}
                             alt={product.name}
                             fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                             className="object-cover"
                             unoptimized={Boolean(product.imageUrl?.startsWith("data:"))}
                           />
@@ -160,7 +167,7 @@ export default async function Home() {
                         alt={storeSettings.featuredProductHeading || featuredProduct.name}
                         fill
                         sizes="(max-width: 1024px) 100vw, 50vw"
-                        unoptimized={Boolean(storeSettings.featuredProductImage || featuredProduct.imageUrl?.startsWith("data:"))}
+                        unoptimized={Boolean((storeSettings.featuredProductImage || featuredProduct.imageUrl)?.startsWith("data:"))}
                         className="object-cover"
                       />
                     ) : (
@@ -202,7 +209,7 @@ export default async function Home() {
       )}
 
       {/* G2. MAKE YOUR OWN COMBO SECTION */}
-      <ComboBuilder products={products} />
+      <ComboBuilder products={comboProducts} />
 
       {/* G. WHY PINK FARM? WITH SPOTLIGHT CARDS */}
       <section className="container mx-auto px-4 text-center max-w-5xl space-y-12 py-16">

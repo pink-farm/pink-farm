@@ -34,7 +34,7 @@ export function MakhanaNavigationLoader() {
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Minimum time (in ms) the lotus bloom loader remains visible so transitions feel polished without stalling cached routes
-  const MIN_BLOOM_DURATION_MS = 500;
+  const MIN_BLOOM_DURATION_MS = 180;
 
   // Preload lotus blob into memory on initial mount
   useEffect(() => {
@@ -85,8 +85,8 @@ export function MakhanaNavigationLoader() {
       if (typeof window !== "undefined") {
         initialUrlRef.current = window.location.pathname + window.location.search;
       }
-      setTimeout(() => setProgress(0), 300);
-    }, 240);
+      setTimeout(() => setProgress(0), 200);
+    }, 150);
   }, []);
 
   const startNavigation = useCallback((targetUrl?: string) => {

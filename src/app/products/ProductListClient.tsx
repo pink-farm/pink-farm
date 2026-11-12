@@ -14,7 +14,7 @@ interface Product {
   name: string;
   slug: string;
   shortDescription: string;
-  description: string;
+  description?: string;
   imageUrl: string;
   basePrice: number;
   originalPrice: number | null;
@@ -208,7 +208,7 @@ export function ProductListClient({
                           src={product.imageUrl}
                           alt={product.name}
                           fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           className="object-cover"
                           unoptimized={Boolean(product.imageUrl?.startsWith("data:"))}
                         />

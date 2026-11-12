@@ -21,7 +21,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
               },
             })
           );
-        }, 60);
+        }, 16);
       });
     });
 

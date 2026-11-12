@@ -15,6 +15,14 @@ export function HeroVideoBackground({
   const [canLoad, setCanLoad] = useState(false);
 
   useEffect(() => {
+    const conn = (navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }).connection;
+
+    if (conn?.saveData || conn?.effectiveType === "slow-2g" || conn?.effectiveType === "2g") {
+      return;
+    }
+
     // Defer video stream request until after the initial page and lotus animation hydrate
     // This frees 100% of network bandwidth and GPU pipelines for instant first paint
     const timer = setTimeout(() => {
@@ -79,11 +87,11 @@ export function HeroVideoBackground({
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           className="h-full w-full object-cover transition-opacity duration-700 ease-out"
           style={{ willChange: "transform" }}
         >
-          <source src={videoUrl} type="video/mp4" />
+          <source src={videoUrl} />
         </video>
       )}
     </div>

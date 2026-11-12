@@ -1,6 +1,11 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { prisma, queryDatabase } from "@/lib/db";
 import { DEFAULT_SETTINGS, FALLBACK_PRODUCTS, type StoreProduct } from "@/lib/defaultProducts";
+import {
+  serializeStoreProductMedia,
+  serializeStoreSettingsMedia,
+  type SettingsMediaField,
+} from "@/lib/mediaUrl";
 
 export async function getCachedStoreProducts(options?: { includeUnavailable?: boolean }): Promise<StoreProduct[]> {
   "use cache";
@@ -17,14 +22,14 @@ export async function getCachedStoreProducts(options?: { includeUnavailable?: bo
 
     if (products && products.length > 0) {
       cacheLife("hours");
-      return products as unknown as StoreProduct[];
+      return (products as unknown as StoreProduct[]).map(serializeStoreProductMedia);
     }
   } catch {
     // Fall through to short-lived fallback cache so transient DB outages recover quickly.
   }
 
   cacheLife({ stale: 15, revalidate: 15, expire: 60 });
-  return FALLBACK_PRODUCTS;
+  return FALLBACK_PRODUCTS.map(serializeStoreProductMedia);
 }
 
 export async function getCachedStoreProductBySlug(slug: string): Promise<StoreProduct | null> {
@@ -41,16 +46,16 @@ export async function getCachedStoreProductBySlug(slug: string): Promise<StorePr
 
     cacheLife("hours");
     if (product) {
-      return product as unknown as StoreProduct;
+      return serializeStoreProductMedia(product as unknown as StoreProduct);
     }
   } catch {
     cacheLife({ stale: 15, revalidate: 15, expire: 60 });
     const fallback = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
-    return fallback || null;
+    return fallback ? serializeStoreProductMedia(fallback) : null;
   }
 
   const fallback = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
-  return fallback || null;
+  return fallback ? serializeStoreProductMedia(fallback) : null;
 }
 
 export async function getCachedStoreSettings() {
@@ -67,16 +72,16 @@ export async function getCachedStoreSettings() {
     );
     cacheLife("hours");
     if (settings) {
-      return {
+      return serializeStoreSettingsMedia({
         ...settings,
         freeDeliveryThreshold: settings.freeDeliveryThreshold ?? DEFAULT_SETTINGS.freeDeliveryThreshold,
-      };
+      });
     }
   } catch {
     cacheLife({ stale: 15, revalidate: 15, expire: 60 });
-    return DEFAULT_SETTINGS;
+    return serializeStoreSettingsMedia(DEFAULT_SETTINGS);
   }
-  return DEFAULT_SETTINGS;
+  return serializeStoreSettingsMedia(DEFAULT_SETTINGS);
 }
 
 export async function getCachedPublicStoreSettings() {
@@ -194,6 +199,55 @@ export async function getCachedProductReviewStats(productId: string, slug: strin
   } catch {
     cacheLife({ stale: 15, revalidate: 15, expire: 60 });
     return { reviewCount: 0, avgRating: null };
+  }
+}
+
+export async function getCachedRawProductMedia(productId: string) {
+  "use cache";
+  cacheTag("store-products");
+
+  if (!/^[a-fA-F0-9]{24}$/.test(productId)) {
+    cacheLife("minutes");
+    return null;
+  }
+
+  try {
+    const product = await queryDatabase(() =>
+      prisma.product.findUnique({
+        where: { id: productId },
+        select: {
+          imageUrl: true,
+          additionalImages: true,
+        },
+      }),
+    );
+    cacheLife("hours");
+    return product;
+  } catch {
+    cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+    return null;
+  }
+}
+
+export async function getCachedRawSettingsMedia(field: SettingsMediaField): Promise<string | null> {
+  "use cache";
+  cacheTag("store-settings");
+
+  try {
+    const settings = await queryDatabase(() =>
+      prisma.storeSettings.findUnique({
+        where: { id: "default" },
+        select: { [field]: true } as Record<SettingsMediaField, true>,
+      }),
+      8_000,
+      { isolateCooldown: true },
+    );
+    cacheLife("hours");
+    const val = settings ? (settings as Record<string, unknown>)[field] : null;
+    return typeof val === "string" ? val : null;
+  } catch {
+    cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+    return null;
   }
 }
 
