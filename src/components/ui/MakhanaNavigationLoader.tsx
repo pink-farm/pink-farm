@@ -11,18 +11,29 @@ declare global {
   }
 }
 
+function getMainSignature(): string {
+  if (typeof document === "undefined") return "";
+  const mainEl = document.querySelector("main");
+  return mainEl ? (mainEl.textContent || "").slice(0, 300) : "";
+}
+
 export function MakhanaNavigationLoader() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  const searchString = searchParams ? searchParams.toString() : "";
+  const currentRouteUrl = searchString ? `${pathname}?${searchString}` : pathname;
+
   const [isNavigating, setIsNavigating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [navKey, setNavKey] = useState<number>(() => Date.now());
 
-  const initialUrlRef = useRef<string>("");
+  const committedRouteRef = useRef<string>(currentRouteUrl);
+  const committedSignatureRef = useRef<string>("");
+  const originUrlRef = useRef<string>(currentRouteUrl);
   const targetUrlRef = useRef<string>("");
-  const initialMainSignatureRef = useRef<string>("");
+  const originSignatureRef = useRef<string>("");
   const isNavigatingRef = useRef<boolean>(false);
   const isCompletingRef = useRef<boolean>(false);
   const routeMountedRef = useRef<boolean>(false);
@@ -34,7 +45,15 @@ export function MakhanaNavigationLoader() {
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Minimum time (in ms) the lotus bloom loader remains visible so transitions feel polished without stalling cached routes
-  const MIN_BLOOM_DURATION_MS = 180;
+  const MIN_BLOOM_DURATION_MS = 160;
+
+  // Track the currently committed route and DOM signature whenever idle
+  useEffect(() => {
+    if (!isNavigatingRef.current) {
+      committedRouteRef.current = currentRouteUrl;
+      committedSignatureRef.current = getMainSignature();
+    }
+  }, [currentRouteUrl]);
 
   // Preload lotus blob into memory on initial mount
   useEffect(() => {
@@ -62,7 +81,7 @@ export function MakhanaNavigationLoader() {
   const attemptDismissal = useCallback(() => {
     if (!isNavigatingRef.current || isCompletingRef.current) return;
 
-    // CRITICAL: Must wait until BOTH the new page has actually mounted into the DOM AND min bloom time is reached!
+    // Wait until BOTH the new page has mounted into the DOM AND min bloom time is reached
     if (!routeMountedRef.current || !minTimeElapsedRef.current) {
       return;
     }
@@ -81,81 +100,112 @@ export function MakhanaNavigationLoader() {
       isNavigatingRef.current = false;
       isCompletingRef.current = false;
       targetUrlRef.current = "";
-      initialMainSignatureRef.current = "";
       if (typeof window !== "undefined") {
-        initialUrlRef.current = window.location.pathname + window.location.search;
+        const settledUrl = window.location.pathname + window.location.search;
+        committedRouteRef.current = settledUrl;
+        originUrlRef.current = settledUrl;
       }
+      const settledSig = getMainSignature();
+      committedSignatureRef.current = settledSig;
+      originSignatureRef.current = settledSig;
       setTimeout(() => setProgress(0), 200);
-    }, 150);
+    }, 60);
   }, []);
 
-  const startNavigation = useCallback((targetUrl?: string) => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (minTimerRef.current) clearTimeout(minTimerRef.current);
-    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+  const startNavigation = useCallback(
+    (targetUrl?: string, options?: { fromCommittedOrigin?: boolean }) => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (minTimerRef.current) clearTimeout(minTimerRef.current);
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+      if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
-    const now = Date.now();
-    if (typeof window !== "undefined") {
-      initialUrlRef.current = window.location.pathname + window.location.search;
-      const mainEl = document.querySelector("main");
-      initialMainSignatureRef.current = mainEl ? (mainEl.textContent || "").slice(0, 300) : "";
-    }
-    targetUrlRef.current = targetUrl || "";
-    setNavKey(now);
-    isNavigatingRef.current = true;
-    isCompletingRef.current = false;
-    routeMountedRef.current = false;
-    minTimeElapsedRef.current = false;
+      const now = Date.now();
+      // On popstate, window.location is already updated to the destination URL, so keep the last committed origin.
+      if (options?.fromCommittedOrigin) {
+        originUrlRef.current = committedRouteRef.current;
+        originSignatureRef.current = committedSignatureRef.current || getMainSignature();
+      } else {
+        originUrlRef.current =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : committedRouteRef.current;
+        originSignatureRef.current = getMainSignature();
+      }
 
-    setIsNavigating(true);
-    setProgress(35);
+      targetUrlRef.current = targetUrl || "";
+      setNavKey(now);
+      isNavigatingRef.current = true;
+      isCompletingRef.current = false;
+      routeMountedRef.current = false;
+      minTimeElapsedRef.current = false;
 
-    // Continuous smooth progress bar: climbs to 78% quickly, then gently creeps up to 98%
-    // so it NEVER freezes even on slow 4G network requests
-    timerRef.current = setInterval(() => {
-      setProgress((prev) => {
-        if (prev < 78) return prev + 6;
-        if (prev < 90) return prev + 1.5;
-        if (prev < 96) return prev + 0.4;
-        return Math.min(prev + 0.08, 98.5);
-      });
-    }, 110);
+      setIsNavigating(true);
+      setProgress(35);
 
-    // Minimum bloom display timer
-    minTimerRef.current = setTimeout(() => {
-      minTimeElapsedRef.current = true;
-      attemptDismissal();
-    }, MIN_BLOOM_DURATION_MS);
+      // Continuous smooth progress bar: climbs to 78% quickly, then gently creeps up to 98%
+      // so it NEVER freezes even on slow 4G network requests
+      timerRef.current = setInterval(() => {
+        setProgress((prev) => {
+          if (prev < 78) return prev + 6;
+          if (prev < 90) return prev + 1.5;
+          if (prev < 96) return prev + 0.4;
+          return Math.min(prev + 0.08, 98.5);
+        });
+      }, 110);
 
-    // Generous safety fallback (20s) for slow mobile connections
-    safetyTimeoutRef.current = setTimeout(() => {
+      // Minimum bloom display timer
+      minTimerRef.current = setTimeout(() => {
+        minTimeElapsedRef.current = true;
+        attemptDismissal();
+      }, MIN_BLOOM_DURATION_MS);
+
+      // Safety fallback (12s) for stalled network transitions
+      safetyTimeoutRef.current = setTimeout(() => {
+        routeMountedRef.current = true;
+        minTimeElapsedRef.current = true;
+        attemptDismissal();
+      }, 12000);
+    },
+    [attemptDismissal],
+  );
+
+  // Primary completion detector: when Next.js commits the new pathname/searchParams in React
+  useEffect(() => {
+    if (!isNavigatingRef.current || routeMountedRef.current) return;
+    if (originUrlRef.current && currentRouteUrl === originUrlRef.current) return;
+
+    const rafId = requestAnimationFrame(() => {
+      committedRouteRef.current = currentRouteUrl;
+      committedSignatureRef.current = getMainSignature();
+      if (!isNavigatingRef.current || routeMountedRef.current) return;
+      window.scrollTo(0, 0);
       routeMountedRef.current = true;
-      minTimeElapsedRef.current = true;
       attemptDismissal();
-    }, 20000);
-  }, [attemptDismissal]);
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [currentRouteUrl, isNavigating, attemptDismissal]);
 
   // Listener A: When template.tsx fires pinkfarm:route:mounted, verify DOM content arrival
   useEffect(() => {
     const handleRouteMounted = (e: Event) => {
-      if (!isNavigatingRef.current) return;
+      if (!isNavigatingRef.current || routeMountedRef.current) return;
       const customEvent = e as CustomEvent<{ pathname?: string; url?: string }>;
-      const arrivedUrl = customEvent.detail?.url || customEvent.detail?.pathname || (typeof window !== "undefined" ? window.location.pathname : "");
+      const arrivedUrl =
+        customEvent.detail?.url ||
+        customEvent.detail?.pathname ||
+        (typeof window !== "undefined" ? window.location.pathname + window.location.search : "");
 
-      // If the URL is still the initial URL where we started, the new page has not arrived yet!
-      if (initialUrlRef.current && arrivedUrl === initialUrlRef.current) {
+      const currentSignature = getMainSignature();
+      const urlChanged = Boolean(originUrlRef.current && arrivedUrl !== originUrlRef.current);
+      const signatureChanged = Boolean(originSignatureRef.current && currentSignature !== originSignatureRef.current);
+
+      if (!urlChanged && !signatureChanged) {
         return;
       }
 
-      // Verify that <main> content has actually updated from the initial page
-      const mainEl = document.querySelector("main");
-      const currentSignature = mainEl ? (mainEl.textContent || "").slice(0, 300) : "";
-      if (initialMainSignatureRef.current && currentSignature === initialMainSignatureRef.current) {
-        // Content has not swapped yet, wait for DOM mutation observer
-        return;
-      }
-
+      committedRouteRef.current = arrivedUrl || currentRouteUrl;
+      committedSignatureRef.current = currentSignature;
       window.scrollTo(0, 0);
       routeMountedRef.current = true;
       attemptDismissal();
@@ -165,10 +215,9 @@ export function MakhanaNavigationLoader() {
     return () => {
       window.removeEventListener("pinkfarm:route:mounted", handleRouteMounted);
     };
-  }, [attemptDismissal]);
+  }, [currentRouteUrl, attemptDismissal]);
 
-  // Listener B: MutationObserver on <main> ensures the overlay remains active
-  // throughout slow 4G streaming until the destination page's DOM has actually painted!
+  // Listener B: MutationObserver on <main> handles streaming swaps and cached popstate restores
   useEffect(() => {
     if (!isNavigating) return;
 
@@ -178,25 +227,36 @@ export function MakhanaNavigationLoader() {
     const checkAndComplete = () => {
       if (!isNavigatingRef.current || routeMountedRef.current) return;
 
-      const currentUrl = typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname;
-      if (initialUrlRef.current && currentUrl === initialUrlRef.current) {
-        return;
-      }
-
+      const browserUrl =
+        typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname;
       const currentSignature = (mainEl.textContent || "").slice(0, 300);
-      if (initialMainSignatureRef.current && currentSignature === initialMainSignatureRef.current) {
-        // Still showing old page content while server is streaming
+
+      const urlChanged = Boolean(originUrlRef.current && browserUrl !== originUrlRef.current);
+      const signatureChanged = Boolean(originSignatureRef.current && currentSignature !== originSignatureRef.current);
+
+      // Must see either a URL change or genuine main DOM update away from origin
+      if (!urlChanged && !signatureChanged) {
         return;
       }
 
-      // DOM content has genuinely updated to the destination page!
+      // If URL already matches target/new route AND either signature changed or Next's router committed, complete cleanly
+      if (urlChanged && originSignatureRef.current && currentSignature === originSignatureRef.current) {
+        // Wait for destination DOM to swap unless React has already committed currentRouteUrl
+        if (currentRouteUrl === originUrlRef.current) {
+          return;
+        }
+      }
+
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          routeMountedRef.current = true;
-          attemptDismissal();
-        });
+        committedRouteRef.current = browserUrl;
+        committedSignatureRef.current = (mainEl.textContent || "").slice(0, 300);
+        routeMountedRef.current = true;
+        attemptDismissal();
       });
     };
+
+    // Run once immediately in case Next.js swapped the DOM in the same tick as popstate
+    checkAndComplete();
 
     const observer = new MutationObserver(checkAndComplete);
     observer.observe(mainEl, {
@@ -205,14 +265,13 @@ export function MakhanaNavigationLoader() {
       characterData: true,
     });
 
-    // Also check on interval as safety fallback in case DOM mutations batched silently
-    const pollTimer = setInterval(checkAndComplete, 150);
+    const pollTimer = setInterval(checkAndComplete, 120);
 
     return () => {
       observer.disconnect();
       clearInterval(pollTimer);
     };
-  }, [isNavigating, pathname, attemptDismissal]);
+  }, [isNavigating, pathname, currentRouteUrl, attemptDismissal]);
 
   // Expose global helper for programmatic navigations across the application
   useEffect(() => {
@@ -288,20 +347,28 @@ export function MakhanaNavigationLoader() {
       attemptDismissal();
     };
 
-    // Listen to browser Back / Forward buttons
+    // Listen to browser Back / Forward buttons in capture phase before Next's router mutates state
     const handlePopState = () => {
-      startNavigation();
+      const destination =
+        typeof window !== "undefined" ? window.location.pathname + window.location.search : "";
+
+      // Ignore same-route hash back/forward navigations (e.g. #reviews -> top)
+      if (destination && destination === committedRouteRef.current) {
+        return;
+      }
+
+      startNavigation(destination, { fromCommittedOrigin: true });
     };
 
-    // Use CAPTURE phase so we intercept before any child prevents default
+    // Use CAPTURE phase so we intercept before any child or router prevents default
     document.addEventListener("click", handleDocumentClick, true);
-    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("popstate", handlePopState, true);
     window.addEventListener("pinkfarm:buffering:start", handleCustomStart);
     window.addEventListener("pinkfarm:buffering:stop", handleCustomStop);
 
     return () => {
       document.removeEventListener("click", handleDocumentClick, true);
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("popstate", handlePopState, true);
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);
       if (timerRef.current) clearInterval(timerRef.current);
@@ -328,7 +395,7 @@ export function MakhanaNavigationLoader() {
             }}
             transition={{
               width: { ease: "easeOut", duration: 0.2 },
-              opacity: { duration: 0.3, delay: progress === 100 ? 0.08 : 0 },
+              opacity: { duration: 0.25, delay: progress === 100 ? 0.05 : 0 },
             }}
           />
         </div>
@@ -340,8 +407,8 @@ export function MakhanaNavigationLoader() {
           <motion.div
             key="navigation-lotus-overlay"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, transition: { duration: 0.12, ease: "easeOut" } }}
-            exit={{ opacity: 0, transition: { duration: 0.28, ease: "easeOut" } }}
+            animate={{ opacity: 1, transition: { duration: 0.1, ease: "easeOut" } }}
+            exit={{ opacity: 0, transition: { duration: 0.22, ease: "easeOut" } }}
             style={{
               transform: "translateZ(0)",
               willChange: "opacity",
