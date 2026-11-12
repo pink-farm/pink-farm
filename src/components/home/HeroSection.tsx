@@ -173,7 +173,6 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                     alt="Botanical golden lotus floral line art"
                     fill
                     sizes="(max-width: 640px) 240px, (max-width: 1024px) 300px, 340px"
-                    priority
                     className="object-contain"
                   />
                 </div>
@@ -203,7 +202,6 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                     alt="Artisanal organic lotus harvest held by farm growers"
                     fill
                     sizes="(max-width: 640px) 130px, (max-width: 768px) 150px, 180px"
-                    priority
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
                   {/* Subtle Light Reflection */}

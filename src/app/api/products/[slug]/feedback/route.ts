@@ -1,5 +1,6 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { getCustomerSession } from "@/lib/auth";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 import { prisma } from "@/lib/db";
@@ -145,6 +146,7 @@ export async function POST(request: Request, { params }: RouteContext) {
         update: { rating, content },
         include: { customer: { select: { name: true } } },
       });
+      revalidateTag(`product-reviews-${slug}`, "max");
       return NextResponse.json({ review: presentEntry(review), message: "Your review has been saved." });
     }
 

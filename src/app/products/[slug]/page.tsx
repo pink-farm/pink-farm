@@ -1,42 +1,70 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCart } from "./AddToCart";
 import { ChevronRight, Star } from "lucide-react";
-import { FadeIn, HoverCard, GlowPulse } from "@/components/ui/MotionWrappers";
+import { FadeIn } from "@/components/ui/MotionWrappers";
 import { ProductBadges } from "@/components/products/ProductHighlightBadges";
 import { ProductFeedback } from "@/components/products/ProductFeedback";
 import { ProductImageGallery, ProductDescriptionGallery } from "@/components/products/ProductImageGallery";
-import { getStoreProductBySlug, getStoreSettings } from "@/lib/defaultProducts";
-import { prisma, queryDatabase } from "@/lib/db";
+import {
+  getCachedProductReviewStats,
+  getCachedStoreProductBySlug,
+  getCachedStoreProducts,
+  getCachedStoreSettings,
+} from "@/lib/cachedStore";
 
-import { connection } from "next/server";
+export async function generateStaticParams() {
+  const products = await getCachedStoreProducts();
+  return products.map((product) => ({ slug: product.slug }));
+}
 
+function ProductDetailSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-6 pb-28 sm:pb-16 min-w-0 animate-pulse">
+      <div className="h-4 w-48 bg-brand-cream rounded mb-4" />
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="w-full lg:w-[46%] xl:w-[44%] aspect-square rounded-2xl bg-brand-cream" />
+        <div className="flex-1 space-y-4 w-full">
+          <div className="h-5 w-36 bg-brand-cream rounded" />
+          <div className="h-9 w-3/4 bg-brand-cream rounded" />
+          <div className="h-4 w-1/2 bg-brand-cream rounded" />
+          <div className="h-32 w-full bg-brand-cream rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-export default async function ProductDetailPage({
+export default function ProductDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  await connection();
+  return (
+    <Suspense fallback={<ProductDetailSkeleton />}>
+      <ProductDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function ProductDetailContent({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const [product, settings] = await Promise.all([
-    getStoreProductBySlug(slug),
-    getStoreSettings(),
+    getCachedStoreProductBySlug(slug),
+    getCachedStoreSettings(),
   ]);
 
   if (!product) {
     notFound();
   }
 
-  const reviewStats = await queryDatabase(() => prisma.productReview.aggregate({
-    where: { productId: product.id },
-    _avg: { rating: true },
-    _count: { _all: true },
-  })).catch(() => null);
-
-  const reviewCount = reviewStats?._count?._all || 0;
-  const avgRating = reviewStats?._avg?.rating ? reviewStats._avg.rating.toFixed(1) : null;
+  const { reviewCount, avgRating } = await getCachedProductReviewStats(product.id, slug);
 
   let additionalImages: string[] = [];
   if (product.additionalImages) {

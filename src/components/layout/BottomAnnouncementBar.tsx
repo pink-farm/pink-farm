@@ -6,6 +6,7 @@ import Link from "next/link";
 import { X, SlidersHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettingsStore } from "@/store/settingsStore";
+import { useSessionStore } from "@/store/sessionStore";
 import { useHydrated } from "@/lib/use-hydrated";
 
 export function BottomAnnouncementBar() {
@@ -15,18 +16,12 @@ export function BottomAnnouncementBar() {
   const bottomAnnouncementEnabled = useSettingsStore((state) => state.bottomAnnouncementEnabled);
   
   const [isDismissed, setIsDismissed] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = useSessionStore((state) => state.isAdmin);
+  const ensureSession = useSessionStore((state) => state.ensureSession);
 
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => res.json())
-      .then((data) => {
-        setIsAdmin(Boolean(data.isAdmin));
-      })
-      .catch(() => {
-        setIsAdmin(false);
-      });
-  }, [pathname]);
+    ensureSession();
+  }, [ensureSession]);
 
   // Hide on admin routes or when not mounted yet
   if (!mounted || pathname?.startsWith("/admin")) {

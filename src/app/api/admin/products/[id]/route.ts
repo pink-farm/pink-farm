@@ -1,6 +1,6 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
@@ -124,6 +124,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     } catch {}
 
+    revalidateTag("store-products", "max");
+    revalidateTag(`product-${updated.slug}`, "max");
+    revalidateTag("store-settings", "max");
     revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath(`/products/${updated.slug}`); revalidatePath("/"); revalidatePath("/", "layout");
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -174,6 +177,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       await tx.product.delete({ where: { id: targetId } });
       return existing;
     });
+    revalidateTag("store-products", "max");
+    revalidateTag(`product-${product.slug}`, "max");
+    revalidateTag("store-settings", "max");
     revalidatePath("/admin/products"); revalidatePath("/admin/settings"); revalidatePath("/products"); revalidatePath(`/products/${product.slug}`); revalidatePath("/"); revalidatePath("/", "layout");
     return NextResponse.json({ success: true });
   } catch (error) {

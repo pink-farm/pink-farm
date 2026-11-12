@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
@@ -171,6 +171,8 @@ export async function POST(request: Request) {
       });
     }
 
+    revalidateTag("store-settings", "max");
+    revalidateTag("store-products", "max");
     revalidatePath("/admin/categories");
     revalidatePath("/admin/products");
     revalidatePath("/admin/settings");
@@ -238,7 +240,9 @@ export async function PUT(request: Request) {
         create: { storeCategories: sanitized },
       });
 
-      revalidatePath("/admin/categories");
+      revalidateTag("store-settings", "max");
+    revalidateTag("store-products", "max");
+    revalidatePath("/admin/categories");
       revalidatePath("/admin/settings");
       revalidatePath("/products");
       revalidatePath("/");
@@ -316,7 +320,9 @@ export async function PUT(request: Request) {
         }
       }
 
-      revalidatePath("/admin/categories");
+      revalidateTag("store-settings", "max");
+    revalidateTag("store-products", "max");
+    revalidatePath("/admin/categories");
       revalidatePath("/admin/products");
       revalidatePath("/admin/settings");
       revalidatePath("/products");
@@ -357,7 +363,9 @@ export async function PUT(request: Request) {
         });
       }
 
-      revalidatePath("/admin/categories");
+      revalidateTag("store-settings", "max");
+    revalidateTag("store-products", "max");
+    revalidatePath("/admin/categories");
       revalidatePath("/admin/products");
       revalidatePath("/products");
       revalidatePath("/");
@@ -377,7 +385,9 @@ export async function PUT(request: Request) {
         create: { storeCategories: DEFAULT_CATEGORIES },
       });
 
-      revalidatePath("/admin/categories");
+      revalidateTag("store-settings", "max");
+    revalidateTag("store-products", "max");
+    revalidatePath("/admin/categories");
       revalidatePath("/admin/settings");
       revalidatePath("/products");
       revalidatePath("/");
@@ -467,6 +477,8 @@ export async function DELETE(request: Request) {
       }
     }
 
+    revalidateTag("store-settings", "max");
+    revalidateTag("store-products", "max");
     revalidatePath("/admin/categories");
     revalidatePath("/admin/products");
     revalidatePath("/admin/settings");

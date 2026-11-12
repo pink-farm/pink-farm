@@ -37,7 +37,7 @@ export function Footer() {
               alt={`${storeName || "Pink Farm"} Logo`} 
               width={180} 
               height={180} 
-              quality={100}
+              sizes="(max-width: 768px) 80px, 95px"
               className="w-[80px] h-[80px] md:w-[95px] md:h-[95px] object-contain -translate-y-[5%] drop-shadow-md -mr-1 md:-mr-2 shrink-0"
             />
             <div className="flex flex-col min-w-0">

@@ -2,17 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleOnTap, SpotlightCard, GlowPulse } from "@/components/ui/MotionWrappers";
-import { getStoreSettings, getStoreProducts } from "@/lib/defaultProducts";
+import { getCachedStoreSettings, getCachedStoreProducts } from "@/lib/cachedStore";
 
 export const metadata = {
   title: "About Us — Pink Farm",
   description: "Meet Anjali, the dietitian-turned-food-entrepreneur behind Pink Farm. Learn our story, our mission, and our uncompromising promise on quality.",
 };
 
-export const instant = false;
-
 export default async function AboutPage() {
-  const [storeSettings, products] = await Promise.all([getStoreSettings(), getStoreProducts()]);
+  const [storeSettings, products] = await Promise.all([getCachedStoreSettings(), getCachedStoreProducts()]);
   const heartProduct = storeSettings.heartProductId
     ? products.find((p) => p.id === storeSettings.heartProductId || p.slug === storeSettings.heartProductId)
     : null;

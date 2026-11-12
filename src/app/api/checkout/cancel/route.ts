@@ -1,5 +1,6 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import Razorpay from "razorpay";
 import { prisma } from "@/lib/db";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
         else if (item.productId) await tx.product.update({ where: { id: item.productId }, data: { stockQuantity: { increment: item.quantity } } });
       }
     });
+    revalidateTag("store-products", "max");
     return NextResponse.json({ success: true });
   } catch (error) {
     logServerError("security.checkout.cancel_payment.failed", error);

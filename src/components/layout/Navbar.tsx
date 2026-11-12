@@ -4,10 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingCart, Search, Menu, X, User, ShieldCheck } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCartStore } from "@/store/cartStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useCustomerStore } from "@/store/customerStore";
+import { useSessionStore } from "@/store/sessionStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHydrated } from "@/lib/use-hydrated";
 
@@ -24,7 +25,9 @@ export function Navbar() {
   const customer = useCustomerStore();
 
   const mounted = useHydrated();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = useSessionStore((state) => state.isAdmin);
+  const ensureSession = useSessionStore((state) => state.ensureSession);
+  const previousPathRef = useRef<string | null>(null);
 
   useEffect(() => {
     let ticking = false;
@@ -60,15 +63,13 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => res.json())
-      .then((data) => {
-        setIsAdmin(Boolean(data.isAdmin));
-      })
-      .catch(() => {
-        setIsAdmin(false);
-      });
-  }, [pathname]);
+    const prev = previousPathRef.current;
+    previousPathRef.current = pathname;
+    const isAuthRoute = (p: string | null) =>
+      Boolean(p && (p.startsWith("/login") || p.startsWith("/account") || p.startsWith("/admin")));
+    const shouldRefresh = prev === null ? false : isAuthRoute(prev) || isAuthRoute(pathname);
+    ensureSession(shouldRefresh);
+  }, [pathname, ensureSession]);
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -130,7 +131,7 @@ export function Navbar() {
                 alt={`${storeName || "Pink Farm"} Logo`} 
                 width={180} 
                 height={180} 
-                quality={100}
+                sizes="(max-width: 640px) 56px, (max-width: 768px) 75px, 95px"
                 priority
                 className={`object-contain -translate-y-[5%] group-hover:scale-110 transition-transform duration-300 drop-shadow-sm -mr-1 md:-mr-2 ${
                   scrolled ? "w-[48px] h-[48px] sm:w-[65px] sm:h-[65px] md:w-[75px] md:h-[75px]" : "w-[56px] h-[56px] sm:w-[75px] sm:h-[75px] md:w-[95px] md:h-[95px]"

@@ -6,7 +6,7 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "500", "600", "700", "800"],
   style: ["normal", "italic"],
 });
 
@@ -14,7 +14,7 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -61,14 +61,14 @@ import { LuxuryScrollProgressBar } from "@/components/ui/MotionWrappers";
 import { SettingsSync } from "@/components/layout/SettingsSync";
 import { MakhanaNavigationLoader } from "@/components/ui/MakhanaNavigationLoader";
 import { CartPersistenceSync } from "@/components/cart/CartPersistenceSync";
+import { getCachedPublicStoreSettings } from "@/lib/cachedStore";
 
-export const instant = false;
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const publicSettings = await getCachedPublicStoreSettings();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -119,7 +119,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <MakhanaNavigationLoader />
         </Suspense>
-        <SettingsSync />
+        <SettingsSync initialSettings={publicSettings} />
         <LuxuryScrollProgressBar />
         <Suspense fallback={null}>
           <Navbar />

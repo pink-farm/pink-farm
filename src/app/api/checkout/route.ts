@@ -1,5 +1,6 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { getCustomerSession } from "@/lib/auth";
@@ -323,6 +324,8 @@ export async function POST(request: Request) {
         },
       });
     });
+
+    revalidateTag("store-products", "max");
 
     return NextResponse.json({ 
       orderCreated: true,

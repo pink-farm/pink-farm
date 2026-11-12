@@ -130,6 +130,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
                   src={img}
                   alt={`Thumbnail ${idx + 1}`}
                   fill
+                  sizes="64px"
                   className="object-cover"
                   unoptimized={img.startsWith("data:")}
                 />
@@ -211,6 +212,7 @@ export function ProductDescriptionGallery({ images, productName }: ProductImageG
               src={img}
               alt={`${productName} view ${idx + 1}`}
               fill
+              sizes="(max-width: 640px) 224px, 256px"
               className="object-cover"
               unoptimized={img.startsWith("data:")}
             />

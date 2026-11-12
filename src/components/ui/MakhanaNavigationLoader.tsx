@@ -33,8 +33,8 @@ export function MakhanaNavigationLoader() {
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Minimum time (in ms) the lotus bloom loader remains visible so transitions feel polished and intentional
-  const MIN_BLOOM_DURATION_MS = 1650;
+  // Minimum time (in ms) the lotus bloom loader remains visible so transitions feel polished without stalling cached routes
+  const MIN_BLOOM_DURATION_MS = 500;
 
   // Preload lotus blob into memory on initial mount
   useEffect(() => {
@@ -53,7 +53,7 @@ export function MakhanaNavigationLoader() {
         }, 550);
       };
 
-      const timer = setTimeout(dismissCurtain, 600);
+      const timer = setTimeout(dismissCurtain, 250);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -99,7 +99,7 @@ export function MakhanaNavigationLoader() {
     if (typeof window !== "undefined") {
       initialUrlRef.current = window.location.pathname + window.location.search;
       const mainEl = document.querySelector("main");
-      initialMainSignatureRef.current = mainEl ? mainEl.innerText.slice(0, 300) : "";
+      initialMainSignatureRef.current = mainEl ? (mainEl.textContent || "").slice(0, 300) : "";
     }
     targetUrlRef.current = targetUrl || "";
     setNavKey(now);
@@ -150,7 +150,7 @@ export function MakhanaNavigationLoader() {
 
       // Verify that <main> content has actually updated from the initial page
       const mainEl = document.querySelector("main");
-      const currentSignature = mainEl ? mainEl.innerText.slice(0, 300) : "";
+      const currentSignature = mainEl ? (mainEl.textContent || "").slice(0, 300) : "";
       if (initialMainSignatureRef.current && currentSignature === initialMainSignatureRef.current) {
         // Content has not swapped yet, wait for DOM mutation observer
         return;
@@ -183,7 +183,7 @@ export function MakhanaNavigationLoader() {
         return;
       }
 
-      const currentSignature = mainEl.innerText.slice(0, 300);
+      const currentSignature = (mainEl.textContent || "").slice(0, 300);
       if (initialMainSignatureRef.current && currentSignature === initialMainSignatureRef.current) {
         // Still showing old page content while server is streaming
         return;

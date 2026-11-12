@@ -2,15 +2,10 @@ import { Suspense } from "react";
 import { ProductListClient } from "./ProductListClient";
 import { FadeIn } from "@/components/ui/MotionWrappers";
 import ComboBuilder from "@/components/products/ComboBuilder";
-import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
+import { getCachedStoreProducts, getCachedStoreSettings } from "@/lib/cachedStore";
 
-import { connection } from "next/server";
-
-
-export const instant = false;
 export default async function ProductsPage() {
-  await connection();
-  const [allProducts, settings] = await Promise.all([getStoreProducts({ includeUnavailable: false }), getStoreSettings()]);
+  const [allProducts, settings] = await Promise.all([getCachedStoreProducts({ includeUnavailable: false }), getCachedStoreSettings()]);
   const products = allProducts.filter((p) => p.isAvailable !== false);
   const maxDiscount = Math.max(settings.comboTier1Discount || 11, settings.comboTier2Discount || 15);
   const showCombo = settings.comboEnabled !== false;

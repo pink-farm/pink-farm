@@ -1,6 +1,6 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
@@ -21,6 +21,8 @@ export async function PATCH(request: Request) {
       await tx.productVariant.updateMany({ where: { productId }, data: { stockQuantity, isAvailable: stockQuantity > 0 } });
       return updated;
     });
+    revalidateTag("store-products", "max");
+    revalidateTag(`product-${product.slug}`, "max");
     revalidatePath("/admin/products"); revalidatePath("/products"); revalidatePath(`/products/${product.slug}`); revalidatePath("/");
     return NextResponse.json({ success: true, stockQuantity: product.stockQuantity });
   } catch (error) {

@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSettingsStore } from "@/store/settingsStore";
+import { useSettingsStore, type StoreSettingsData } from "@/store/settingsStore";
 
-export function SettingsSync() {
-  const fetchSettings = useSettingsStore((state) => state.fetchSettings);
+export function SettingsSync({ initialSettings }: { initialSettings?: Partial<StoreSettingsData> }) {
+  const setSettings = useSettingsStore((state) => state.setSettings);
 
   useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
+    if (initialSettings) {
+      setSettings(initialSettings);
+    }
+  }, [initialSettings, setSettings]);
 
   return null;
 }

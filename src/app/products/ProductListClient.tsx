@@ -34,14 +34,9 @@ export function ProductListClient({
   const categoryParam = searchParams ? searchParams.get("category") : null;
   const comboEnabled = useSettingsStore((s) => s.comboEnabled);
   const storeCategories = useSettingsStore((s) => s.storeCategories);
-  const fetchSettings = useSettingsStore((s) => s.fetchSettings);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
-
-  useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
 
   // Keep the interactive filter aligned with a category deep link.
   /* eslint-disable react-hooks/set-state-in-effect */

@@ -1,5 +1,6 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
@@ -50,6 +51,7 @@ export async function PATCH(
       ? null
       : undefined;
 
+    let stockRestored = false;
     const updatedOrder = await prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({ where: { id }, include: { items: true } });
       if (!current) throw new Error("ORDER_NOT_FOUND");
@@ -71,9 +73,14 @@ export async function PATCH(
           if (item.productId && item.variantId) await tx.productVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { increment: item.quantity } } });
           else if (item.productId) await tx.product.update({ where: { id: item.productId }, data: { stockQuantity: { increment: item.quantity } } });
         }
+        stockRestored = true;
       }
       return tx.order.findUnique({ where: { id } });
     });
+
+    if (stockRestored) {
+      revalidateTag("store-products", "max");
+    }
 
     return NextResponse.json({ success: true, order: updatedOrder });
   } catch (error) {

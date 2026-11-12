@@ -9,9 +9,14 @@ const contentSecurityPolicy = (formAction: string, checkout = false) => {
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
-  partialPrefetching: false,
+  partialPrefetching: true,
+
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
 
   images: {
+    formats: ["image/avif", "image/webp"],
     qualities: [75, 100],
   },
 

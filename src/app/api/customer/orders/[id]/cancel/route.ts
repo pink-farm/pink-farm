@@ -1,5 +1,6 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getCustomerSession } from "@/lib/auth";
 import { isSameOriginMutation } from "@/lib/request-security.mjs";
@@ -67,6 +68,8 @@ export async function POST(
       }
       return tx.order.findUnique({ where: { id } });
     });
+
+    revalidateTag("store-products", "max");
 
     return NextResponse.json({
       success: true,

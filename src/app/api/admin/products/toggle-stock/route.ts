@@ -1,6 +1,6 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
@@ -60,6 +60,8 @@ export async function POST(request: Request) {
       data: { isAvailable },
     });
 
+    revalidateTag("store-products", "max");
+    revalidateTag(`product-${updatedProduct.slug}`, "max");
     revalidatePath("/admin/products");
     revalidatePath("/products");
     revalidatePath("/");
