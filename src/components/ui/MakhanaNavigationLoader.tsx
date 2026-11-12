@@ -11,9 +11,14 @@ declare global {
   }
 }
 
+function getMainElement(): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  const mains = document.querySelectorAll("main");
+  return mains.length > 0 ? (mains[mains.length - 1] as HTMLElement) : null;
+}
+
 function getMainSignature(): string {
-  if (typeof document === "undefined") return "";
-  const mainEl = document.querySelector("main");
+  const mainEl = getMainElement();
   return mainEl ? (mainEl.textContent || "").slice(0, 300) : "";
 }
 
@@ -174,19 +179,25 @@ export function MakhanaNavigationLoader() {
     if (!isNavigatingRef.current || routeMountedRef.current) return;
     if (originUrlRef.current && currentRouteUrl === originUrlRef.current) return;
 
-    const rafId = requestAnimationFrame(() => {
-      committedRouteRef.current = currentRouteUrl;
-      committedSignatureRef.current = getMainSignature();
-      if (!isNavigatingRef.current || routeMountedRef.current) return;
-      window.scrollTo(0, 0);
-      routeMountedRef.current = true;
-      attemptDismissal();
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        committedRouteRef.current = currentRouteUrl;
+        committedSignatureRef.current = getMainSignature();
+        if (!isNavigatingRef.current || routeMountedRef.current) return;
+        window.scrollTo(0, 0);
+        routeMountedRef.current = true;
+        attemptDismissal();
+      });
     });
 
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
   }, [currentRouteUrl, isNavigating, attemptDismissal]);
 
-  // Listener A: When template.tsx fires pinkfarm:route:mounted, verify DOM content arrival
+  // Listener A: When template.tsx fires pinkfarm:route:mounted, verify route commit & DOM arrival
   useEffect(() => {
     const handleRouteMounted = (e: Event) => {
       if (!isNavigatingRef.current || routeMountedRef.current) return;
@@ -196,16 +207,17 @@ export function MakhanaNavigationLoader() {
         customEvent.detail?.pathname ||
         (typeof window !== "undefined" ? window.location.pathname + window.location.search : "");
 
-      const currentSignature = getMainSignature();
-      const urlChanged = Boolean(originUrlRef.current && arrivedUrl !== originUrlRef.current);
-      const signatureChanged = Boolean(originSignatureRef.current && currentSignature !== originSignatureRef.current);
-
-      if (!urlChanged && !signatureChanged) {
+      const routeCommitted = Boolean(
+        originUrlRef.current &&
+          arrivedUrl !== originUrlRef.current &&
+          currentRouteUrl !== originUrlRef.current,
+      );
+      if (!routeCommitted) {
         return;
       }
 
       committedRouteRef.current = arrivedUrl || currentRouteUrl;
-      committedSignatureRef.current = currentSignature;
+      committedSignatureRef.current = getMainSignature();
       window.scrollTo(0, 0);
       routeMountedRef.current = true;
       attemptDismissal();
@@ -217,41 +229,42 @@ export function MakhanaNavigationLoader() {
     };
   }, [currentRouteUrl, attemptDismissal]);
 
-  // Listener B: MutationObserver on <main> handles streaming swaps and cached popstate restores
+  // Listener B: MutationObserver handles streaming swaps after React commits the new route
   useEffect(() => {
     if (!isNavigating) return;
 
-    const mainEl = document.querySelector("main");
-    if (!mainEl) return;
+    const rootMain = document.querySelector("main");
+    if (!rootMain) return;
 
     const checkAndComplete = () => {
       if (!isNavigatingRef.current || routeMountedRef.current) return;
 
       const browserUrl =
         typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname;
-      const currentSignature = (mainEl.textContent || "").slice(0, 300);
 
-      const urlChanged = Boolean(originUrlRef.current && browserUrl !== originUrlRef.current);
-      const signatureChanged = Boolean(originSignatureRef.current && currentSignature !== originSignatureRef.current);
-
-      // Must see either a URL change or genuine main DOM update away from origin
-      if (!urlChanged && !signatureChanged) {
+      // Never dismiss before Next.js React router has actually switched to the new route
+      const routeCommitted = Boolean(
+        originUrlRef.current &&
+          browserUrl !== originUrlRef.current &&
+          currentRouteUrl !== originUrlRef.current,
+      );
+      if (!routeCommitted) {
         return;
       }
 
-      // If URL already matches target/new route AND either signature changed or Next's router committed, complete cleanly
-      if (urlChanged && originSignatureRef.current && currentSignature === originSignatureRef.current) {
-        // Wait for destination DOM to swap unless React has already committed currentRouteUrl
-        if (currentRouteUrl === originUrlRef.current) {
-          return;
-        }
+      const currentSignature = getMainSignature();
+      if (originSignatureRef.current && currentSignature === originSignatureRef.current) {
+        return;
       }
 
       requestAnimationFrame(() => {
-        committedRouteRef.current = browserUrl;
-        committedSignatureRef.current = (mainEl.textContent || "").slice(0, 300);
-        routeMountedRef.current = true;
-        attemptDismissal();
+        requestAnimationFrame(() => {
+          if (!isNavigatingRef.current || routeMountedRef.current) return;
+          committedRouteRef.current = browserUrl;
+          committedSignatureRef.current = getMainSignature();
+          routeMountedRef.current = true;
+          attemptDismissal();
+        });
       });
     };
 
@@ -259,7 +272,7 @@ export function MakhanaNavigationLoader() {
     checkAndComplete();
 
     const observer = new MutationObserver(checkAndComplete);
-    observer.observe(mainEl, {
+    observer.observe(rootMain, {
       childList: true,
       subtree: true,
       characterData: true,

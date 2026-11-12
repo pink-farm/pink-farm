@@ -873,9 +873,9 @@ export default function StoreSettingsPage() {
   return (
     <motion.div
       className="max-w-6xl mx-auto space-y-6 pb-28 sm:pb-24"
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: prefersReducedMotion ? 0 : 0.35, ease: "easeOut" }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.15, ease: "easeOut" }}
     >
       {/* ============================================================== */}
       {/* EYE-SOOTHING HEADER                                            */}
