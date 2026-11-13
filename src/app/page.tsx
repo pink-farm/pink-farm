@@ -41,7 +41,7 @@ export default async function Home() {
       {/* D. INFINITE MARQUEE TICKER */}
       <div className="w-full bg-brand-green text-brand-ivory py-3 overflow-hidden flex whitespace-nowrap border-y border-brand-green-light/30">
         <div className="animate-marquee inline-block font-medium tracking-widest text-sm uppercase">
-          ✦ PURE & HYGIENIC ✦ PREMIUM GOODS ✦ FAST PAN-INDIA DISPATCH ✦ NO ARTIFICIAL PRESERVATIVES ✦ FARM TO TABLE ✦ ACCOUNT-HOLDER REVIEWS ✦ PURE & HYGIENIC ✦ PREMIUM GOODS ✦ FAST PAN-INDIA DISPATCH ✦ NO ARTIFICIAL PRESERVATIVES ✦ FARM TO TABLE ✦ ACCOUNT-HOLDER REVIEWS ✦
+          ✦ PURE & HYGIENIC ✦ PREMIUM GOODS ✦ FAST PAN-INDIA DISPATCH ✦ NO ARTIFICIAL PRESERVATIVES ✦ FARM TO TABLE ✦ ARTISANAL ROASTED MAKHANA ✦ PURE & HYGIENIC ✦ PREMIUM GOODS ✦ FAST PAN-INDIA DISPATCH ✦ NO ARTIFICIAL PRESERVATIVES ✦ FARM TO TABLE ✦ ARTISANAL ROASTED MAKHANA ✦
         </div>
       </div>
 

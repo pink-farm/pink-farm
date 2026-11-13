@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ReceiptAction } from "@/components/orders/ReceiptAction";
-import { CheckCircle2, Clock, Star, Truck, ExternalLink } from "lucide-react";
+import { CheckCircle2, Clock, Truck, ExternalLink } from "lucide-react";
 import { CuteAnimatedGiftIcon } from "@/components/checkout/CuteSurpriseGift";
 import { getCustomerSession } from "@/lib/auth";
 import { canAccessOrderReference } from "@/lib/session-policy.mjs";
@@ -175,15 +175,6 @@ export default async function OrderPage({
                      <span className="font-medium text-brand-green text-sm sm:text-base truncate block">{item.productName || "Product"}</span>
                    )}
                    {item.variantName && <p className="text-xs opacity-70 truncate">{item.variantName}</p>}
-                   {item.product?.slug && (
-                     <Link
-                       href={`/products/${item.product.slug}?review=1#reviews`}
-                       className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 px-2.5 py-1 rounded-full transition-all shadow-2xs"
-                     >
-                       <Star size={12} className="fill-amber-400 text-amber-500" />
-                       <span>Rate &amp; Review</span>
-                     </Link>
-                   )}
                 </div>
               </div>
               <span className="font-medium shrink-0 text-sm sm:text-base">₹{(item.subtotal / 100).toFixed(2)}</span>

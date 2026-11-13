@@ -30,7 +30,6 @@ import {
   HelpCircle,
   X,
   XCircle,
-  Star,
   CalendarDays,
   SlidersHorizontal
 } from "lucide-react";
@@ -321,16 +320,16 @@ export function CustomerAccountClient() {
     if (!newAddrLine1.trim() || !newAddrPin.trim()) return;
 
     const addressData = {
-        label: newAddrLabel,
-        fullName: newAddrFullName,
-        phone: newAddrPhone,
-        addressLine1: newAddrLine1,
-        addressLine2: newAddrLine2,
-        city: newAddrCity,
-        state: newAddrState,
-        pinCode: newAddrPin,
-        isDefault: newAddrIsDefault,
-      };
+      label: newAddrLabel,
+      fullName: newAddrFullName,
+      phone: newAddrPhone,
+      addressLine1: newAddrLine1,
+      addressLine2: newAddrLine2,
+      city: newAddrCity,
+      state: newAddrState,
+      pinCode: newAddrPin,
+      isDefault: newAddrIsDefault,
+    };
     const response = await fetch(editingAddressId ? `/api/customer/addresses/${editingAddressId}` : "/api/customer/addresses", {
       method: editingAddressId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
@@ -439,7 +438,7 @@ export function CustomerAccountClient() {
   return (
     <div className="min-h-screen bg-[#faf7f2] py-8 md:py-12 pb-28 sm:pb-16">
       <div className="container mx-auto px-4 max-w-6xl min-w-0">
-        
+
         <nav className="flex items-center gap-2 text-xs md:text-sm text-brand-charcoal/60 mb-4 font-medium">
           <Link href="/" className="hover:text-brand-green transition-colors">Home</Link>
           <ChevronRight size={14} />
@@ -472,18 +471,18 @@ export function CustomerAccountClient() {
         {/* Customer Header Card */}
         <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-green/10 mb-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-          
+
           <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className="relative">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-tr from-brand-green to-[#234d38] text-white flex items-center justify-center font-serif text-3xl font-bold shadow-md shadow-brand-green/20 border-2 border-white">
                   {customer.profile.name
                     ? customer.profile.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2)
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)
                     : "SS"}
                 </div>
               </div>
@@ -536,17 +535,16 @@ export function CustomerAccountClient() {
 
         {/* Main Grid: Sidebar Tabs + Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Sidebar Menu */}
           <div className="lg:col-span-4 xl:col-span-3">
             <div className="bg-white rounded-3xl p-3 shadow-sm border border-brand-green/10 space-y-1 sticky top-24">
               <button
                 onClick={() => setActiveTab("profile")}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${
-                  activeTab === "profile"
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${activeTab === "profile"
                     ? "bg-brand-green text-white shadow-md shadow-brand-green/20"
                     : "text-brand-charcoal/80 hover:bg-brand-cream/60 hover:text-brand-green"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <User size={18} />
@@ -557,38 +555,34 @@ export function CustomerAccountClient() {
 
               <button
                 onClick={() => setActiveTab("addresses")}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${
-                  activeTab === "addresses"
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${activeTab === "addresses"
                     ? "bg-brand-green text-white shadow-md shadow-brand-green/20"
                     : "text-brand-charcoal/80 hover:bg-brand-cream/60 hover:text-brand-green"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <MapPin size={18} />
                   <span>Saved Addresses</span>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                  activeTab === "addresses" ? "bg-white/20 text-white" : "bg-brand-green/10 text-brand-green"
-                }`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === "addresses" ? "bg-white/20 text-white" : "bg-brand-green/10 text-brand-green"
+                  }`}>
                   {customer.addresses.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab("orders")}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${
-                  activeTab === "orders"
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${activeTab === "orders"
                     ? "bg-brand-green text-white shadow-md shadow-brand-green/20"
                     : "text-brand-charcoal/80 hover:bg-brand-cream/60 hover:text-brand-green"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Package size={18} />
                   <span>My Orders</span>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                  activeTab === "orders" ? "bg-white/20 text-white" : "bg-brand-green/10 text-brand-green"
-                }`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === "orders" ? "bg-white/20 text-white" : "bg-brand-green/10 text-brand-green"
+                  }`}>
                   {orders.length}
                 </span>
               </button>
@@ -598,11 +592,10 @@ export function CustomerAccountClient() {
 
               <button
                 onClick={() => setActiveTab("security")}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${
-                  activeTab === "security"
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all text-left ${activeTab === "security"
                     ? "bg-brand-green text-white shadow-md shadow-brand-green/20"
                     : "text-brand-charcoal/80 hover:bg-brand-cream/60 hover:text-brand-green"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <ShieldCheck size={18} />
@@ -805,11 +798,10 @@ export function CustomerAccountClient() {
                                 key={label}
                                 type="button"
                                 onClick={() => setNewAddrLabel(label)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                  newAddrLabel === label
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${newAddrLabel === label
                                     ? "bg-brand-green text-white"
                                     : "bg-white border border-brand-green/15 text-brand-charcoal/70"
-                                }`}
+                                  }`}
                               >
                                 {label === "Home" && "🏠 "}
                                 {label === "Work" && "🏢 "}
@@ -957,11 +949,10 @@ export function CustomerAccountClient() {
                     {customer.addresses.map((addr) => (
                       <div
                         key={addr.id}
-                        className={`rounded-2xl p-5 border-2 transition-all relative flex flex-col justify-between ${
-                          addr.isDefault
+                        className={`rounded-2xl p-5 border-2 transition-all relative flex flex-col justify-between ${addr.isDefault
                             ? "border-brand-green bg-[#f7faf8]"
                             : "border-brand-green/10 bg-white hover:border-brand-green/30"
-                        }`}
+                          }`}
                       >
                         <div>
                           <div className="flex items-center justify-between mb-3">
@@ -1067,341 +1058,330 @@ export function CustomerAccountClient() {
                   </div>
                 ) : (
                   <>
-                  <div className="flex flex-col gap-3 rounded-2xl border border-brand-green/10 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                    <div>
-                      <p className="text-sm font-semibold text-brand-charcoal">Order list</p>
-                      <p className="mt-0.5 text-xs text-brand-charcoal/60">
-                        {appliedOrderDateRange
-                          ? `Showing ${visibleCustomerOrders.length} of ${orders.length} orders · ${appliedOrderDateLabel}`
-                          : `${orders.length} orders across all dates`}
-                      </p>
-                    </div>
-                    <div className="relative flex items-center gap-2 self-start sm:self-auto">
-                      {appliedOrderDateRange && (
-                        <button type="button" onClick={clearOrderDateFilter} className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-brand-charcoal/70 transition hover:bg-brand-cream/60">
-                          <X size={15} /> Clear
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        aria-expanded={orderFilterOpen}
-                        aria-controls="customer-orders-date-filter"
-                        onClick={() => setOrderFilterOpen((open) => !open)}
-                        className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold shadow-sm transition focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100 ${appliedOrderDateRange ? "border-emerald-300 bg-emerald-50 text-brand-green" : "border-brand-green/15 bg-white text-brand-charcoal hover:border-brand-green/30 hover:bg-brand-cream/30"}`}
-                      >
-                        <SlidersHorizontal size={16} /> Filter
-                        {appliedOrderDateRange && <span className="h-2 w-2 rounded-full bg-emerald-500" aria-label="Filter active" />}
-                      </button>
-                      {orderFilterOpen && (
-                        <div id="customer-orders-date-filter" className="absolute right-0 top-full z-30 mt-2 w-[min(23rem,calc(100vw-3.5rem))] rounded-2xl border border-brand-green/15 bg-white p-4 shadow-xl sm:p-5">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <h3 className="text-sm font-bold text-brand-charcoal">Filter my orders</h3>
-                              <p className="mt-1 text-xs text-brand-charcoal/60">Choose a date or time period.</p>
-                            </div>
-                            <button type="button" aria-label="Close date filter" onClick={() => setOrderFilterOpen(false)} className="rounded-lg p-1.5 text-brand-charcoal/50 hover:bg-brand-cream/60 hover:text-brand-charcoal"><X size={16} /></button>
-                          </div>
-                          <div className="mt-4 grid grid-cols-4 gap-1 rounded-xl bg-brand-cream/60 p-1" role="group" aria-label="Date filter period">
-                            {(["day", "week", "month", "range"] as const).map((option) => (
-                              <button key={option} type="button" aria-pressed={orderDateMode === option} onClick={() => setOrderDateMode(option)} className={`rounded-lg px-1.5 py-2 text-xs font-bold transition ${orderDateMode === option ? "bg-white text-brand-green shadow-sm" : "text-brand-charcoal/60 hover:text-brand-charcoal"}`}>
-                                {option === "day" ? "Date" : option === "range" ? "Range" : option[0].toUpperCase() + option.slice(1)}
-                              </button>
-                            ))}
-                          </div>
-                          {orderDateMode === "range" ? (
-                            <div className="mt-4 grid grid-cols-2 gap-3">
-                              <label className="text-xs font-semibold text-brand-charcoal/80">From
-                                <input type="date" value={orderFromDate} max={orderThroughDate || undefined} onChange={(event) => setOrderFromDate(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-brand-green/15 bg-white px-2.5 py-2.5 text-sm font-normal text-brand-charcoal outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
-                              </label>
-                              <label className="text-xs font-semibold text-brand-charcoal/80">To
-                                <input type="date" value={orderThroughDate} min={orderFromDate || undefined} onChange={(event) => setOrderThroughDate(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-brand-green/15 bg-white px-2.5 py-2.5 text-sm font-normal text-brand-charcoal outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
-                              </label>
-                            </div>
-                          ) : (
-                            <label className="mt-4 block text-xs font-semibold text-brand-charcoal/80">
-                              {orderDateMode === "day" ? "Select date" : orderDateMode === "week" ? "Select any date in the week" : "Select any date in the month"}
-                              <span className="relative mt-1.5 block">
-                                <CalendarDays size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-charcoal/40" />
-                                <input type="date" value={orderDateValue} onChange={(event) => setOrderDateValue(event.target.value)} className="w-full rounded-xl border border-brand-green/15 bg-white py-2.5 pl-10 pr-3 text-sm font-normal text-brand-charcoal outline-none transition focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
-                              </span>
-                            </label>
-                          )}
-                          <p className="mt-3 text-xs text-brand-charcoal/60">
-                            {orderDateMode === "range" ? "Both dates are included." : orderDateMode === "week" ? "The full Monday–Sunday week is included." : orderDateMode === "month" ? "All days in the selected month are included." : "Orders placed on the selected date are shown."}
-                          </p>
-                          <div className="mt-4 flex justify-end gap-2 border-t border-brand-green/10 pt-4">
-                            <button type="button" onClick={clearOrderDateFilter} className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-charcoal/70 hover:bg-brand-cream/60">Clear</button>
-                            <button type="button" onClick={applyOrderDateFilter} disabled={orderDateMode === "range" ? !orderFromDate || !orderThroughDate || orderFromDate > orderThroughDate : !orderDateValue} className="inline-flex items-center gap-1.5 rounded-xl bg-brand-green px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-green-light disabled:opacity-50"><SlidersHorizontal size={14} /> Apply filter</button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {visibleCustomerOrders.length === 0 ? (
-                    <div className="rounded-2xl border border-brand-green/10 bg-brand-cream/20 py-10 text-center text-sm text-brand-charcoal/60">
-                      <Package className="mx-auto mb-2 h-9 w-9 text-brand-green/30" />
-                      No orders found in this date range. Try another date or clear the filter.
-                    </div>
-                  ) : (
-                  <div className="space-y-6">
-                    {visibleCustomerOrders.map((order) => {
-                      const s = (order.fulfillmentStatus || "PENDING").toUpperCase();
-                      const isCancelled = s === "CANCELLED";
-                      const isShippedOrDelivered = s === "SHIPPED" || s === "OUT_FOR_DELIVERY" || s === "DELIVERED";
-                      const canCancel = s === "PENDING" || s === "PACKED" || s === "PROCESSING";
-
-                      const fulfillment = isCancelled
-                        ? { label: "Cancelled", step: 0, badgeClass: "bg-red-100 text-red-800 border-red-200", icon: "❌" }
-                        : s === "DELIVERED"
-                        ? { label: "Delivered", step: 4, badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200", icon: "✅" }
-                        : s === "SHIPPED" || s === "OUT_FOR_DELIVERY"
-                        ? { label: "Shipped", step: 3, badgeClass: "bg-purple-100 text-purple-800 border-purple-200", icon: "🚚" }
-                        : s === "PACKED"
-                        ? { label: "Packaged", step: 2, badgeClass: "bg-blue-100 text-blue-800 border-blue-200", icon: "📦" }
-                        : { label: "Pending", step: 1, badgeClass: "bg-amber-100 text-amber-800 border-amber-200", icon: "⏳" };
-
-                      return (
-                        <div
-                          key={order.id}
-                          className="border border-brand-green/15 rounded-2xl p-4 sm:p-5 hover:border-brand-green/40 transition-colors min-w-0"
+                    <div className="flex flex-col gap-3 rounded-2xl border border-brand-green/10 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                      <div>
+                        <p className="text-sm font-semibold text-brand-charcoal">Order list</p>
+                        <p className="mt-0.5 text-xs text-brand-charcoal/60">
+                          {appliedOrderDateRange
+                            ? `Showing ${visibleCustomerOrders.length} of ${orders.length} orders · ${appliedOrderDateLabel}`
+                            : `${orders.length} orders across all dates`}
+                        </p>
+                      </div>
+                      <div className="relative flex items-center gap-2 self-start sm:self-auto">
+                        {appliedOrderDateRange && (
+                          <button type="button" onClick={clearOrderDateFilter} className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-brand-charcoal/70 transition hover:bg-brand-cream/60">
+                            <X size={15} /> Clear
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          aria-expanded={orderFilterOpen}
+                          aria-controls="customer-orders-date-filter"
+                          onClick={() => setOrderFilterOpen((open) => !open)}
+                          className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold shadow-sm transition focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100 ${appliedOrderDateRange ? "border-emerald-300 bg-emerald-50 text-brand-green" : "border-brand-green/15 bg-white text-brand-charcoal hover:border-brand-green/30 hover:bg-brand-cream/30"}`}
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-green/10 min-w-0">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2 min-w-0">
-                                <span className="font-bold text-brand-green text-sm sm:text-base break-all">#{order.orderNumber}</span>
-                                <span
-                                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${fulfillment.badgeClass}`}
-                                >
-                                  <span>{fulfillment.icon}</span>
-                                  <span>{fulfillment.label}</span>
-                                </span>
+                          <SlidersHorizontal size={16} /> Filter
+                          {appliedOrderDateRange && <span className="h-2 w-2 rounded-full bg-emerald-500" aria-label="Filter active" />}
+                        </button>
+                        {orderFilterOpen && (
+                          <div id="customer-orders-date-filter" className="absolute right-0 top-full z-30 mt-2 w-[min(23rem,calc(100vw-3.5rem))] rounded-2xl border border-brand-green/15 bg-white p-4 shadow-xl sm:p-5">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <h3 className="text-sm font-bold text-brand-charcoal">Filter my orders</h3>
+                                <p className="mt-1 text-xs text-brand-charcoal/60">Choose a date or time period.</p>
                               </div>
-                              <p className="text-xs text-brand-charcoal/60 mt-1">
-                                Placed on {new Date(order.createdAt).toLocaleDateString("en-IN", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                })}
-                              </p>
+                              <button type="button" aria-label="Close date filter" onClick={() => setOrderFilterOpen(false)} className="rounded-lg p-1.5 text-brand-charcoal/50 hover:bg-brand-cream/60 hover:text-brand-charcoal"><X size={16} /></button>
                             </div>
-
-                            <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-1 shrink-0 pt-1 sm:pt-0">
-                              <div className="font-bold text-brand-green text-base sm:text-lg">
-                                ₹{formatPrice(order.totalAmount)}
+                            <div className="mt-4 grid grid-cols-4 gap-1 rounded-xl bg-brand-cream/60 p-1" role="group" aria-label="Date filter period">
+                              {(["day", "week", "month", "range"] as const).map((option) => (
+                                <button key={option} type="button" aria-pressed={orderDateMode === option} onClick={() => setOrderDateMode(option)} className={`rounded-lg px-1.5 py-2 text-xs font-bold transition ${orderDateMode === option ? "bg-white text-brand-green shadow-sm" : "text-brand-charcoal/60 hover:text-brand-charcoal"}`}>
+                                  {option === "day" ? "Date" : option === "range" ? "Range" : option[0].toUpperCase() + option.slice(1)}
+                                </button>
+                              ))}
+                            </div>
+                            {orderDateMode === "range" ? (
+                              <div className="mt-4 grid grid-cols-2 gap-3">
+                                <label className="text-xs font-semibold text-brand-charcoal/80">From
+                                  <input type="date" value={orderFromDate} max={orderThroughDate || undefined} onChange={(event) => setOrderFromDate(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-brand-green/15 bg-white px-2.5 py-2.5 text-sm font-normal text-brand-charcoal outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
+                                </label>
+                                <label className="text-xs font-semibold text-brand-charcoal/80">To
+                                  <input type="date" value={orderThroughDate} min={orderFromDate || undefined} onChange={(event) => setOrderThroughDate(event.target.value)} className="mt-1.5 block w-full rounded-xl border border-brand-green/15 bg-white px-2.5 py-2.5 text-sm font-normal text-brand-charcoal outline-none focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
+                                </label>
                               </div>
-                              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                                {order.paymentStatus}
-                              </span>
+                            ) : (
+                              <label className="mt-4 block text-xs font-semibold text-brand-charcoal/80">
+                                {orderDateMode === "day" ? "Select date" : orderDateMode === "week" ? "Select any date in the week" : "Select any date in the month"}
+                                <span className="relative mt-1.5 block">
+                                  <CalendarDays size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-charcoal/40" />
+                                  <input type="date" value={orderDateValue} onChange={(event) => setOrderDateValue(event.target.value)} className="w-full rounded-xl border border-brand-green/15 bg-white py-2.5 pl-10 pr-3 text-sm font-normal text-brand-charcoal outline-none transition focus:border-brand-green focus:ring-4 focus:ring-emerald-50" />
+                                </span>
+                              </label>
+                            )}
+                            <p className="mt-3 text-xs text-brand-charcoal/60">
+                              {orderDateMode === "range" ? "Both dates are included." : orderDateMode === "week" ? "The full Monday–Sunday week is included." : orderDateMode === "month" ? "All days in the selected month are included." : "Orders placed on the selected date are shown."}
+                            </p>
+                            <div className="mt-4 flex justify-end gap-2 border-t border-brand-green/10 pt-4">
+                              <button type="button" onClick={clearOrderDateFilter} className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-charcoal/70 hover:bg-brand-cream/60">Clear</button>
+                              <button type="button" onClick={applyOrderDateFilter} disabled={orderDateMode === "range" ? !orderFromDate || !orderThroughDate || orderFromDate > orderThroughDate : !orderDateValue} className="inline-flex items-center gap-1.5 rounded-xl bg-brand-green px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-green-light disabled:opacity-50"><SlidersHorizontal size={14} /> Apply filter</button>
                             </div>
                           </div>
+                        )}
+                      </div>
+                    </div>
 
-                          {/* Live Order Timeline Progress */}
-                          {isCancelled ? (
-                            <div className="py-2.5 px-3.5 my-3 bg-red-50/70 rounded-xl border border-red-200 text-xs text-red-800 flex flex-wrap items-center justify-between gap-2">
-                              <span className="font-semibold flex items-center gap-1.5">
-                                <span>❌</span> This order was cancelled and will not be dispatched.
-                              </span>
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-red-700 bg-red-100 px-2 py-0.5 rounded shrink-0">
-                                Cancelled
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="py-3 px-3.5 my-3 bg-brand-cream/35 rounded-xl border border-brand-green/10">
-                              <div className="flex items-center justify-between text-[11px] font-bold text-brand-charcoal/70 mb-2">
-                                <span className="flex items-center gap-1.5">
-                                  <span>Order Progress:</span>
-                                  <span className="text-brand-green font-bold">{fulfillment.icon} {fulfillment.label}</span>
-                                </span>
-                                <span className="text-[11px] font-semibold text-brand-charcoal/50">
-                                  {fulfillment.step === 4 ? "Delivery Complete" : `Stage ${fulfillment.step} of 4`}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-4 gap-2">
-                                {[
-                                  { name: "Pending", step: 1 },
-                                  { name: "Packaged", step: 2 },
-                                  { name: "Shipped", step: 3 },
-                                  { name: "Delivered", step: 4 },
-                                ].map((stage) => {
-                                  const isReached = fulfillment.step >= stage.step;
-                                  const isCurrent = fulfillment.step === stage.step;
-                                  return (
-                                    <div key={stage.name} className="flex flex-col items-center">
-                                      <div
-                                        className={`w-full h-1.5 rounded-full mb-1 transition-all ${
-                                          isReached
-                                            ? stage.step === 4
-                                              ? "bg-emerald-500"
-                                              : stage.step === 3
-                                              ? "bg-purple-500"
-                                              : stage.step === 2
-                                              ? "bg-blue-500"
-                                              : "bg-amber-500"
-                                            : "bg-gray-200"
-                                        }`}
-                                      />
-                                      <span
-                                        className={`text-[10px] font-bold ${
-                                          isCurrent
-                                            ? "text-brand-green"
-                                            : isReached
-                                            ? "text-brand-charcoal/80"
-                                            : "text-brand-charcoal/40"
-                                        }`}
-                                      >
-                                        {stage.name}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
+                    {visibleCustomerOrders.length === 0 ? (
+                      <div className="rounded-2xl border border-brand-green/10 bg-brand-cream/20 py-10 text-center text-sm text-brand-charcoal/60">
+                        <Package className="mx-auto mb-2 h-9 w-9 text-brand-green/30" />
+                        No orders found in this date range. Try another date or clear the filter.
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {visibleCustomerOrders.map((order) => {
+                          const s = (order.fulfillmentStatus || "PENDING").toUpperCase();
+                          const isCancelled = s === "CANCELLED";
+                          const isShippedOrDelivered = s === "SHIPPED" || s === "OUT_FOR_DELIVERY" || s === "DELIVERED";
+                          const canCancel = s === "PENDING" || s === "PACKED" || s === "PROCESSING";
 
-                          {/* Courier Tracking Info if Shipped or AWB Present */}
-                          {order.trackingNumber && (
-                            <div className="my-3 p-3.5 rounded-2xl border border-purple-200/90 bg-gradient-to-r from-purple-50/80 via-pink-50/40 to-purple-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                              <div className="flex items-start sm:items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5 sm:mt-0">
-                                  <Truck size={18} />
-                                </div>
-                                <div>
-                                  <div className="text-xs font-bold text-gray-900 flex items-center gap-2 flex-wrap">
-                                    <span>Courier: {order.carrierName || "Express Courier"}</span>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-200/80 text-purple-900 px-2 py-0.2 rounded-full">
-                                      Dispatched
+                          const fulfillment = isCancelled
+                            ? { label: "Cancelled", step: 0, badgeClass: "bg-red-100 text-red-800 border-red-200", icon: "❌" }
+                            : s === "DELIVERED"
+                              ? { label: "Delivered", step: 4, badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200", icon: "✅" }
+                              : s === "SHIPPED" || s === "OUT_FOR_DELIVERY"
+                                ? { label: "Shipped", step: 3, badgeClass: "bg-purple-100 text-purple-800 border-purple-200", icon: "🚚" }
+                                : s === "PACKED"
+                                  ? { label: "Packaged", step: 2, badgeClass: "bg-blue-100 text-blue-800 border-blue-200", icon: "📦" }
+                                  : { label: "Pending", step: 1, badgeClass: "bg-amber-100 text-amber-800 border-amber-200", icon: "⏳" };
+
+                          return (
+                            <div
+                              key={order.id}
+                              className="border border-brand-green/15 rounded-2xl p-4 sm:p-5 hover:border-brand-green/40 transition-colors min-w-0"
+                            >
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-green/10 min-w-0">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                    <span className="font-bold text-brand-green text-sm sm:text-base break-all">#{order.orderNumber}</span>
+                                    <span
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${fulfillment.badgeClass}`}
+                                    >
+                                      <span>{fulfillment.icon}</span>
+                                      <span>{fulfillment.label}</span>
                                     </span>
                                   </div>
-                                  <div className="text-xs text-brand-charcoal/80 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                                    <span>AWB Tracking No:</span>
-                                    <a
-                                      href={resolveTrackingUrl(order.carrierName, order.trackingNumber, order.trackingUrl) || "#"}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="font-mono font-bold text-purple-800 hover:text-purple-950 underline underline-offset-2 inline-flex items-center gap-1"
-                                      title="Click AWB number to track order"
+                                  <p className="text-xs text-brand-charcoal/60 mt-1">
+                                    Placed on {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </p>
+                                </div>
+
+                                <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-1 shrink-0 pt-1 sm:pt-0">
+                                  <div className="font-bold text-brand-green text-base sm:text-lg">
+                                    ₹{formatPrice(order.totalAmount)}
+                                  </div>
+                                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                                    {order.paymentStatus}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Live Order Timeline Progress */}
+                              {isCancelled ? (
+                                <div className="py-2.5 px-3.5 my-3 bg-red-50/70 rounded-xl border border-red-200 text-xs text-red-800 flex flex-wrap items-center justify-between gap-2">
+                                  <span className="font-semibold flex items-center gap-1.5">
+                                    <span>❌</span> This order was cancelled and will not be dispatched.
+                                  </span>
+                                  <span className="text-[11px] font-bold uppercase tracking-wider text-red-700 bg-red-100 px-2 py-0.5 rounded shrink-0">
+                                    Cancelled
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="py-3 px-3.5 my-3 bg-brand-cream/35 rounded-xl border border-brand-green/10">
+                                  <div className="flex items-center justify-between text-[11px] font-bold text-brand-charcoal/70 mb-2">
+                                    <span className="flex items-center gap-1.5">
+                                      <span>Order Progress:</span>
+                                      <span className="text-brand-green font-bold">{fulfillment.icon} {fulfillment.label}</span>
+                                    </span>
+                                    <span className="text-[11px] font-semibold text-brand-charcoal/50">
+                                      {fulfillment.step === 4 ? "Delivery Complete" : `Stage ${fulfillment.step} of 4`}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-2">
+                                    {[
+                                      { name: "Pending", step: 1 },
+                                      { name: "Packaged", step: 2 },
+                                      { name: "Shipped", step: 3 },
+                                      { name: "Delivered", step: 4 },
+                                    ].map((stage) => {
+                                      const isReached = fulfillment.step >= stage.step;
+                                      const isCurrent = fulfillment.step === stage.step;
+                                      return (
+                                        <div key={stage.name} className="flex flex-col items-center">
+                                          <div
+                                            className={`w-full h-1.5 rounded-full mb-1 transition-all ${isReached
+                                                ? stage.step === 4
+                                                  ? "bg-emerald-500"
+                                                  : stage.step === 3
+                                                    ? "bg-purple-500"
+                                                    : stage.step === 2
+                                                      ? "bg-blue-500"
+                                                      : "bg-amber-500"
+                                                : "bg-gray-200"
+                                              }`}
+                                          />
+                                          <span
+                                            className={`text-[10px] font-bold ${isCurrent
+                                                ? "text-brand-green"
+                                                : isReached
+                                                  ? "text-brand-charcoal/80"
+                                                  : "text-brand-charcoal/40"
+                                              }`}
+                                          >
+                                            {stage.name}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Courier Tracking Info if Shipped or AWB Present */}
+                              {order.trackingNumber && (
+                                <div className="my-3 p-3.5 rounded-2xl border border-purple-200/90 bg-gradient-to-r from-purple-50/80 via-pink-50/40 to-purple-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                                  <div className="flex items-start sm:items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5 sm:mt-0">
+                                      <Truck size={18} />
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                                        <span>Courier: {order.carrierName || "Express Courier"}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-200/80 text-purple-900 px-2 py-0.2 rounded-full">
+                                          Dispatched
+                                        </span>
+                                      </div>
+                                      <div className="text-xs text-brand-charcoal/80 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                        <span>AWB Tracking No:</span>
+                                        <a
+                                          href={resolveTrackingUrl(order.carrierName, order.trackingNumber, order.trackingUrl) || "#"}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="font-mono font-bold text-purple-800 hover:text-purple-950 underline underline-offset-2 inline-flex items-center gap-1"
+                                          title="Click AWB number to track order"
+                                        >
+                                          <span>{order.trackingNumber}</span>
+                                          <ExternalLink size={11} />
+                                        </a>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <a
+                                    href={resolveTrackingUrl(order.carrierName, order.trackingNumber, order.trackingUrl) || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs hover:shadow transition-all shrink-0 cursor-pointer"
+                                    title="Click to open live courier tracking"
+                                  >
+                                    <span>Track Order</span>
+                                    <ExternalLink size={12} />
+                                  </a>
+                                </div>
+                              )}
+
+                              {/* Ordered items list */}
+                              <div className="py-4 space-y-3">
+                                {order.items.map((item) => (
+                                  <div key={item.id} className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-3">
+                                      {item.product?.imageUrl || item.productImageUrl ? (
+                                        <div className="w-12 h-12 rounded-xl overflow-hidden relative bg-brand-cream shrink-0 border border-brand-green/10">
+                                          <Image
+                                            src={item.product?.imageUrl || item.productImageUrl || "/images/placeholder.jpg"}
+                                            alt={item.product?.name || item.productName || "Product"}
+                                            fill
+                                            className="object-cover"
+                                            unoptimized={Boolean(
+                                              (item.product?.imageUrl || item.productImageUrl)?.startsWith("data:") ||
+                                              (item.product?.imageUrl || item.productImageUrl)?.startsWith("/api/media/")
+                                            )}
+                                          />
+                                        </div>
+                                      ) : (
+                                        <div className="w-12 h-12 rounded-xl bg-brand-pink/50 flex items-center justify-center text-brand-green font-bold shrink-0">
+                                          PF
+                                        </div>
+                                      )}
+                                      <div>
+                                        <div className="font-bold text-brand-charcoal">
+                                          {item.product?.name || item.productName || "Artisanal Product"}
+                                        </div>
+                                        <div className="text-xs text-brand-charcoal/60">
+                                          Qty: {item.quantity} {item.variantName ? `• ${item.variantName}` : ""}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="font-semibold text-brand-charcoal shrink-0 ml-2">
+                                      ₹{formatPrice(item.subtotal || item.unitPrice * item.quantity)}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Order actions footer */}
+                              <div className="pt-3 border-t border-brand-green/10 flex flex-wrap items-center justify-between gap-3">
+                                <div className="text-xs text-brand-charcoal/60">
+                                  Delivered to: <span className="font-medium text-brand-charcoal">{order.city}, {order.state}</span>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {/* Cancel Button / Status Info */}
+                                  {canCancel && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setCancelModalError(null);
+                                        setCancellingOrder(order);
+                                      }}
+                                      className="px-3.5 py-1.5 rounded-xl border border-red-200 bg-red-50/60 hover:bg-red-100 text-red-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                                     >
-                                      <span>{order.trackingNumber}</span>
-                                      <ExternalLink size={11} />
-                                    </a>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <a
-                                href={resolveTrackingUrl(order.carrierName, order.trackingNumber, order.trackingUrl) || "#"}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs hover:shadow transition-all shrink-0 cursor-pointer"
-                                title="Click to open live courier tracking"
-                              >
-                                <span>Track Order</span>
-                                <ExternalLink size={12} />
-                              </a>
-                            </div>
-                          )}
-
-                          {/* Ordered items list */}
-                          <div className="py-4 space-y-3">
-                            {order.items.map((item) => (
-                              <div key={item.id} className="flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-3">
-                                  {item.product?.imageUrl || item.productImageUrl ? (
-                                    <div className="w-12 h-12 rounded-xl overflow-hidden relative bg-brand-cream shrink-0 border border-brand-green/10">
-                                      <Image
-                                        src={item.product?.imageUrl || item.productImageUrl || "/images/placeholder.jpg"}
-                                        alt={item.product?.name || item.productName || "Product"}
-                                        fill
-                                        className="object-cover"
-                                        unoptimized={Boolean(
-                                          (item.product?.imageUrl || item.productImageUrl)?.startsWith("data:") ||
-                                          (item.product?.imageUrl || item.productImageUrl)?.startsWith("/api/media/")
-                                        )}
-                                      />
-                                    </div>
-                                  ) : (
-                                    <div className="w-12 h-12 rounded-xl bg-brand-pink/50 flex items-center justify-center text-brand-green font-bold shrink-0">
-                                      PF
-                                    </div>
+                                      <XCircle size={13} />
+                                      Cancel Order
+                                    </button>
                                   )}
-                                  <div>
-                                    <div className="font-bold text-brand-charcoal">
-                                      {item.product?.name || item.productName || "Artisanal Product"}
-                                    </div>
-                                    <div className="text-xs text-brand-charcoal/60">
-                                      Qty: {item.quantity} {item.variantName ? `• ${item.variantName}` : ""}
-                                    </div>
-                                    {item.product?.slug && (
-                                      <Link
-                                        href={`/products/${item.product.slug}?review=1#reviews`}
-                                        className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2 py-0.5 rounded-md transition shadow-2xs"
-                                      >
-                                        <Star size={11} className="fill-amber-400 text-amber-500" />
-                                        <span>Rate &amp; Review Product</span>
-                                      </Link>
-                                    )}
-                                  </div>
-                                </div>
 
-                                <div className="font-semibold text-brand-charcoal shrink-0 ml-2">
-                                  ₹{formatPrice(item.subtotal || item.unitPrice * item.quantity)}
+                                  {isShippedOrDelivered && !isCancelled && s !== "DELIVERED" && (
+                                    <span className="text-[11px] font-semibold text-amber-800 bg-amber-50/80 border border-amber-200/80 px-2.5 py-1 rounded-xl inline-flex items-center gap-1">
+                                      <Truck size={12} className="text-amber-600" />
+                                      <span>Courier in transit • Cannot be cancelled</span>
+                                    </span>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleReorder(order)}
+                                    className="px-3.5 py-1.5 rounded-xl bg-brand-pink/60 hover:bg-brand-pink text-brand-green font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  >
+                                    <RotateCcw size={13} />
+                                    Reorder in 1-Click
+                                  </button>
+
+                                  <Link
+                                    href={`/order/${order.orderNumber}`}
+                                    className="px-3.5 py-1.5 rounded-xl border border-brand-green/20 hover:bg-brand-green/5 text-brand-green font-bold text-xs flex items-center gap-1.5 transition-colors"
+                                  >
+                                    View Receipt <ExternalLink size={12} />
+                                  </Link>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-
-                          {/* Order actions footer */}
-                          <div className="pt-3 border-t border-brand-green/10 flex flex-wrap items-center justify-between gap-3">
-                            <div className="text-xs text-brand-charcoal/60">
-                              Delivered to: <span className="font-medium text-brand-charcoal">{order.city}, {order.state}</span>
                             </div>
-
-                            <div className="flex flex-wrap items-center gap-2">
-                              {/* Cancel Button / Status Info */}
-                              {canCancel && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setCancelModalError(null);
-                                    setCancellingOrder(order);
-                                  }}
-                                  className="px-3.5 py-1.5 rounded-xl border border-red-200 bg-red-50/60 hover:bg-red-100 text-red-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                                >
-                                  <XCircle size={13} />
-                                  Cancel Order
-                                </button>
-                              )}
-
-                              {isShippedOrDelivered && !isCancelled && s !== "DELIVERED" && (
-                                <span className="text-[11px] font-semibold text-amber-800 bg-amber-50/80 border border-amber-200/80 px-2.5 py-1 rounded-xl inline-flex items-center gap-1">
-                                  <Truck size={12} className="text-amber-600" />
-                                  <span>Courier in transit • Cannot be cancelled</span>
-                                </span>
-                              )}
-
-                              <button
-                                type="button"
-                                onClick={() => handleReorder(order)}
-                                className="px-3.5 py-1.5 rounded-xl bg-brand-pink/60 hover:bg-brand-pink text-brand-green font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                              >
-                                <RotateCcw size={13} />
-                                Reorder in 1-Click
-                              </button>
-
-                              <Link
-                                href={`/order/${order.orderNumber}`}
-                                className="px-3.5 py-1.5 rounded-xl border border-brand-green/20 hover:bg-brand-green/5 text-brand-green font-bold text-xs flex items-center gap-1.5 transition-colors"
-                              >
-                                View Receipt <ExternalLink size={12} />
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  )}
+                          );
+                        })}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -1483,64 +1463,64 @@ export function CustomerAccountClient() {
           </div>
         </div>
 
-      {/* CANCEL ORDER CONFIRMATION MODAL */}
-      {cancellingOrder && (
-        <div className="fixed inset-0 z-50 bg-brand-charcoal/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-brand-green/10 animate-fade-in-up">
-            <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-100">
-              <AlertCircle size={28} />
-            </div>
-
-            <h3 className="font-serif text-lg sm:text-xl font-bold text-brand-green text-center mb-2 break-all">
-              Cancel Order #{cancellingOrder.orderNumber}?
-            </h3>
-
-            <p className="text-sm text-brand-charcoal/70 text-center mb-5 leading-relaxed">
-              Are you sure you want to cancel this order?
-              <br />
-              <span className="text-xs text-amber-800 bg-amber-50 border border-amber-200/80 rounded-lg px-2.5 py-1.5 inline-block mt-2">
-                ⚠️ Notice: Orders can only be cancelled while in packaging. Once dispatched via courier, cancellations cannot be accepted.
-              </span>
-            </p>
-
-            {cancelModalError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
-                {cancelModalError}
+        {/* CANCEL ORDER CONFIRMATION MODAL */}
+        {cancellingOrder && (
+          <div className="fixed inset-0 z-50 bg-brand-charcoal/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-brand-green/10 animate-fade-in-up">
+              <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-100">
+                <AlertCircle size={28} />
               </div>
-            )}
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                disabled={isCancelling}
-                onClick={() => {
-                  setCancellingOrder(null);
-                  setCancelModalError(null);
-                }}
-                className="py-3 px-4 rounded-xl border border-brand-green/20 hover:bg-brand-green/5 text-brand-charcoal font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Keep Order
-              </button>
+              <h3 className="font-serif text-lg sm:text-xl font-bold text-brand-green text-center mb-2 break-all">
+                Cancel Order #{cancellingOrder.orderNumber}?
+              </h3>
 
-              <button
-                type="button"
-                disabled={isCancelling}
-                onClick={handleConfirmCancelOrder}
-                className="py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
-              >
-                {isCancelling ? (
-                  <span>Cancelling...</span>
-                ) : (
-                  <>
-                    <XCircle size={14} />
-                    <span>Yes, Cancel</span>
-                  </>
-                )}
-              </button>
+              <p className="text-sm text-brand-charcoal/70 text-center mb-5 leading-relaxed">
+                Are you sure you want to cancel this order?
+                <br />
+                <span className="text-xs text-amber-800 bg-amber-50 border border-amber-200/80 rounded-lg px-2.5 py-1.5 inline-block mt-2">
+                  ⚠️ Notice: Orders can only be cancelled while in packaging. Once dispatched via courier, cancellations cannot be accepted.
+                </span>
+              </p>
+
+              {cancelModalError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
+                  {cancelModalError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  disabled={isCancelling}
+                  onClick={() => {
+                    setCancellingOrder(null);
+                    setCancelModalError(null);
+                  }}
+                  className="py-3 px-4 rounded-xl border border-brand-green/20 hover:bg-brand-green/5 text-brand-charcoal font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Keep Order
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isCancelling}
+                  onClick={handleConfirmCancelOrder}
+                  className="py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {isCancelling ? (
+                    <span>Cancelling...</span>
+                  ) : (
+                    <>
+                      <XCircle size={14} />
+                      <span>Yes, Cancel</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       </div>
     </div>
