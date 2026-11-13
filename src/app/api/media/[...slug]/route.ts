@@ -62,10 +62,10 @@ export async function GET(
 
   const actualHash = getMediaHash(rawDataUri);
   const etag = `"${actualHash}"`;
-  const cacheControl =
-    expectedHash && expectedHash === actualHash
-      ? "public, max-age=31536000, immutable"
-      : "public, max-age=60, must-revalidate";
+  const isImmutable = Boolean(expectedHash && expectedHash === actualHash);
+  const cacheControl = isImmutable
+    ? "public, max-age=31536000, s-maxage=31536000, stale-while-revalidate=86400, immutable"
+    : "public, max-age=60, s-maxage=60, must-revalidate";
 
   const ifNoneMatch = request.headers.get("if-none-match");
   if (ifNoneMatch === etag) {
@@ -74,6 +74,8 @@ export async function GET(
       headers: {
         ETag: etag,
         "Cache-Control": cacheControl,
+        "CDN-Cache-Control": cacheControl,
+        "Vercel-CDN-Cache-Control": cacheControl,
       },
     });
   }
@@ -81,6 +83,8 @@ export async function GET(
   const headers: Record<string, string> = {
     "Content-Type": parsed.mimeType,
     "Cache-Control": cacheControl,
+    "CDN-Cache-Control": cacheControl,
+    "Vercel-CDN-Cache-Control": cacheControl,
     ETag: etag,
     "X-Content-Type-Options": "nosniff",
   };
