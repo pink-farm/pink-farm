@@ -1314,6 +1314,10 @@ export function CustomerAccountClient() {
                                         alt={item.product?.name || item.productName || "Product"}
                                         fill
                                         className="object-cover"
+                                        unoptimized={Boolean(
+                                          (item.product?.imageUrl || item.productImageUrl)?.startsWith("data:") ||
+                                          (item.product?.imageUrl || item.productImageUrl)?.startsWith("/api/media/")
+                                        )}
                                       />
                                     </div>
                                   ) : (

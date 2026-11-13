@@ -333,7 +333,7 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
                               fill
                               sizes="44px"
                               className="object-cover"
-                              unoptimized={p.imageUrl.startsWith("data:")}
+                              unoptimized={Boolean(p.imageUrl.startsWith("data:") || p.imageUrl.startsWith("/api/media/"))}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">

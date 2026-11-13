@@ -210,7 +210,7 @@ export function ProductListClient({
                           fill
                           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           className="object-cover"
-                          unoptimized={Boolean(product.imageUrl?.startsWith("data:"))}
+                          unoptimized={Boolean(product.imageUrl?.startsWith("data:") || product.imageUrl?.startsWith("/api/media/"))}
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-brand-green/30">

@@ -188,6 +188,7 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 510px"
                     priority
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    unoptimized={Boolean(heroImages.main.startsWith("data:") || heroImages.main.startsWith("/api/media/"))}
                   />
                   {/* Subtle Luxury Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-white/10 pointer-events-none" />
@@ -203,6 +204,7 @@ export function HeroSection({ storeSettings }: HeroSectionProps) {
                     fill
                     sizes="(max-width: 640px) 130px, (max-width: 768px) 150px, 180px"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    unoptimized={Boolean(heroImages.secondary.startsWith("data:") || heroImages.secondary.startsWith("/api/media/"))}
                   />
                   {/* Subtle Light Reflection */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-black/15 via-transparent to-white/20 pointer-events-none" />

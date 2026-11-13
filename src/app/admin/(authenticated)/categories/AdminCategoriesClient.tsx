@@ -882,6 +882,7 @@ export function AdminCategoriesClient({
                                         fill
                                         sizes="48px"
                                         className="object-cover"
+                                        unoptimized={Boolean(p.imageUrl?.startsWith("data:") || p.imageUrl?.startsWith("/api/media/"))}
                                       />
                                     ) : (
                                       <div className="w-full h-full flex items-center justify-center text-gray-300">

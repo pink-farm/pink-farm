@@ -362,26 +362,72 @@ export function MakhanaNavigationLoader() {
 
     // Listen to browser Back / Forward buttons in capture phase before Next's router mutates state
     const handlePopState = () => {
-      const destination =
-        typeof window !== "undefined" ? window.location.pathname + window.location.search : "";
+      // On browser Back / Forward (especially iOS Safari swipe-back gesture and bfcache),
+      // the destination page is restored instantly from memory. NEVER trigger fullscreen loader overlay.
+      // If a loader was running, immediately cancel and dismiss it.
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (minTimerRef.current) clearTimeout(minTimerRef.current);
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+      if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
 
-      // Ignore same-route hash back/forward navigations (e.g. #reviews -> top)
-      if (destination && destination === committedRouteRef.current) {
-        return;
+      setIsNavigating(false);
+      isNavigatingRef.current = false;
+      isCompletingRef.current = false;
+      routeMountedRef.current = true;
+      setProgress(0);
+      targetUrlRef.current = "";
+
+      if (typeof window !== "undefined") {
+        const dest = window.location.pathname + window.location.search;
+        committedRouteRef.current = dest;
+        originUrlRef.current = dest;
       }
+      const sig = getMainSignature();
+      committedSignatureRef.current = sig;
+      originSignatureRef.current = sig;
+    };
 
-      startNavigation(destination, { fromCommittedOrigin: true });
+    const handlePageShow = (e: PageTransitionEvent) => {
+      // If page was restored from Safari bfcache (Back/Forward Cache), dismiss all loaders immediately
+      if (e.persisted || isNavigatingRef.current) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        if (minTimerRef.current) clearTimeout(minTimerRef.current);
+        if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+        if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+
+        setIsNavigating(false);
+        isNavigatingRef.current = false;
+        isCompletingRef.current = false;
+        routeMountedRef.current = true;
+        setProgress(0);
+
+        const curtain = document.getElementById("pinkfarm-initial-curtain");
+        if (curtain) {
+          curtain.style.display = "none";
+        }
+      }
+    };
+
+    const handlePageHide = () => {
+      // Ensure page isn't snapshotted into bfcache with loader active
+      setIsNavigating(false);
+      isNavigatingRef.current = false;
+      isCompletingRef.current = false;
     };
 
     // Use CAPTURE phase so we intercept before any child or router prevents default
     document.addEventListener("click", handleDocumentClick, true);
     window.addEventListener("popstate", handlePopState, true);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("pagehide", handlePageHide);
     window.addEventListener("pinkfarm:buffering:start", handleCustomStart);
     window.addEventListener("pinkfarm:buffering:stop", handleCustomStop);
 
     return () => {
       document.removeEventListener("click", handleDocumentClick, true);
       window.removeEventListener("popstate", handlePopState, true);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("pagehide", handlePageHide);
       window.removeEventListener("pinkfarm:buffering:start", handleCustomStart);
       window.removeEventListener("pinkfarm:buffering:stop", handleCustomStop);
       if (timerRef.current) clearInterval(timerRef.current);

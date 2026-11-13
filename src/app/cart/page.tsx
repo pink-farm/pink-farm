@@ -79,7 +79,7 @@ export default function CartPage() {
                       alt={item.name}
                       fill
                       sizes="(max-width: 640px) 96px, 128px"
-                      unoptimized={Boolean(item.imageUrl?.startsWith("data:"))}
+                      unoptimized={Boolean(item.imageUrl?.startsWith("data:") || item.imageUrl?.startsWith("/api/media/"))}
                       className="object-cover"
                     />
                   ) : (

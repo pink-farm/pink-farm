@@ -290,7 +290,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
                       fill
                       sizes="(max-width: 640px) 50vw, 20vw"
                       className="object-cover"
-                      unoptimized={Boolean(product.imageUrl?.startsWith("data:"))}
+                      unoptimized={Boolean(product.imageUrl?.startsWith("data:") || product.imageUrl?.startsWith("/api/media/"))}
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-white/10 text-3xl">
@@ -405,7 +405,7 @@ export default function ComboBuilder({ products }: { products: Product[] }) {
                           alt={item.product.name}
                           fill
                           className="object-cover"
-                          unoptimized={Boolean(item.product.imageUrl?.startsWith("data:"))}
+                          unoptimized={Boolean(item.product.imageUrl?.startsWith("data:") || item.product.imageUrl?.startsWith("/api/media/"))}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-xl">

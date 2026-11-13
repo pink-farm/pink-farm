@@ -51,7 +51,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0 }}
+            initial={currentIndex === 0 ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
@@ -64,7 +64,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
               className="object-cover"
               priority={currentIndex === 0}
               sizes="(max-width: 768px) 100vw, 400px"
-              unoptimized={safeImages[currentIndex].startsWith("data:")}
+              unoptimized={Boolean(safeImages[currentIndex].startsWith("data:") || safeImages[currentIndex].startsWith("/api/media/"))}
             />
           </motion.div>
         </AnimatePresence>
@@ -132,7 +132,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
                   fill
                   sizes="64px"
                   className="object-cover"
-                  unoptimized={img.startsWith("data:")}
+                  unoptimized={Boolean(img.startsWith("data:") || img.startsWith("/api/media/"))}
                 />
               </button>
             );
@@ -214,7 +214,7 @@ export function ProductDescriptionGallery({ images, productName }: ProductImageG
               fill
               sizes="(max-width: 640px) 224px, 256px"
               className="object-cover"
-              unoptimized={img.startsWith("data:")}
+              unoptimized={Boolean(img.startsWith("data:") || img.startsWith("/api/media/"))}
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-6 text-white text-[11px] font-semibold flex items-center justify-between">
               <span>View #{idx + 1}</span>

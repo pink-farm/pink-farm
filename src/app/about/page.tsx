@@ -51,7 +51,7 @@ export default async function AboutPage() {
               <GlowPulse color="rgba(230, 184, 192, 0.45)">
                 <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-brand-pink to-brand-cream border-8 border-white shadow-2xl flex items-center justify-center overflow-hidden transition-transform duration-500 hover:scale-105">
                   {storeSettings.founderImage ? (
-                    <Image src={storeSettings.founderImage} alt={`${founderName}, ${founderRole}`} fill unoptimized={storeSettings.founderImage.startsWith("data:")} className="object-cover" sizes="(max-width: 768px) 256px, 320px" />
+                    <Image src={storeSettings.founderImage} alt={`${founderName}, ${founderRole}`} fill unoptimized={Boolean(storeSettings.founderImage.startsWith("data:") || storeSettings.founderImage.startsWith("/api/media/"))} className="object-cover" sizes="(max-width: 768px) 256px, 320px" />
                   ) : (
                     <span className="text-9xl select-none" aria-hidden="true">👩‍💼</span>
                   )}
