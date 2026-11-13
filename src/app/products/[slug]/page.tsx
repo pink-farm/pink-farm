@@ -8,7 +8,6 @@ import { FadeIn } from "@/components/ui/MotionWrappers";
 import { ProductBadges } from "@/components/products/ProductHighlightBadges";
 import { ProductFeedback } from "@/components/products/ProductFeedback";
 import { ProductImageGallery, ProductDescriptionGallery } from "@/components/products/ProductImageGallery";
-import { requireAdminSession } from "@/lib/auth";
 import {
   getCachedProductReviewStats,
   getCachedStoreProductBySlug,
@@ -56,10 +55,9 @@ async function ProductDetailContent({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [product, settings, adminSession] = await Promise.all([
+  const [product, settings] = await Promise.all([
     getCachedStoreProductBySlug(slug),
     getCachedStoreSettings(),
-    requireAdminSession(),
   ]);
 
   if (!product) {
@@ -205,7 +203,7 @@ async function ProductDetailContent({
       </div>
 
       <div className="mt-10 md:mt-14">
-        <ProductFeedback slug={product.slug} isAdmin={Boolean(adminSession)} />
+        <ProductFeedback slug={product.slug} />
       </div>
     </div>
   );

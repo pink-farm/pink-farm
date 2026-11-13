@@ -37,7 +37,23 @@ const RATING_LABELS: Record<number, string> = {
   1: "Poor — did not meet expectations ⭐",
 };
 
-export function ProductFeedback({ slug, isAdmin = false }: { slug: string; isAdmin?: boolean }) {
+export function ProductFeedback({ slug, isAdmin: initialIsAdmin = false }: { slug: string; isAdmin?: boolean }) {
+  const [isAdmin, setIsAdmin] = useState(initialIsAdmin);
+
+  useEffect(() => {
+    let ignore = false;
+    fetch("/api/auth/session")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!ignore && data?.isAdmin) {
+          setIsAdmin(true);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      ignore = true;
+    };
+  }, []);
   const searchParams = useSearchParams();
   const isLoggedIn = useCustomerStore((state) => state.isLoggedIn);
   const customerName = useCustomerStore((state) => state.profile?.name || "");

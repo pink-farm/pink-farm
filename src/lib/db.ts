@@ -3,8 +3,9 @@ import { PrismaClient } from "@prisma/client";
 // Store reads have safe local fallbacks, so don't hold the storefront open
 // while MongoDB is unreachable. The cooldown also prevents each route from
 // retrying a failed Atlas connection on every request.
-const DB_QUERY_TIMEOUT_MS = 8_000;
-const DB_RETRY_COOLDOWN_MS = 5_000;
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build" || Boolean(process.env.CI);
+const DB_QUERY_TIMEOUT_MS = isBuildPhase ? 2_000 : 8_000;
+const DB_RETRY_COOLDOWN_MS = isBuildPhase ? Infinity : 5_000;
 let databaseUnavailableUntil = 0;
 let lastDatabaseWarningAt = 0;
 
@@ -73,7 +74,8 @@ export async function queryDatabase<T>(
   timeoutMs = DB_QUERY_TIMEOUT_MS,
   options: { isolateCooldown?: boolean } = {},
 ): Promise<T> {
-  if (!options.isolateCooldown && performance.now() < databaseUnavailableUntil) {
+  const shouldCheckCooldown = !options.isolateCooldown || isBuildPhase;
+  if (shouldCheckCooldown && performance.now() < databaseUnavailableUntil) {
     throw new Error("Database is temporarily unavailable");
   }
 

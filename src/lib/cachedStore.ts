@@ -25,10 +25,10 @@ export async function getCachedStoreProducts(options?: { includeUnavailable?: bo
       return (products as unknown as StoreProduct[]).map(serializeStoreProductMedia);
     }
   } catch {
-    // Fall through to short-lived fallback cache so transient DB outages recover quickly.
+    // Fall through to fallback cache so transient DB outages recover gracefully.
   }
 
-  cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+  cacheLife("hours");
   return FALLBACK_PRODUCTS.map(serializeStoreProductMedia);
 }
 
@@ -49,7 +49,7 @@ export async function getCachedStoreProductBySlug(slug: string): Promise<StorePr
       return serializeStoreProductMedia(product as unknown as StoreProduct);
     }
   } catch {
-    cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+    cacheLife("hours");
     const fallback = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
     return fallback ? serializeStoreProductMedia(fallback) : null;
   }
@@ -78,7 +78,7 @@ export async function getCachedStoreSettings() {
       });
     }
   } catch {
-    cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+    cacheLife("hours");
     return serializeStoreSettingsMedia(DEFAULT_SETTINGS);
   }
   return serializeStoreSettingsMedia(DEFAULT_SETTINGS);
@@ -173,7 +173,7 @@ export async function getCachedPublicStoreSettings() {
       };
     }
   } catch {
-    cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+    cacheLife("hours");
     return fallback;
   }
   return fallback;
@@ -197,7 +197,7 @@ export async function getCachedProductReviewStats(productId: string, slug: strin
       avgRating: reviewStats?._avg?.rating ? reviewStats._avg.rating.toFixed(1) : null,
     };
   } catch {
-    cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+    cacheLife("minutes");
     return { reviewCount: 0, avgRating: null };
   }
 }
@@ -224,7 +224,7 @@ export async function getCachedRawProductMedia(productId: string) {
     cacheLife("hours");
     return product;
   } catch {
-    cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+    cacheLife("hours");
     return null;
   }
 }
@@ -246,7 +246,7 @@ export async function getCachedRawSettingsMedia(field: SettingsMediaField): Prom
     const val = settings ? (settings as Record<string, unknown>)[field] : null;
     return typeof val === "string" ? val : null;
   } catch {
-    cacheLife({ stale: 15, revalidate: 15, expire: 60 });
+    cacheLife("hours");
     return null;
   }
 }
