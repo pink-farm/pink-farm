@@ -63,12 +63,16 @@ import { MakhanaNavigationLoader } from "@/components/ui/MakhanaNavigationLoader
 import { CartPersistenceSync } from "@/components/cart/CartPersistenceSync";
 import { getCachedPublicStoreSettings } from "@/lib/cachedStore";
 
+async function PublicSettingsSync() {
+  const publicSettings = await getCachedPublicStoreSettings();
+  return <SettingsSync initialSettings={publicSettings} />;
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const publicSettings = await getCachedPublicStoreSettings();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -119,7 +123,9 @@ export default async function RootLayout({
         <Suspense fallback={null}>
           <MakhanaNavigationLoader />
         </Suspense>
-        <SettingsSync initialSettings={publicSettings} />
+        <Suspense fallback={<SettingsSync />}>
+          <PublicSettingsSync />
+        </Suspense>
         <LuxuryScrollProgressBar />
         <Suspense fallback={null}>
           <Navbar />

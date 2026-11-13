@@ -11,6 +11,11 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
     env:
       DATABASE_URL: mongodb://127.0.0.1:27017/pink_farm_ci
       SESSION_SECRET: ci-only-secret-value-not-used-for-deployment-0001
