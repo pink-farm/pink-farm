@@ -3,9 +3,9 @@ import { PrismaClient } from "@prisma/client";
 // Store reads have safe local fallbacks, so don't hold the storefront open
 // while MongoDB is unreachable. The cooldown also prevents each route from
 // retrying a failed Atlas connection on every request.
-const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build" || Boolean(process.env.CI);
-const DB_QUERY_TIMEOUT_MS = isBuildPhase ? 2_000 : 8_000;
-const DB_RETRY_COOLDOWN_MS = isBuildPhase ? Infinity : 5_000;
+const isCI = Boolean(process.env.CI) && !process.env.VERCEL;
+const DB_QUERY_TIMEOUT_MS = isCI ? 4_000 : 8_000;
+const DB_RETRY_COOLDOWN_MS = 5_000;
 let databaseUnavailableUntil = 0;
 let lastDatabaseWarningAt = 0;
 
@@ -56,10 +56,10 @@ function withMongoTimeouts(connectionString: string): string {
   try {
     const url = new URL(connectionString);
     if (!url.searchParams.has("serverSelectionTimeoutMS")) {
-      url.searchParams.set("serverSelectionTimeoutMS", "4000");
+      url.searchParams.set("serverSelectionTimeoutMS", "6000");
     }
     if (!url.searchParams.has("connectTimeoutMS")) {
-      url.searchParams.set("connectTimeoutMS", "3000");
+      url.searchParams.set("connectTimeoutMS", "5000");
     }
     return url.toString();
   } catch {
@@ -74,7 +74,7 @@ export async function queryDatabase<T>(
   timeoutMs = DB_QUERY_TIMEOUT_MS,
   options: { isolateCooldown?: boolean } = {},
 ): Promise<T> {
-  const shouldCheckCooldown = !options.isolateCooldown || isBuildPhase;
+  const shouldCheckCooldown = !options.isolateCooldown;
   if (shouldCheckCooldown && performance.now() < databaseUnavailableUntil) {
     throw new Error("Database is temporarily unavailable");
   }
