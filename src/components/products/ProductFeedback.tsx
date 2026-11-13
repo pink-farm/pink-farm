@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, MessageCircle, Send, ShieldCheck, Star, ThumbsUp, X, PenLine, Filter } from "lucide-react";
+import { Check, MessageCircle, Send, ShieldCheck, Star, ThumbsUp, X, PenLine, Filter, Trash2 } from "lucide-react";
 import { useCustomerStore } from "@/store/customerStore";
 
 type FeedbackEntry = {
@@ -37,7 +37,7 @@ const RATING_LABELS: Record<number, string> = {
   1: "Poor — did not meet expectations ⭐",
 };
 
-export function ProductFeedback({ slug }: { slug: string }) {
+export function ProductFeedback({ slug, isAdmin = false }: { slug: string; isAdmin?: boolean }) {
   const searchParams = useSearchParams();
   const isLoggedIn = useCustomerStore((state) => state.isLoggedIn);
   const customerName = useCustomerStore((state) => state.profile?.name || "");
@@ -64,6 +64,7 @@ export function ProductFeedback({ slug }: { slug: string }) {
   const [feedbackLoadError, setFeedbackLoadError] = useState("");
   const [notice, setNotice] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingFeedbackId, setDeletingFeedbackId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FeedbackKind>("review");
 
   // Filter & sort
@@ -172,6 +173,43 @@ export function ProductFeedback({ slug }: { slug: string }) {
     if (votedReviews[id]) return;
     setHelpfulVotes((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
     setVotedReviews((prev) => ({ ...prev, [id]: true }));
+  };
+
+  const deleteFeedback = async (entry: FeedbackEntry, kind: FeedbackKind) => {
+    const label = kind === "review" ? "review" : "comment";
+    if (!window.confirm(`Delete this ${label}? This cannot be undone.`)) return;
+
+    setDeletingFeedbackId(entry.id);
+    try {
+      const response = await fetch(`/api/products/${encodeURIComponent(slug)}/feedback`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feedbackId: entry.id, kind }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || `The ${label} could not be deleted.`);
+
+      if (kind === "review") {
+        setReviews((current) => current.filter((review) => review.id !== entry.id));
+        setReviewCount((count) => Math.max(0, count - 1));
+        setAverageRating((average) => reviewCount > 1 ? (average * reviewCount - (entry.rating || 0)) / (reviewCount - 1) : 0);
+        setRatingDistribution((current) => current.map((item) => item.rating === entry.rating ? { ...item, count: Math.max(0, item.count - 1) } : item));
+        setVotedReviews((current) => {
+          const next = { ...current };
+          delete next[entry.id];
+          return next;
+        });
+        if (myReview?.id === entry.id) setMyReview(null);
+      } else {
+        setComments((current) => current.filter((comment) => comment.id !== entry.id));
+      }
+      setNotice(`${kind === "review" ? "Review" : "Comment"} deleted.`);
+      setError("");
+    } catch (deleteError) {
+      window.alert(deleteError instanceof Error ? deleteError.message : `The ${label} could not be deleted.`);
+    } finally {
+      setDeletingFeedbackId(null);
+    }
   };
 
   const submitFeedback = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -794,6 +832,17 @@ export function ProductFeedback({ slug }: { slug: string }) {
                           </button>
                         </div>
                         <span className="text-[10px] text-brand-charcoal/40">Verified Purchase</span>
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => deleteFeedback(entry, "review")}
+                            disabled={deletingFeedbackId === entry.id}
+                            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-50"
+                            aria-label={`Delete review by ${entry.author}`}
+                          >
+                            <Trash2 size={12} /> {deletingFeedbackId === entry.id ? "Deleting…" : "Delete"}
+                          </button>
+                        )}
                       </div>
                     </motion.article>
                   ))
@@ -836,23 +885,36 @@ export function ProductFeedback({ slug }: { slug: string }) {
                     animate={{ opacity: 1, y: 0 }}
                     className="rounded-2xl border border-brand-green/10 bg-white p-5 shadow-xs"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-green/10 text-sm font-bold text-brand-green">
-                        {entry.author.trim().charAt(0).toUpperCase() || "P"}
-                      </span>
-                      <div>
-                        <span className="font-bold text-sm text-brand-charcoal">{entry.author}</span>
-                        <time
-                          dateTime={entry.createdAt}
-                          className="block text-[11px] text-brand-charcoal/50"
-                        >
-                          {new Date(entry.createdAt).toLocaleDateString("en-IN", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </time>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-green/10 text-sm font-bold text-brand-green">
+                          {entry.author.trim().charAt(0).toUpperCase() || "P"}
+                        </span>
+                        <div>
+                          <span className="font-bold text-sm text-brand-charcoal">{entry.author}</span>
+                          <time
+                            dateTime={entry.createdAt}
+                            className="block text-[11px] text-brand-charcoal/50"
+                          >
+                            {new Date(entry.createdAt).toLocaleDateString("en-IN", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </time>
+                        </div>
                       </div>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => deleteFeedback(entry, "comment")}
+                          disabled={deletingFeedbackId === entry.id}
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-50"
+                          aria-label={`Delete comment by ${entry.author}`}
+                        >
+                          <Trash2 size={12} /> {deletingFeedbackId === entry.id ? "Deleting…" : "Delete"}
+                        </button>
+                      )}
                     </div>
                     <p className="mt-3 text-sm leading-relaxed text-brand-charcoal/85">{entry.content}</p>
                   </motion.article>

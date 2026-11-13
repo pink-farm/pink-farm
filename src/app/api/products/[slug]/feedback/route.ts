@@ -1,7 +1,7 @@
 import { logServerError } from "@/lib/server-log.mjs";
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
-import { getCustomerSession } from "@/lib/auth";
+import { getCustomerSession, requireAdminSession } from "@/lib/auth";
 import { isSameOriginMutation, readBoundedJson } from "@/lib/request-security.mjs";
 import { prisma } from "@/lib/db";
 
@@ -169,5 +169,41 @@ export async function POST(request: Request, { params }: RouteContext) {
   } catch (error) {
     logServerError("security.products/slug.feedback.failed", error);
     return NextResponse.json({ error: "We couldn’t save your feedback right now. Please try again." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request, { params }: RouteContext) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
+  if (!(await requireAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const { slug } = await params;
+    const product = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
+    if (!product) return NextResponse.json({ error: "Product not found." }, { status: 404 });
+
+    const parsed = await readBoundedJson(request, 1_000);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
+      return NextResponse.json({ error: "Feedback deletion details are invalid." }, { status: 400 });
+    }
+
+    const body = parsed.value as Record<string, unknown>;
+    const feedbackId = typeof body.feedbackId === "string" ? body.feedbackId : "";
+    const kind = body.kind;
+    if (!/^[a-f\d]{24}$/i.test(feedbackId) || (kind !== "review" && kind !== "comment")) {
+      return NextResponse.json({ error: "Choose a valid review or comment." }, { status: 400 });
+    }
+
+    const result = kind === "review"
+      ? await prisma.productReview.deleteMany({ where: { id: feedbackId, productId: product.id } })
+      : await prisma.productComment.deleteMany({ where: { id: feedbackId, productId: product.id } });
+
+    if (result.count === 0) return NextResponse.json({ error: "This feedback was not found for the selected product." }, { status: 404 });
+    if (kind === "review") revalidateTag(`product-reviews-${slug}`, "max");
+
+    return NextResponse.json({ message: kind === "review" ? "Review deleted." : "Comment deleted." });
+  } catch (error) {
+    logServerError("security.products/slug.feedback_delete.failed", error);
+    return NextResponse.json({ error: "This feedback could not be deleted right now." }, { status: 500 });
   }
 }
