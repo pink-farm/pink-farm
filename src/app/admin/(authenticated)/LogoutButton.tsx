@@ -14,13 +14,17 @@ export function LogoutButton({
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/admin/logout", { method: "POST" });
+      await fetch("/api/admin/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (e) {
+      console.warn("Logout request failed", e);
     } finally {
-      if (typeof window !== "undefined" && window.pinkfarmNavigate) {
-        window.pinkfarmNavigate("/login");
+      if (typeof window !== "undefined") {
+        window.location.replace("/login");
       } else {
         router.push("/login");
-        router.refresh();
       }
     }
   };

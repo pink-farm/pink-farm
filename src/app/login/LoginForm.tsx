@@ -380,9 +380,16 @@ export function LoginForm() {
                   onClick={async () => {
                     window.dispatchEvent(new CustomEvent("pinkfarm:buffering:start"));
                     try {
-                      await fetch("/api/admin/logout", { method: "POST" });
+                      await fetch("/api/admin/logout", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                      });
                       setIsAdminLoggedIn(false);
-                      router.refresh();
+                      if (typeof window !== "undefined") {
+                        window.location.replace("/login");
+                      } else {
+                        router.refresh();
+                      }
                     } finally {
                       window.dispatchEvent(new CustomEvent("pinkfarm:buffering:stop"));
                     }

@@ -156,16 +156,37 @@ export async function deleteSession(role?: "admin" | "customer") {
     try {
       const value = cookieStore.get(cookieName)?.value;
       if (value) {
-        const payload = await decrypt(value);
-        if (typeof payload?.jti === "string" && typeof payload.exp === "number") {
-          await prisma.authRateLimit.create({ data: { key: sessionRevocationKey(payload.jti), count: 1, resetAt: new Date(payload.exp * 1000) } }).catch(async (error: unknown) => {
-            if (!(error instanceof Error && "code" in error && error.code === "P2002")) throw error;
-          });
-          console.info("security.session.revoked", { type: cookieName === ADMIN_COOKIE_NAME ? "admin" : "customer" });
+        try {
+          const payload = await decrypt(value);
+          if (typeof payload?.jti === "string" && typeof payload.exp === "number") {
+            await prisma.authRateLimit.create({
+              data: {
+                key: sessionRevocationKey(payload.jti),
+                count: 1,
+                resetAt: new Date(payload.exp * 1000),
+              },
+            });
+            console.info("security.session.revoked", { type: cookieName === ADMIN_COOKIE_NAME ? "admin" : "customer" });
+          }
+        } catch (dbError) {
+          console.warn("security.session.revocation_store_warning", dbError);
         }
       }
     } finally {
-      cookieStore.delete(cookieName);
+      cookieStore.set(cookieName, "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        expires: new Date(0),
+        maxAge: 0,
+        sameSite: "lax",
+        path: "/",
+      });
+      try {
+        cookieStore.delete(cookieName);
+      } catch {}
+      try {
+        cookieStore.delete({ name: cookieName, path: "/" });
+      } catch {}
     }
   };
   if (role === "admin") await revokeAndDelete(ADMIN_COOKIE_NAME);

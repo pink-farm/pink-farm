@@ -25,6 +25,13 @@ try {
     fs.cpSync(staticSrc, staticDest, { recursive: true });
   }
 
+  const prismaSrc = path.join(rootDir, "node_modules", ".prisma");
+  const prismaDest = path.join(standaloneDir, "node_modules", ".prisma");
+  if (fs.existsSync(prismaSrc)) {
+    console.log("[prepare-standalone] Copying node_modules/.prisma -> .next/standalone/node_modules/.prisma ...");
+    fs.cpSync(prismaSrc, prismaDest, { recursive: true });
+  }
+
   const DIRECT_ATLAS_URL = "mongodb://pinkfarmofficial_db_user:YJOzGQB0Uw0fTh74@ac-keqggmu-shard-00-00.6cnomix.mongodb.net:27017,ac-keqggmu-shard-00-01.6cnomix.mongodb.net:27017,ac-keqggmu-shard-00-02.6cnomix.mongodb.net:27017/pinkfarm?ssl=true&replicaSet=atlas-fwl6da-shard-0&authSource=admin&retryWrites=true&w=majority";
 
   // Ensure .env is present in standalone directory so runtime server.js has all environment variables
