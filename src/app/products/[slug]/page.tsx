@@ -47,16 +47,32 @@ export default function ProductDetailPage({
   );
 }
 
+function safeDecodeSlug(slug: string): string {
+  try {
+    return decodeURIComponent(slug).trim();
+  } catch {
+    return slug.trim();
+  }
+}
+
 async function ProductDetailContent({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [product, settings] = await Promise.all([
-    getCachedStoreProductBySlug(slug),
-    getCachedStoreSettings(),
-  ]);
+  const decodedSlug = safeDecodeSlug(slug);
+
+  let product = null;
+  let settings = null;
+  try {
+    [product, settings] = await Promise.all([
+      getCachedStoreProductBySlug(decodedSlug),
+      getCachedStoreSettings(),
+    ]);
+  } catch (error) {
+    console.error("Storefront product load error:", error);
+  }
 
   if (!product) {
     notFound();

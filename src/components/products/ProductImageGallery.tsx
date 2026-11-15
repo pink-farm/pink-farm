@@ -25,11 +25,14 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
+    if (e.targetTouches && e.targetTouches.length > 0) {
+      setTouchStart(e.targetTouches[0].clientX);
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return;
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
     if (diff > 50) {
