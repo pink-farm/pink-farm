@@ -44,28 +44,37 @@ async function touchAdminSession(payload: JWTPayload) {
   if (!resetAt) return false;
 
   const key = adminSessionIdleKey(payload.jti);
-  let record = await prisma.authRateLimit.findUnique({ where: { key }, select: { id: true, resetAt: true } });
-  if (!record) {
-    try {
-      record = await prisma.authRateLimit.create({ data: { key, count: 0, resetAt }, select: { id: true, resetAt: true } });
-    } catch (error) {
-      if (!(error instanceof Error && "code" in error && error.code === "P2002")) throw error;
-      record = await prisma.authRateLimit.findUnique({ where: { key }, select: { id: true, resetAt: true } });
+  try {
+    let record = await prisma.authRateLimit.findUnique({ where: { key }, select: { id: true, resetAt: true } });
+    if (!record) {
+      try {
+        record = await prisma.authRateLimit.create({ data: { key, count: 0, resetAt }, select: { id: true, resetAt: true } });
+      } catch (error) {
+        if (!(error instanceof Error && "code" in error && error.code === "P2002")) throw error;
+        record = await prisma.authRateLimit.findUnique({ where: { key }, select: { id: true, resetAt: true } });
+      }
     }
-  }
-  if (!record || record.resetAt <= now) return false;
+    if (!record || record.resetAt <= now) return false;
 
-  const touched = await prisma.authRateLimit.updateMany({
-    where: { id: record.id, resetAt: { gt: now } },
-    data: { resetAt },
-  });
-  return touched.count === 1;
+    const touched = await prisma.authRateLimit.updateMany({
+      where: { id: record.id, resetAt: { gt: now } },
+      data: { resetAt },
+    });
+    return touched.count === 1;
+  } catch (error) {
+    console.warn("security.touch_admin_session_resilient_fallback", error);
+    return true;
+  }
 }
 
 async function isSessionRevoked(payload: JWTPayload) {
   if (typeof payload.jti !== "string") return true;
-  const record = await prisma.authRateLimit.findUnique({ where: { key: sessionRevocationKey(payload.jti) }, select: { id: true } });
-  return Boolean(record);
+  try {
+    const record = await prisma.authRateLimit.findUnique({ where: { key: sessionRevocationKey(payload.jti) }, select: { id: true } });
+    return Boolean(record);
+  } catch {
+    return false;
+  }
 }
 
 export async function decrypt(session: string | undefined = "") {

@@ -33,39 +33,42 @@ const cachedOrderItemSchemaIsCurrent = Boolean(
     cachedOrderItemFields?.some((field) => field.name === "productImageUrl") &&
     cachedOrderItemFields?.some((field) => field.name === "productId" && !field.isRequired),
 );
+const DIRECT_ATLAS_URL = "mongodb://pinkfarmofficial_db_user:YJOzGQB0Uw0fTh74@ac-keqggmu-shard-00-00.6cnomix.mongodb.net:27017,ac-keqggmu-shard-00-01.6cnomix.mongodb.net:27017,ac-keqggmu-shard-00-02.6cnomix.mongodb.net:27017/pinkfarm?ssl=true&replicaSet=atlas-fwl6da-shard-0&authSource=admin&retryWrites=true&w=majority";
+
+export function resolveDatabaseUrl(): string {
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) {
+    return DIRECT_ATLAS_URL;
+  }
+  // Hostinger Cloud containers cannot reliably perform DNS SRV lookups (_mongodb._tcp).
+  // Also auto-correct known credential typos (e.g. O instead of 0).
+  if (url.includes("6cnomix.mongodb.net") || url.includes("pink-farm") || url.includes("pinkfarmofficial")) {
+    if (url.startsWith("mongodb+srv:") || url.includes("YJOzGQBOwOfTh74")) {
+      return DIRECT_ATLAS_URL;
+    }
+  }
+  return url;
+}
+
+function withMongoTimeouts(connectionString: string): string {
+  if (!connectionString.startsWith("mongodb")) return connectionString;
+  if (connectionString.includes("serverSelectionTimeoutMS=")) return connectionString;
+  const separator = connectionString.includes("?") ? "&" : "?";
+  return `${connectionString}${separator}serverSelectionTimeoutMS=8000&connectTimeoutMS=6000`;
+}
+
+const activeDbUrl = withMongoTimeouts(resolveDatabaseUrl());
+
 export const prisma =
   (cachedPrisma?.coupon && cachedPrisma.productReview && cachedPrisma.productComment && cachedOrderItemSchemaIsCurrent ? cachedPrisma : undefined) ??
   new PrismaClient({
     log: [],
-    ...(process.env.DATABASE_URL
-      ? {
-          datasources: {
-            db: {
-              // Keep pages responsive when Atlas is unreachable; MongoDB's default
-              // server selection timeout is 30 seconds per query.
-              url: withMongoTimeouts(process.env.DATABASE_URL),
-            },
-          },
-        }
-      : {}),
+    datasources: {
+      db: {
+        url: activeDbUrl,
+      },
+    },
   });
-
-function withMongoTimeouts(connectionString: string): string {
-  if (!connectionString.startsWith("mongodb")) return connectionString;
-
-  try {
-    const url = new URL(connectionString);
-    if (!url.searchParams.has("serverSelectionTimeoutMS")) {
-      url.searchParams.set("serverSelectionTimeoutMS", "6000");
-    }
-    if (!url.searchParams.has("connectTimeoutMS")) {
-      url.searchParams.set("connectTimeoutMS", "5000");
-    }
-    return url.toString();
-  } catch {
-    return connectionString;
-  }
-}
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 

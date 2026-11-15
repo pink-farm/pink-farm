@@ -25,36 +25,52 @@ try {
     fs.cpSync(staticSrc, staticDest, { recursive: true });
   }
 
+  const DIRECT_ATLAS_URL = "mongodb://pinkfarmofficial_db_user:YJOzGQB0Uw0fTh74@ac-keqggmu-shard-00-00.6cnomix.mongodb.net:27017,ac-keqggmu-shard-00-01.6cnomix.mongodb.net:27017,ac-keqggmu-shard-00-02.6cnomix.mongodb.net:27017/pinkfarm?ssl=true&replicaSet=atlas-fwl6da-shard-0&authSource=admin&retryWrites=true&w=majority";
+
   // Ensure .env is present in standalone directory so runtime server.js has all environment variables
   const rootEnv = path.join(rootDir, ".env");
   const standaloneEnv = path.join(standaloneDir, ".env");
+
+  const envDefaults = {
+    DATABASE_URL: DIRECT_ATLAS_URL,
+    SESSION_SECRET: "jEnN6VuJ_oZhhOGp1hk5clXsZEL6dNS1WErW_qp70hX6eKGEpopbXw_qb-nXw1gg",
+    ADMIN_EMAIL: "pinkfarmofficial@gmail.com",
+    ADMIN_PASSWORD: "Pinkfarm@123",
+    TRUST_PROXY: "1",
+  };
+
+  const envVars = [
+    "DATABASE_URL",
+    "SESSION_SECRET",
+    "ADMIN_EMAIL",
+    "ADMIN_PASSWORD",
+    "RAZORPAY_KEY_ID",
+    "RAZORPAY_KEY_SECRET",
+    "BREVO_API_KEY",
+    "BREVO_FROM_EMAIL",
+    "BREVO_FROM_NAME",
+    "TRUST_PROXY",
+  ];
+
+  const lines = [];
+  for (const key of envVars) {
+    let val = process.env[key] || envDefaults[key];
+    if (key === "DATABASE_URL" && val) {
+      if (val.startsWith("mongodb+srv:") || val.includes("YJOzGQBOwOfTh74")) {
+        val = DIRECT_ATLAS_URL;
+      }
+    }
+    if (val) {
+      lines.push(`${key}="${val}"`);
+    }
+  }
+
   if (fs.existsSync(rootEnv)) {
     console.log("[prepare-standalone] Copying .env -> .next/standalone/.env ...");
     fs.copyFileSync(rootEnv, standaloneEnv);
-  } else {
-    // If running in Hostinger cloud build where env vars are in process.env, generate .env for standalone runtime
-    const envVars = [
-      "DATABASE_URL",
-      "SESSION_SECRET",
-      "ADMIN_EMAIL",
-      "ADMIN_PASSWORD",
-      "RAZORPAY_KEY_ID",
-      "RAZORPAY_KEY_SECRET",
-      "BREVO_API_KEY",
-      "BREVO_FROM_EMAIL",
-      "BREVO_FROM_NAME",
-      "TRUST_PROXY",
-    ];
-    const lines = [];
-    for (const key of envVars) {
-      if (process.env[key]) {
-        lines.push(`${key}="${process.env[key]}"`);
-      }
-    }
-    if (lines.length > 0) {
-      console.log(`[prepare-standalone] Writing ${lines.length} environment variables to .next/standalone/.env ...`);
-      fs.writeFileSync(standaloneEnv, lines.join("\n") + "\n", "utf8");
-    }
+  } else if (lines.length > 0) {
+    console.log(`[prepare-standalone] Writing ${lines.length} environment variables to .next/standalone/.env ...`);
+    fs.writeFileSync(standaloneEnv, lines.join("\n") + "\n", "utf8");
   }
 
   // Inject a lightweight .env loader into the top of server.js if not already present
