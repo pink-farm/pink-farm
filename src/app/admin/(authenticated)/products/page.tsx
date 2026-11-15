@@ -1,10 +1,9 @@
 import { AdminProductsTable } from "./AdminProductsTable";
 import { getStoreProducts } from "@/lib/defaultProducts";
 
-import { connection } from "next/server";
+export const instant = false;
 
 export default async function AdminProductsPage() {
-  await connection();
   const products = await getStoreProducts({ includeUnavailable: true });
 
   return (
