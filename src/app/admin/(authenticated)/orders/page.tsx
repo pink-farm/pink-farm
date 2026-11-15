@@ -2,10 +2,12 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { logServerError } from "@/lib/server-log.mjs";
 import { OrdersTable } from "./OrdersTable";
+import { connection } from "next/server";
 
 export const instant = false;
 
 export default async function AdminOrdersPage() {
+  await connection();
   let orders: Prisma.OrderGetPayload<{ include: { items: true } }>[] = [];
   try {
     orders = await prisma.order.findMany({

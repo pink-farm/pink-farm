@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/db";
 import { DashboardOverview, SerializedOrder } from "./DashboardOverview";
 import { logServerError } from "@/lib/server-log.mjs";
+import { connection } from "next/server";
 
 export const instant = false;
 
 export default async function AdminDashboard() {
+  await connection();
   let serializedOrders: SerializedOrder[] = [];
   let lowStockCount = 0;
 

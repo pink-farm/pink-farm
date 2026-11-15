@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import PrintControls from "./PrintControls";
 import type { Prisma, StoreSettings } from "@prisma/client";
 import { logServerError } from "@/lib/server-log.mjs";
+import { connection } from "next/server";
 
 export const instant = false;
 
@@ -13,6 +14,7 @@ export default async function OrderSlipPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await connection();
   const { id } = await params;
 
   let order: Prisma.OrderGetPayload<{ include: { items: { include: { product: true } } } }> | null = null;

@@ -1,6 +1,7 @@
 import { requireAdminSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AdminSidebarNav } from "./AdminSidebarNav";
+import { connection } from "next/server";
 
 export const instant = false;
 
@@ -9,6 +10,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  await connection();
   if (!(await requireAdminSession())) redirect("/login");
   return (
     <div className="min-h-screen bg-[#FBF9F6] flex flex-col md:flex-row font-sans text-gray-800 print:bg-white print:block selection:bg-brand-pink selection:text-brand-green">

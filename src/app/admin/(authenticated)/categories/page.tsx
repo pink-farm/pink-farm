@@ -1,11 +1,13 @@
 import { getStoreProducts, getStoreSettings } from "@/lib/defaultProducts";
 import { AdminCategoriesClient } from "./AdminCategoriesClient";
+import { connection } from "next/server";
 
 export const instant = false;
 
 const DEFAULT_CATEGORIES = ["Makhana", "Nuts", "Pantry"];
 
 export default async function AdminCategoriesPage() {
+  await connection();
   const [settings, products] = await Promise.all([
     getStoreSettings(),
     getStoreProducts({ includeUnavailable: true }),

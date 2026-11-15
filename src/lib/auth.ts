@@ -1,10 +1,19 @@
 import { SignJWT, type JWTPayload } from "jose";
 import { createHmac, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { prisma } from "@/lib/db";
 import { ADMIN_EMAIL } from "@/lib/auth-constants";
 import { isAdminSession, isCustomerSession, nextAdminSessionIdleExpiry, verifySessionToken } from "@/lib/session-policy.mjs";
 export { ADMIN_EMAIL } from "@/lib/auth-constants";
+
+async function ensureConnection() {
+  try {
+    await connection();
+  } catch {
+    // No-op outside Next.js request context
+  }
+}
 
 function getEncodedKey() {
   const secret = process.env.SESSION_SECRET || (process.env.NODE_ENV === "development" ? "local-development-only-change-me-32-chars" : "");
@@ -61,6 +70,7 @@ export async function decrypt(session: string | undefined = "") {
 }
 
 export async function getSession(sessionValue?: string, cookieName: string = ADMIN_COOKIE_NAME) {
+  await ensureConnection();
   const cookieStore = await cookies();
   const session = sessionValue ?? cookieStore.get(cookieName)?.value;
   if (!session) return null;
@@ -97,6 +107,7 @@ export async function createSession(userId: string, role: "admin" | "customer") 
 }
 
 export async function getCustomerSession(sessionValue?: string) {
+  await ensureConnection();
   if (sessionValue) {
     const payload = await decrypt(sessionValue);
     if (payload && isCustomerSession(payload) && !(await isSessionRevoked(payload))) return payload;
