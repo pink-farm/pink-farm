@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+// Prevent multi-core thread exhaustion in containerized build environments (e.g. 48-core Hostinger builder)
+process.env.TOKIO_WORKER_THREADS = process.env.TOKIO_WORKER_THREADS || "1";
+process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || "2";
+
 const contentSecurityPolicy = (formAction: string, checkout = false) => {
   // NetBanking can open bank-owned HTTPS pages inside Razorpay's checkout flow.
   const paymentFrames = checkout ? "https:" : "https://razorpay.com https://*.razorpay.com";
@@ -13,6 +17,7 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
 
   experimental: {
+    cpus: 4,
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 
