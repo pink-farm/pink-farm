@@ -8,7 +8,7 @@
     "postbuild": "node scripts/prepare-standalone.js",
     "start": "next start",
     "start:standalone": "node .next/standalone/server.js",
-    "package:hostinger": "powershell -Command \"Compress-Archive -Path package.json, package-lock.json, next.config.ts, tsconfig.json, postcss.config.mjs, eslint.config.mjs, .env.example, src, public, prisma, scripts -DestinationPath hostinger-deploy.zip -Force\"",
+    "package:hostinger": "git archive -o hostinger-deploy.zip HEAD",
     "lint": "eslint",
     "test": "node --test",
     "db:generate": "prisma generate",
