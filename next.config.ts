@@ -8,6 +8,7 @@ const contentSecurityPolicy = (formAction: string, checkout = false) => {
 };
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
 

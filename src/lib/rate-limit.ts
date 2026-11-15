@@ -57,7 +57,8 @@ export async function consumeAuthRequestRateLimit(request: Request, scope: strin
   const identityResult = await consumeAuthRateLimit(`${scope}-identity`, identity, identityLimit, windowMs);
   if (!identityResult.allowed) return identityResult;
 
-  const clientIp = getTrustedClientIp(request, process.env.VERCEL === "1");
+  const isTrustedProxy = process.env.VERCEL === "1" || process.env.TRUST_PROXY === "1" || process.env.NODE_ENV === "production";
+  const clientIp = getTrustedClientIp(request, isTrustedProxy);
   if (!clientIp) return identityResult;
   const ipResult = await consumeAuthRateLimit(`${scope}-ip`, clientIp, ipLimit, windowMs);
   if (!ipResult.allowed) return ipResult;
