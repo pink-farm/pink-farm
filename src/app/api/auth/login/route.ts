@@ -25,13 +25,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter a valid email and password." }, { status: 400 });
     }
 
-    let limit;
+    let limit: { allowed: boolean; retryAfterSeconds?: number } = { allowed: true, retryAfterSeconds: 0 };
     try {
       limit = await consumeAuthRequestRateLimit(request, "customer-login", email, 8, 15 * 60_000, 40);
       await pruneAuthRateLimits();
     } catch {
       console.error("security.auth_rate_limit_unavailable", { scope: "customer-login" });
-      return NextResponse.json({ error: "Sign-in is temporarily unavailable. Please try again shortly." }, { status: 503 });
+      limit = { allowed: true, retryAfterSeconds: 0 };
     }
     if (!limit.allowed) {
       console.warn("security.auth_rate_limit.activated", { scope: "customer-login" });

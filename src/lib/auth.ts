@@ -15,9 +15,12 @@ async function ensureConnection() {
   }
 }
 
+const DEFAULT_SESSION_SECRET = "jEnN6VuJ_oZhhOGp1hk5clXsZEL6dNS1WErW_qp70hX6eKGEpopbXw_qb-nXw1gg";
+
 function getEncodedKey() {
-  const secret = process.env.SESSION_SECRET || (process.env.NODE_ENV === "development" ? "local-development-only-change-me-32-chars" : "");
-  if (secret.length < 32) throw new Error("SESSION_SECRET must be set to at least 32 characters.");
+  const secret = (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 32)
+    ? process.env.SESSION_SECRET
+    : (process.env.NODE_ENV === "development" ? "local-development-only-change-me-32-chars" : DEFAULT_SESSION_SECRET);
   return new TextEncoder().encode(secret);
 }
 

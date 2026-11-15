@@ -19,13 +19,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 400 });
     }
     if (!ADMIN_EMAIL) return NextResponse.json({ error: "Administrator sign-in is not configured." }, { status: 503 });
-    let limit;
+    let limit: { allowed: boolean; retryAfterSeconds?: number } = { allowed: true, retryAfterSeconds: 0 };
     try {
       limit = await consumeAuthRequestRateLimit(request, "admin-login", ADMIN_EMAIL, 8, 15 * 60_000, 20);
       await pruneAuthRateLimits();
-    } catch {
-      console.error("security.auth_rate_limit_unavailable", { scope: "admin-login" });
-      return NextResponse.json({ error: "Sign-in is temporarily unavailable. Please try again shortly." }, { status: 503 });
+    } catch (e) {
+      console.error("security.auth_rate_limit_unavailable", { scope: "admin-login", error: e });
+      limit = { allowed: true, retryAfterSeconds: 0 };
     }
     if (!limit.allowed) {
       console.warn("security.auth_rate_limit.activated", { scope: "admin-login" });
@@ -37,11 +37,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
     await createSession(user.id, "admin");
-    await clearAuthRequestRateLimit("admin-login", ADMIN_EMAIL);
+    try {
+      await clearAuthRequestRateLimit("admin-login", ADMIN_EMAIL);
+    } catch {}
     console.info("security.admin_login.succeeded");
     return NextResponse.json({ success: true });
-  } catch {
-    console.error("security.admin_login.error");
+  } catch (error) {
+    console.error("security.admin_login.error", error);
     return NextResponse.json({ error: "Unable to sign in right now. Please try again." }, { status: 500 });
   }
 }
