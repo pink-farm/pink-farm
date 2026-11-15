@@ -222,12 +222,12 @@ async function restoreDatabase() {
 
   console.log("Restoring products...");
   for (const item of productsToRestore) {
-    const { variants, ...prodData } = item;
+    const { id: preferredId, variants, ...prodData } = item;
     const existing = await prisma.product.findUnique({ where: { slug: prodData.slug } });
     let currentId = existing?.id;
 
     if (!existing) {
-      const created = await prisma.product.create({ data: prodData });
+      const created = await prisma.product.create({ data: { id: preferredId, ...prodData } });
       currentId = created.id;
       console.log(` Created product: ${prodData.name}`);
     } else {
@@ -237,13 +237,14 @@ async function restoreDatabase() {
 
     if (variants && currentId) {
       for (const variant of variants) {
+        const { id: _vid, ...variantData } = variant;
         const existingVariant = await prisma.productVariant.findFirst({
           where: { productId: currentId, packSize: variant.packSize },
         });
         if (!existingVariant) {
           await prisma.productVariant.create({
             data: {
-              ...variant,
+              ...variantData,
               productId: currentId,
             },
           });
